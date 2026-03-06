@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing — Roy</title>
+  <meta name="description" content="Simple, transparent pricing for artists, managers, and business managers. Get started for free — no credit card required." />
+
+  <!-- Favicon placeholder -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Shared stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ===== COOKIE BANNER ===== -->
+<div id="cookie-banner">
+  <p>We use cookies to improve your experience. <a href="#">Learn more</a></p>
+  <div class="cookie-btns">
+    <button class="cookie-accept" onclick="closeCookie('accept')">Accept</button>
+    <button class="cookie-deny" onclick="closeCookie('deny')">Deny</button>
+  </div>
+  <button class="cookie-close" onclick="closeCookie('close')">&times;</button>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-icon">🎵</div>
+      Roy
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="whos-it-for.html">Who it's for</a></li>
+      <li><a href="index.html#integrations">Integrations</a></li>
+      <li><a href="pricing.html" class="active">Pricing</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="#" class="nav-login">Log In</a>
+      <a href="#" class="btn-primary" style="padding:9px 18px; font-size:14px;">Get Started Free</a>
+    </div>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="index.html#features" onclick="toggleMenu()">Features</a>
+  <a href="whos-it-for.html" onclick="toggleMenu()">Who it's for</a>
+  <a href="index.html#integrations" onclick="toggleMenu()">Integrations</a>
+  <a href="pricing.html" onclick="toggleMenu()">Pricing</a>
+  <a href="#" onclick="toggleMenu()">Log In</a>
+  <a href="#" class="btn-primary" onclick="toggleMenu()">Get Started Free</a>
+</div>
+
+<!-- ===== PAGE HERO ===== -->
+<div class="page-hero">
+  <div class="container">
+    <div class="section-tag">Simple, Transparent Pricing</div>
+    <h1>Start free. <span>Upgrade when you're ready.</span></h1>
+    <p>No complicated tiers or hidden fees. Roy is free to get started, and scales with your career and team size.</p>
+  </div>
+</div>
+
+<!-- ===== PRICING CARDS ===== -->
+<section style="padding: 20px 24px 80px;">
+  <div class="pricing-grid container">
+
+    <!-- Free -->
+    <div class="pricing-card">
+      <div class="pricing-plan">Free</div>
+      <div class="pricing-price">$0</div>
+      <div class="pricing-period">Forever free · No credit card required</div>
+      <div class="pricing-features">
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Connect up to 3 royalty sources</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Basic dashboard &amp; earnings overview</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Issue detection (up to 5 issues)</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Email summary once per month</span>
+        </div>
+        <div class="pricing-feature" style="opacity:0.4">
+          <div class="pricing-check" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3)">—</div>
+          <span>Unlimited sources</span>
+        </div>
+        <div class="pricing-feature" style="opacity:0.4">
+          <div class="pricing-check" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3)">—</div>
+          <span>Guided issue resolution</span>
+        </div>
+        <div class="pricing-feature" style="opacity:0.4">
+          <div class="pricing-check" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3)">—</div>
+          <span>Export reports</span>
+        </div>
+      </div>
+      <a href="#" class="btn-outline" style="text-align:center;justify-content:center;">Get Started Free</a>
+    </div>
+
+    <!-- Pro (Featured) -->
+    <div class="pricing-card featured">
+      <div class="pricing-badge">Most Popular</div>
+      <div class="pricing-plan">Pro</div>
+      <div class="pricing-price">$12<span>/mo</span></div>
+      <div class="pricing-period">Billed monthly · Cancel anytime</div>
+      <div class="pricing-features">
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Unlimited royalty source connections</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Full dashboard with advanced analytics</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Unlimited issue detection &amp; tracking</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Guided issue resolution workflows</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Weekly email &amp; in-app summaries</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>CSV &amp; PDF report exports</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Payment calendar &amp; cash flow forecasting</span>
+        </div>
+      </div>
+      <a href="#" class="btn-primary" style="text-align:center;justify-content:center;">
+        Start Pro Free — 14 days
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <!-- Team -->
+    <div class="pricing-card">
+      <div class="pricing-plan">Team</div>
+      <div class="pricing-price">$39<span>/mo</span></div>
+      <div class="pricing-period">Up to 5 artists · Billed monthly</div>
+      <div class="pricing-features">
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Everything in Pro</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Multi-artist roster management</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Manager &amp; business manager access</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Role-based team permissions</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Consolidated roster reports</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Priority email support</span>
+        </div>
+        <div class="pricing-feature">
+          <div class="pricing-check">✓</div>
+          <span>Add additional artists at $8/mo each</span>
+        </div>
+      </div>
+      <a href="#" class="btn-outline" style="text-align:center;justify-content:center;">Start Team Trial</a>
+    </div>
+
+  </div>
+
+  <!-- Enterprise callout -->
+  <div style="max-width:680px;margin:40px auto 0;text-align:center;background:#111218;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:36px 32px">
+    <div style="font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8a8f9a;margin-bottom:12px">Enterprise</div>
+    <h3 style="font-size:24px;font-weight:700;margin-bottom:12px">Large roster or publishing company?</h3>
+    <p style="font-size:15px;color:#8a8f9a;margin-bottom:24px;line-height:1.65">We offer custom pricing for labels, publishers, and management companies with large catalogues or high royalty volumes. Get a dedicated account manager and custom integrations built for your workflow.</p>
+    <a href="#" class="btn-primary">
+      Contact Sales
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ===== COMPARISON TABLE ===== -->
+<section style="padding:40px 24px 80px;border-top:1px solid rgba(255,255,255,0.08)">
+  <div style="max-width:860px;margin:0 auto">
+    <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:700;letter-spacing:-0.02em;text-align:center;margin-bottom:40px">Compare plans</h2>
+
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:14px">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:14px 16px;color:#8a8f9a;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.08)">Feature</th>
+            <th style="text-align:center;padding:14px 16px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.08)">Free</th>
+            <th style="text-align:center;padding:14px 16px;font-weight:600;color:#00d47b;border-bottom:1px solid rgba(255,255,255,0.08)">Pro</th>
+            <th style="text-align:center;padding:14px 16px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.08)">Team</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <td style="padding:14px 16px;color:rgba(255,255,255,0.8)">Royalty source connections</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">Up to 3</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">Unlimited</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">Unlimited</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <td style="padding:14px 16px;color:rgba(255,255,255,0.8)">Issue detection</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">5 issues</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">Unlimited</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">Unlimited</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <td style="padding:14px 16px;color:rgba(255,255,255,0.8)">Guided issue resolution</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <td style="padding:14px 16px;color:rgba(255,255,255,0.8)">Report exports (CSV / PDF)</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <td style="padding:14px 16px;color:rgba(255,255,255,0.8)">Payment calendar &amp; forecasting</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <td style="padding:14px 16px;color:rgba(255,255,255,0.8)">Multi-artist roster</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <td style="padding:14px 16px;color:rgba(255,255,255,0.8)">Team member access</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+          </tr>
+          <tr>
+            <td style="padding:14px 16px;color:rgba(255,255,255,0.8)">Priority support</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#8a8f9a">—</td>
+            <td style="text-align:center;padding:14px 16px;color:#00d47b">✓</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="section-faq-callout">
+  <div class="faq-callout-inner container">
+    <div style="text-align:center;margin-bottom:48px">
+      <div class="section-tag">Pricing FAQs</div>
+      <h2 style="font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.02em;margin-bottom:12px">Questions about pricing</h2>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Can I try Pro for free?</div>
+      <div class="faq-answer">Yes — every paid plan comes with a 14-day free trial, no credit card required. You'll get full access to all Pro features and can downgrade to Free at any time.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">What happens if I go over my source limit on the Free plan?</div>
+      <div class="faq-answer">You'll be prompted to upgrade to Pro. Your existing connections and data are always preserved — you'll never lose your history.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Can I switch plans at any time?</div>
+      <div class="faq-answer">Yes. You can upgrade, downgrade, or cancel at any time from your account settings. If you downgrade mid-cycle, you'll retain Pro access until the end of the billing period.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Do you offer discounts for annual billing?</div>
+      <div class="faq-answer">Yes — annual billing saves you 2 months compared to paying monthly. Pro annually is $99/year (save $45). Team annually is $390/year (save $78).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BOTTOM CTA ===== -->
+<section class="section-cta">
+  <div class="container">
+    <div class="section-tag">Start for Free</div>
+    <h2>Your royalties are waiting. Go get them.</h2>
+    <p>Connect your accounts in minutes. Roy will show you exactly what you're earning — and what you're missing.</p>
+    <div class="cta-btns">
+      <a href="#" class="btn-primary">
+        Get Started — It's Free
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#" class="btn-outline">Talk to us</a>
+    </div>
+    <p style="margin-top:16px;font-size:13px;color:var(--text-muted)">No credit card required · Free to get started · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">🎵</div>
+          Roy
+        </div>
+        <p class="footer-tagline">Mint for Music Royalties. Every dollar, tracked.</p>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="index.html">Home</a>
+          <a href="index.html#features">Features</a>
+          <a href="whos-it-for.html">Who it's for</a>
+          <a href="index.html#integrations">Integrations</a>
+          <a href="pricing.html">Pricing</a>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <a href="#">Blog</a>
+          <a href="#">Help Center</a>
+          <a href="#">Royalty Guide</a>
+          <a href="#">Changelog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Partners</a>
+          <a href="#">Contact</a>
+          <a href="#">info@useroy.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2026 Roy. All rights reserved. &nbsp;·&nbsp; <a href="#" style="color:var(--text-muted);transition:color 0.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">Privacy Policy</a> &nbsp;·&nbsp; <a href="#" style="color:var(--text-muted);transition:color 0.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">Terms of Service</a></p>
+      <div class="footer-socials">
+        <a href="#" class="social-link" title="TikTok">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.24 8.24 0 004.82 1.54V6.78a4.85 4.85 0 01-1.05-.09z"/></svg>
+        </a>
+        <a href="#" class="social-link" title="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="social-link" title="Twitter / X">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

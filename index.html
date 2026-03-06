@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roy — Mint for Music Royalties</title>
+  <meta name="description" content="Roy connects all your royalty accounts in one place. Sync your PROs, distributors, MLC, and more. Never miss a dollar again." />
+
+  <!-- Favicon placeholder -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Shared stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #05060a;
+      color: #fff;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+    ul { list-style: none; }
+
+    /* ===== VARIABLES ===== */
+    :root {
+      --green: #00d47b;
+      --green-dark: #00b869;
+      --bg: #05060a;
+      --bg2: #0c0d13;
+      --bg3: #111218;
+      --border: rgba(255,255,255,0.08);
+      --text-muted: #8a8f9a;
+      --max-width: 1200px;
+    }
+
+    /* ===== UTILITIES ===== */
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+    .text-green { color: var(--green); }
+    .pill {
+      display: inline-block;
+      background: rgba(0,212,123,0.12);
+      color: var(--green);
+      border: 1px solid rgba(0,212,123,0.25);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green);
+      color: #000;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: #fff;
+      font-weight: 500;
+      font-size: 15px;
+      padding: 11px 22px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); }
+    .section-tag {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 12px;
+    }
+
+    /* ===== COOKIE BANNER ===== */
+    #cookie-banner {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #181a22;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 9999;
+      max-width: 600px;
+      width: calc(100% - 40px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+    #cookie-banner p { font-size: 13px; color: #ccc; flex: 1; }
+    #cookie-banner a { color: var(--green); text-decoration: underline; }
+    .cookie-btns { display: flex; gap: 8px; flex-shrink: 0; }
+    .cookie-btns button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+    }
+    .cookie-accept { background: var(--green); color: #000; }
+    .cookie-deny { background: rgba(255,255,255,0.1); color: #fff; }
+    .cookie-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    /* ===== NAVBAR ===== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(5,6,10,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px;
+      background: var(--green);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .nav-login { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); transition: color 0.2s; }
+    .nav-login:hover { color: #fff; }
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(5,6,10,0.97);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      z-index: 99;
+    }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a {
+      display: block;
+      padding: 12px 0;
+      font-size: 16px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.8);
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-menu a:last-child { border-bottom: none; }
+    .mobile-menu .btn-primary { margin-top: 16px; width: 100%; justify-content: center; }
+
+    /* ===== ANNOUNCEMENT BANNER ===== */
+    .announcement {
+      background: rgba(0,212,123,0.08);
+      border-bottom: 1px solid rgba(0,212,123,0.15);
+      text-align: center;
+      padding: 10px 24px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+      margin-top: 64px;
+    }
+    .announcement a {
+      color: var(--green);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+    .announcement a:hover { text-decoration: underline; }
+
+    /* ===== HERO ===== */
+    .hero {
+      padding: 80px 24px 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 600px;
+      background: radial-gradient(ellipse, rgba(0,212,123,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow { margin-bottom: 20px; }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 68px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      max-width: 900px;
+      margin: 0 auto 24px;
+    }
+    .hero h1 span { color: var(--green); }
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .hero-video-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .hero-video-link:hover { color: #fff; }
+    .play-icon {
+      width: 32px; height: 32px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .hero-video-link:hover .play-icon { background: rgba(255,255,255,0.18); }
+
+    /* ===== HERO DASHBOARD MOCKUP ===== */
+    .hero-mockup {
+      max-width: 1000px;
+      margin: 60px auto 0;
+      position: relative;
+    }
+    .mockup-browser {
+      background: #111218;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .mockup-bar {
+      background: #1a1b22;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .mockup-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .mockup-dot:nth-child(1) { background: #ff5f57; }
+    .mockup-dot:nth-child(2) { background: #febc2e; }
+    .mockup-dot:nth-child(3) { background: #28c840; }
+    .mockup-url {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0 12px;
+    }
+    .mockup-body {
+      padding: 24px;
+      min-height: 340px;
+      background: #0c0d13;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 20px;
+    }
+    .mockup-sidebar {
+      background: #111218;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+    .mockup-sidebar-logo {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mockup-nav-item {
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .mockup-nav-item.active { background: rgba(0,212,123,0.1); color: var(--green); }
+    .mockup-content { display: flex; flex-direction: column; gap: 16px; }
+    .mockup-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .mockup-stat {
+      background: #111218;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .mockup-stat-label { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .mockup-stat-val { font-size: 18px; font-weight: 700; color: #fff; }
+    .mockup-stat-val.green { color: var(--green); }
+    .mockup-chart-area {
+      background: #111218;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      flex: 1;
+    }
+    .mockup-chart-label { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+    .mockup-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+    .mockup-bar-item {
+      flex: 1;
+      background: rgba(0,212,123,0.2);
+      border-radius: 3px 3px 0 0;
+      transition: background 0.2s;
+    }
+    .mockup-bar-item:nth-child(2) { height: 55%; }
+    .mockup-bar-item:nth-child(3) { height: 70%; }
+    .mockup-bar-item:nth-child(4) { height: 45%; }
+    .mockup-bar-item:nth-child(5) { height: 85%; }
+    .mockup-bar-item:nth-child(6) { height: 60%; }
+    .mockup-bar-item:nth-child(7) { height: 90%; background: var(--green); }
+    .mockup-bar-item:nth-child(8) { height: 75%; }
+    .mockup-bar-item:nth-child(9) { height: 65%; }
+    .mockup-bar-item:nth-child(10) { height: 80%; }
+    .mockup-bar-item:nth-child(11) { height: 95%; background: rgba(0,212,123,0.4); }
+    .mockup-bar-item:nth-child(12) { height: 72%; }
+
+    /* ===== REGISTER SECTION ===== */
+    .section-register {
+      padding: 80px 24px;
+      text-align: center;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .section-register h2 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      max-width: 700px;
+      margin: 0 auto 16px;
+      line-height: 1.2;
+    }
+    .section-register p {
+      color: var(--text-muted);
+      font-size: 17px;
+      max-width: 500px;
+      margin: 0 auto 36px;
+    }
+    .integration-chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      max-width: 700px;
+      margin: 40px auto 0;
+    }
+    .chip {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .chip:hover { border-color: var(--green); color: var(--green); }
+
+    /* ===== STATS HEADLINE ===== */
+    .section-stat-headline {
+      padding: 80px 24px;
+      text-align: center;
+    }
+    .stat-headline-text {
+      font-size: clamp(22px, 3.5vw, 36px);
+      font-weight: 600;
+      line-height: 1.4;
+      max-width: 860px;
+      margin: 0 auto;
+      color: rgba(255,255,255,0.9);
+    }
+    .stat-headline-text strong { color: #fff; }
+
+    /* ===== FEATURES ===== */
+    .section-feature {
+      padding: 80px 24px;
+      border-top: 1px solid var(--border);
+    }
+    .feature-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .feature-inner.reverse { direction: rtl; }
+    .feature-inner.reverse > * { direction: ltr; }
+    .feature-content {}
+    .feature-content h2 {
+      font-size: clamp(26px, 3.5vw, 42px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .feature-content p {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.75;
+      margin-bottom: 28px;
+    }
+    .feature-bullets { display: flex; flex-direction: column; gap: 12px; }
+    .feature-bullet {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+    .bullet-check {
+      width: 18px; height: 18px;
+      background: rgba(0,212,123,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 10px;
+      color: var(--green);
+    }
+    .feature-visual {
+      background: #111218;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .feature-visual-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* Feature Visual Variants */
+    .fv-portal { }
+    .fv-cards { display: flex; flex-direction: column; gap: 10px; }
+    .fv-card {
+      background: #181a22;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .fv-card-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .fv-card-info { flex: 1; }
+    .fv-card-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .fv-card-sub { font-size: 11px; color: var(--text-muted); }
+    .fv-card-val { font-size: 14px; font-weight: 700; color: var(--green); }
+    .fv-card-status {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+    .fv-card-status.warning { background: #f59e0b; }
+
+    .fv-issues { }
+    .issue-row {
+      background: #181a22;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .issue-icon { font-size: 18px; flex-shrink: 0; }
+    .issue-info { flex: 1; }
+    .issue-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .issue-desc { font-size: 11px; color: var(--text-muted); }
+    .issue-badge {
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-warn { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .badge-err { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .badge-ok { background: rgba(0,212,123,0.15); color: var(--green); }
+
+    .fv-timeline { }
+    .timeline-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .timeline-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .timeline-dot.upcoming { background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.2); }
+    .timeline-line {
+      position: relative;
+      height: 24px;
+      display: flex;
+      align-items: center;
+    }
+    .timeline-info { flex: 1; }
+    .timeline-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+    .timeline-date { font-size: 11px; color: var(--text-muted); }
+    .timeline-amount { font-size: 13px; font-weight: 700; color: var(--green); }
+
+    /* ===== COUNTER SECTION ===== */
+    .section-counter {
+      padding: 80px 24px;
+      text-align: center;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .counter-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .counter-headline {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .counter-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 500px;
+      margin: 0 auto 40px;
+    }
+    .counter-number {
+      font-size: clamp(48px, 8vw, 90px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--green);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ===== TESTIMONIALS ===== */
+    .section-testimonials {
+      padding: 80px 24px;
+    }
+    .testimonials-header { text-align: center; margin-bottom: 48px; }
+    .testimonials-header h2 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .testimonials-header p { font-size: 16px; color: var(--text-muted); }
+    .testimonials-grid {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .testimonial-card {
+      background: #111218;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: border-color 0.3s;
+    }
+    .testimonial-card:hover { border-color: rgba(0,212,123,0.3); }
+    .testimonial-stars { color: var(--green); font-size: 14px; margin-bottom: 14px; letter-spacing: 2px; }
+    .testimonial-quote {
+      font-size: 15px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 20px;
+    }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .testimonial-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green) 0%, #0099aa 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #000;
+      flex-shrink: 0;
+    }
+    .testimonial-name { font-size: 14px; font-weight: 600; }
+    .testimonial-role { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ===== LOGOS SCROLLER ===== */
+    .section-logos {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .logos-label {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .logos-track-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+    .logos-track-wrapper::before,
+    .logos-track-wrapper::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 120px;
+      z-index: 2;
+    }
+    .logos-track-wrapper::before { left: 0; background: linear-gradient(to right, var(--bg) 0%, transparent 100%); }
+    .logos-track-wrapper::after { right: 0; background: linear-gradient(to left, var(--bg) 0%, transparent 100%); }
+    .logos-track {
+      display: flex;
+      gap: 0;
+      animation: scroll-logos 28s linear infinite;
+      width: max-content;
+    }
+    .logos-track:hover { animation-play-state: paused; }
+    @keyframes scroll-logos {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .logo-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 40px;
+      white-space: nowrap;
+    }
+    .logo-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .logo-item:hover .logo-name { color: rgba(255,255,255,0.5); }
+
+    /* ===== CTA SECTION ===== */
+    .section-cta {
+      padding: 100px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .section-cta::before {
+      content: '';
+      position: absolute;
+      bottom: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 500px;
+      background: radial-gradient(ellipse, rgba(0,212,123,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .section-cta h2 {
+      font-size: clamp(30px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      max-width: 700px;
+      margin: 0 auto 20px;
+    }
+    .section-cta p {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto 40px;
+    }
+    .cta-btns { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 60px 24px 40px;
+    }
+    .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 60px;
+      margin-bottom: 48px;
+    }
+    .footer-brand {}
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .footer-logo-icon {
+      width: 28px; height: 28px;
+      background: var(--green);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .footer-tagline { font-size: 13px; color: var(--text-muted); line-height: 1.5; max-width: 180px; }
+    .footer-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+    .footer-col h4 { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+    .footer-col a {
+      display: block;
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      padding: 4px 0;
+      transition: color 0.2s;
+    }
+    .footer-col a:hover { color: #fff; }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+    .footer-socials { display: flex; gap: 16px; }
+    .social-link {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      transition: background 0.2s;
+    }
+    .social-link:hover { background: rgba(255,255,255,0.12); }
+
+    /* ===== VIDEO MODAL ===== */
+    .video-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 9998;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-modal.open { display: flex; }
+    .video-modal-inner {
+      position: relative;
+      width: 90%;
+      max-width: 840px;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .video-modal-close {
+      position: absolute;
+      top: -40px; right: 0;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      font-size: 28px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .video-placeholder {
+      aspect-ratio: 16/9;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .video-placeholder-icon {
+      width: 72px; height: 72px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #000;
+    }
+    .video-placeholder p { font-size: 15px; color: var(--text-muted); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 991px) {
+      .nav-links { display: none; }
+      .nav-actions .btn-primary { display: none; }
+      .hamburger { display: flex; }
+      .feature-inner { grid-template-columns: 1fr; gap: 40px; }
+      .feature-inner.reverse { direction: ltr; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; gap: 40px; }
+      .footer-nav { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 767px) {
+      .mockup-body { grid-template-columns: 1fr; }
+      .mockup-sidebar { display: none; }
+      .mockup-stat-row { grid-template-columns: repeat(2, 1fr); }
+      .footer-nav { grid-template-columns: 1fr; gap: 24px; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 479px) {
+      .mockup-stat-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== COOKIE BANNER ===== -->
+<div id="cookie-banner">
+  <p>We use cookies to improve your experience. <a href="#">Learn more</a></p>
+  <div class="cookie-btns">
+    <button class="cookie-accept" onclick="closeCookie('accept')">Accept</button>
+    <button class="cookie-deny" onclick="closeCookie('deny')">Deny</button>
+  </div>
+  <button class="cookie-close" onclick="closeCookie('close')">&times;</button>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-icon">🎵</div>
+      Roy
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="whos-it-for.html">Who it's for</a></li>
+      <li><a href="#integrations">Integrations</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="#" class="nav-login">Log In</a>
+      <a href="#" class="btn-primary" style="padding:9px 18px; font-size:14px;">Get Started Free</a>
+    </div>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#features" onclick="toggleMenu()">Features</a>
+  <a href="whos-it-for.html" onclick="toggleMenu()">Who it's for</a>
+  <a href="#integrations" onclick="toggleMenu()">Integrations</a>
+  <a href="pricing.html" onclick="toggleMenu()">Pricing</a>
+  <a href="#" onclick="toggleMenu()">Log In</a>
+  <a href="#" class="btn-primary" onclick="toggleMenu()">Get Started Free</a>
+</div>
+
+<!-- ===== ANNOUNCEMENT BANNER ===== -->
+<div class="announcement">
+  🎉 Introducing Roy — <a href="#">the simplest way for artists to track every royalty dollar they've earned →</a>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="home">
+  <div class="container">
+    <div class="hero-eyebrow">
+      <span class="pill">Mint for Music Royalties</span>
+    </div>
+    <h1>Never miss a <span>royalty</span> payment again</h1>
+    <p class="hero-sub">Roy connects all your PRO, distributor, and publishing accounts in one place — so you always know exactly what you've earned and what's missing.</p>
+    <div class="hero-ctas">
+      <a href="#" class="btn-primary">
+        Get Started Free
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#" class="hero-video-link" onclick="openVideo(); return false;">
+        <div class="play-icon">▶</div>
+        See Roy in action
+      </a>
+    </div>
+
+    <!-- Dashboard Mockup -->
+    <div class="hero-mockup">
+      <div class="mockup-browser">
+        <div class="mockup-bar">
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <div class="mockup-url">app.useroy.com — Dashboard</div>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-sidebar">
+            <div class="mockup-sidebar-logo">🎵 Roy</div>
+            <div class="mockup-nav-item active">📊 Dashboard</div>
+            <div class="mockup-nav-item">💰 Royalties</div>
+            <div class="mockup-nav-item">🎵 Catalogue</div>
+            <div class="mockup-nav-item">🔗 Accounts</div>
+            <div class="mockup-nav-item">⚠️ Issues</div>
+            <div class="mockup-nav-item">📅 Payments</div>
+            <div class="mockup-nav-item">⚙️ Settings</div>
+          </div>
+          <div class="mockup-content">
+            <div class="mockup-stat-row">
+              <div class="mockup-stat">
+                <div class="mockup-stat-label">Total Earned</div>
+                <div class="mockup-stat-val green">$24,817</div>
+              </div>
+              <div class="mockup-stat">
+                <div class="mockup-stat-label">Pending Payout</div>
+                <div class="mockup-stat-val">$3,240</div>
+              </div>
+              <div class="mockup-stat">
+                <div class="mockup-stat-label">Active Sources</div>
+                <div class="mockup-stat-val">7 / 9</div>
+              </div>
+            </div>
+            <div class="mockup-chart-area">
+              <div class="mockup-chart-label">Monthly Royalties — Last 12 Months</div>
+              <div class="mockup-bars">
+                <div class="mockup-bar-item" style="height:40%"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+                <div class="mockup-bar-item"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== REGISTER SECTION ===== -->
+<section class="section-register" id="integrations">
+  <div class="container">
+    <div class="section-tag">One Account. Every Platform.</div>
+    <h2>Connect all your royalty sources. Keep 100% of what's yours.</h2>
+    <p>Roy integrates with every major PRO, distributor, and publishing platform — so nothing slips through the cracks.</p>
+    <a href="#" class="btn-primary">
+      Connect Your Accounts
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+    <div class="integration-chips">
+      <span class="chip">ASCAP</span>
+      <span class="chip">BMI</span>
+      <span class="chip">SESAC</span>
+      <span class="chip">SoundExchange</span>
+      <span class="chip">MLC</span>
+      <span class="chip">DistroKid</span>
+      <span class="chip">CD Baby</span>
+      <span class="chip">TuneCore</span>
+      <span class="chip">Songtrust</span>
+      <span class="chip">AWAL</span>
+      <span class="chip">Spotify for Artists</span>
+      <span class="chip">Apple Music</span>
+      <span class="chip">YouTube Music</span>
+      <span class="chip">Amazon Music</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STATS HEADLINE ===== -->
+<section class="section-stat-headline">
+  <div class="container">
+    <p class="stat-headline-text">
+      <strong>Over 80% of independent artists are missing royalty payments</strong> they've already earned — because their accounts aren't set up, registered, or linked properly. Roy finds the gaps and fixes them automatically.
+    </p>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="section-feature" id="features">
+  <div class="feature-inner container">
+    <div class="feature-content">
+      <div class="section-tag">One Portal</div>
+      <h2>Every royalty stream, in a single dashboard</h2>
+      <p>Stop logging into 10 different portals to piece together what you've earned. Roy pulls everything together — PRO royalties, streaming income, sync licensing, and more — and shows it all in one clear view.</p>
+      <div class="feature-bullets">
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Real-time sync from all connected accounts</span>
+        </div>
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Breakdown by source: PRO, streaming, sync, mechanical</span>
+        </div>
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Unified payment calendar and payout history</span>
+        </div>
+      </div>
+    </div>
+    <div class="feature-visual fv-portal">
+      <div class="feature-visual-label">Connected Sources</div>
+      <div class="fv-cards">
+        <div class="fv-card">
+          <div class="fv-card-icon" style="background:rgba(0,212,123,0.1)">🏢</div>
+          <div class="fv-card-info">
+            <div class="fv-card-name">ASCAP</div>
+            <div class="fv-card-sub">Last sync: 2 hours ago</div>
+          </div>
+          <div class="fv-card-val">$1,240</div>
+          <div class="fv-card-status"></div>
+        </div>
+        <div class="fv-card">
+          <div class="fv-card-icon" style="background:rgba(99,102,241,0.1)">🎵</div>
+          <div class="fv-card-info">
+            <div class="fv-card-name">DistroKid</div>
+            <div class="fv-card-sub">Last sync: 5 hours ago</div>
+          </div>
+          <div class="fv-card-val">$892</div>
+          <div class="fv-card-status"></div>
+        </div>
+        <div class="fv-card">
+          <div class="fv-card-icon" style="background:rgba(245,158,11,0.1)">📡</div>
+          <div class="fv-card-info">
+            <div class="fv-card-name">SoundExchange</div>
+            <div class="fv-card-sub">Last sync: 1 day ago</div>
+          </div>
+          <div class="fv-card-val">$340</div>
+          <div class="fv-card-status warning"></div>
+        </div>
+        <div class="fv-card">
+          <div class="fv-card-icon" style="background:rgba(0,212,123,0.1)">📜</div>
+          <div class="fv-card-info">
+            <div class="fv-card-name">MLC</div>
+            <div class="fv-card-sub">Last sync: 3 hours ago</div>
+          </div>
+          <div class="fv-card-val">$218</div>
+          <div class="fv-card-status"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-feature">
+  <div class="feature-inner container reverse">
+    <div class="feature-content">
+      <div class="section-tag">Identify Issues</div>
+      <h2>Spot the gaps before you lose money</h2>
+      <p>Roy automatically audits your catalogue against every platform you're connected to — flagging missing registrations, unmatched works, and unclaimed royalties before they expire.</p>
+      <div class="feature-bullets">
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Automatic catalogue audit across all platforms</span>
+        </div>
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Alerts for missing ISWC/ISRC registrations</span>
+        </div>
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Unclaimed royalty detection with estimated value</span>
+        </div>
+      </div>
+    </div>
+    <div class="feature-visual fv-issues">
+      <div class="feature-visual-label">Detected Issues</div>
+      <div class="issue-row">
+        <div class="issue-icon">⚠️</div>
+        <div class="issue-info">
+          <div class="issue-title">Missing ISWC — "Golden Hour"</div>
+          <div class="issue-desc">Not registered with ASCAP or BMI</div>
+        </div>
+        <span class="issue-badge badge-err">Action needed</span>
+      </div>
+      <div class="issue-row">
+        <div class="issue-icon">💸</div>
+        <div class="issue-info">
+          <div class="issue-title">Unclaimed mechanical — 3 tracks</div>
+          <div class="issue-desc">Est. $640 waiting at MLC</div>
+        </div>
+        <span class="issue-badge badge-warn">Claim now</span>
+      </div>
+      <div class="issue-row">
+        <div class="issue-icon">🔗</div>
+        <div class="issue-info">
+          <div class="issue-title">Account not linked — SoundExchange</div>
+          <div class="issue-desc">Digital performance royalties uncollected</div>
+        </div>
+        <span class="issue-badge badge-warn">Connect</span>
+      </div>
+      <div class="issue-row">
+        <div class="issue-icon">✅</div>
+        <div class="issue-info">
+          <div class="issue-title">BMI Registration — "Midnight Run"</div>
+          <div class="issue-desc">Verified and collecting</div>
+        </div>
+        <span class="issue-badge badge-ok">Resolved</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-feature">
+  <div class="feature-inner container">
+    <div class="feature-content">
+      <div class="section-tag">Fix Issues &amp; Get Paid</div>
+      <h2>We don't just find the problems — we fix them</h2>
+      <p>Roy's guided workflows walk you through fixing registration issues, claiming uncollected royalties, and submitting corrections to PROs and distributors — right from within the app.</p>
+      <div class="feature-bullets">
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Step-by-step guided resolution flows</span>
+        </div>
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Direct integration with platform registration portals</span>
+        </div>
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Track status of open claims and submissions</span>
+        </div>
+      </div>
+    </div>
+    <div class="feature-visual">
+      <div class="feature-visual-label">Fix Progress</div>
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:600">Registrations complete</span>
+          <span style="font-size:13px;color:var(--green);font-weight:700">8 / 11</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:100px;height:6px;overflow:hidden">
+          <div style="background:var(--green);height:100%;width:73%;border-radius:100px"></div>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:600">Unclaimed royalties claimed</span>
+          <span style="font-size:13px;color:var(--green);font-weight:700">$1,820 of $2,300</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:100px;height:6px;overflow:hidden">
+          <div style="background:var(--green);height:100%;width:79%;border-radius:100px"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:600">Accounts linked</span>
+          <span style="font-size:13px;color:var(--green);font-weight:700">7 / 9</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:100px;height:6px;overflow:hidden">
+          <div style="background:var(--green);height:100%;width:78%;border-radius:100px"></div>
+        </div>
+      </div>
+      <div style="margin-top:20px;padding:14px;background:#181a22;border:1px solid var(--border);border-radius:8px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Estimated recovered earnings</div>
+        <div style="font-size:24px;font-weight:700;color:var(--green)">+$3,640</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-feature">
+  <div class="feature-inner container reverse">
+    <div class="feature-content">
+      <div class="section-tag">Stay on Track</div>
+      <h2>Know exactly when your next payment is coming</h2>
+      <p>Roy gives you a full payment calendar across all your royalty sources — so you can anticipate cash flow, track late payments, and never be surprised by your next payout.</p>
+      <div class="feature-bullets">
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Unified payout calendar for all sources</span>
+        </div>
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Alerts for upcoming and overdue payments</span>
+        </div>
+        <div class="feature-bullet">
+          <div class="bullet-check">✓</div>
+          <span>Historical trend charts and earnings forecasts</span>
+        </div>
+      </div>
+    </div>
+    <div class="feature-visual fv-timeline">
+      <div class="feature-visual-label">Upcoming Payments</div>
+      <div class="timeline-row">
+        <div class="timeline-dot"></div>
+        <div class="timeline-info">
+          <div class="timeline-name">ASCAP — Q1 2026</div>
+          <div class="timeline-date">March 15, 2026</div>
+        </div>
+        <div class="timeline-amount">$1,240</div>
+      </div>
+      <div style="border-left:2px dashed rgba(0,212,123,0.3);margin:0 4px;height:16px"></div>
+      <div class="timeline-row">
+        <div class="timeline-dot"></div>
+        <div class="timeline-info">
+          <div class="timeline-name">DistroKid — March</div>
+          <div class="timeline-date">March 20, 2026</div>
+        </div>
+        <div class="timeline-amount">$892</div>
+      </div>
+      <div style="border-left:2px dashed rgba(0,212,123,0.3);margin:0 4px;height:16px"></div>
+      <div class="timeline-row">
+        <div class="timeline-dot upcoming"></div>
+        <div class="timeline-info">
+          <div class="timeline-name">SoundExchange — Q1</div>
+          <div class="timeline-date">April 1, 2026 (est.)</div>
+        </div>
+        <div class="timeline-amount" style="color:var(--text-muted)">~$340</div>
+      </div>
+      <div style="border-left:2px dashed rgba(255,255,255,0.1);margin:0 4px;height:16px"></div>
+      <div class="timeline-row">
+        <div class="timeline-dot upcoming"></div>
+        <div class="timeline-info">
+          <div class="timeline-name">BMI — Q1 2026</div>
+          <div class="timeline-date">April 15, 2026 (est.)</div>
+        </div>
+        <div class="timeline-amount" style="color:var(--text-muted)">~$580</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COUNTER SECTION ===== -->
+<section class="section-counter">
+  <div class="container">
+    <div class="counter-label">Royalties tracked for artists</div>
+    <div class="counter-headline">Billions in uncollected royalties — we're finding them.</div>
+    <div class="counter-sub">The music industry loses an estimated $2.65B in unclaimed royalties every year. Roy is here to change that.</div>
+    <div class="counter-number" id="counter">$0</div>
+    <p style="margin-top:12px;font-size:14px;color:var(--text-muted)">tracked across our artist community</p>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="section-testimonials" id="for-who">
+  <div class="testimonials-header">
+    <div class="section-tag">Loved by Creators</div>
+    <h2>Artists are finally getting paid what they deserve</h2>
+    <p>Hear from independent artists, producers, and songwriters who use Roy every day.</p>
+  </div>
+  <div class="testimonials-grid container">
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <div class="testimonial-quote">"I had no idea I was leaving thousands of dollars on the table every year. Roy connected all my accounts in 10 minutes and showed me exactly what I was missing. Game-changing for any independent artist."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">TM</div>
+        <div>
+          <div class="testimonial-name">Tracy Maddux</div>
+          <div class="testimonial-role">Former CEO, CD Baby</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <div class="testimonial-quote">"As a producer and songwriter, I've got royalties flowing from so many different places — PROs, streaming, sync deals. Roy finally makes it manageable. The issue detection alone has recovered thousands for me."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">IA</div>
+        <div>
+          <div class="testimonial-name">Isaiah Avila</div>
+          <div class="testimonial-role">Producer &amp; Songwriter — Usher, Macy Gray</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <div class="testimonial-quote">"Touring bands have zero time to manage royalties. Roy handles it all in the background. We set it up once and now we actually see everything we're earning from our catalogue — without thinking about it."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">AA</div>
+        <div>
+          <div class="testimonial-name">Attack Attack!</div>
+          <div class="testimonial-role">Rock Band</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <div class="testimonial-quote">"The dashboard is clean, fast, and shows me everything I need at a glance. I used to dread checking my royalty accounts. Now I actually look forward to seeing Roy's weekly summary in my inbox."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">B</div>
+        <div>
+          <div class="testimonial-name">Besomorph</div>
+          <div class="testimonial-role">Electronic Music Producer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LOGOS SCROLLER ===== -->
+<section class="section-logos">
+  <div class="logos-label">Works with all major platforms</div>
+  <div class="logos-track-wrapper">
+    <div class="logos-track" id="logos-track">
+      <!-- Duplicated for infinite scroll illusion -->
+      <div class="logo-item"><span class="logo-name">ASCAP</span></div>
+      <div class="logo-item"><span class="logo-name">BMI</span></div>
+      <div class="logo-item"><span class="logo-name">SESAC</span></div>
+      <div class="logo-item"><span class="logo-name">SoundExchange</span></div>
+      <div class="logo-item"><span class="logo-name">MLC</span></div>
+      <div class="logo-item"><span class="logo-name">DistroKid</span></div>
+      <div class="logo-item"><span class="logo-name">CD Baby</span></div>
+      <div class="logo-item"><span class="logo-name">TuneCore</span></div>
+      <div class="logo-item"><span class="logo-name">Songtrust</span></div>
+      <div class="logo-item"><span class="logo-name">AWAL</span></div>
+      <div class="logo-item"><span class="logo-name">Spotify</span></div>
+      <div class="logo-item"><span class="logo-name">Apple Music</span></div>
+      <!-- Duplicate set -->
+      <div class="logo-item"><span class="logo-name">ASCAP</span></div>
+      <div class="logo-item"><span class="logo-name">BMI</span></div>
+      <div class="logo-item"><span class="logo-name">SESAC</span></div>
+      <div class="logo-item"><span class="logo-name">SoundExchange</span></div>
+      <div class="logo-item"><span class="logo-name">MLC</span></div>
+      <div class="logo-item"><span class="logo-name">DistroKid</span></div>
+      <div class="logo-item"><span class="logo-name">CD Baby</span></div>
+      <div class="logo-item"><span class="logo-name">TuneCore</span></div>
+      <div class="logo-item"><span class="logo-name">Songtrust</span></div>
+      <div class="logo-item"><span class="logo-name">AWAL</span></div>
+      <div class="logo-item"><span class="logo-name">Spotify</span></div>
+      <div class="logo-item"><span class="logo-name">Apple Music</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BOTTOM CTA ===== -->
+<section class="section-cta" id="pricing">
+  <div class="container">
+    <div class="section-tag">Start for Free</div>
+    <h2>Your royalties are waiting. Go get them.</h2>
+    <p>Connect your accounts in minutes. Roy will show you exactly what you're earning — and what you're missing.</p>
+    <div class="cta-btns">
+      <a href="#" class="btn-primary">
+        Get Started — It's Free
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#" class="btn-outline">Talk to us</a>
+    </div>
+    <p style="margin-top:16px;font-size:13px;color:var(--text-muted)">No credit card required · Free to get started · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">🎵</div>
+          Roy
+        </div>
+        <p class="footer-tagline">Mint for Music Royalties. Every dollar, tracked.</p>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="index.html">Home</a>
+          <a href="#features">Features</a>
+          <a href="whos-it-for.html">Who it's for</a>
+          <a href="#integrations">Integrations</a>
+          <a href="pricing.html">Pricing</a>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <a href="#">Blog</a>
+          <a href="#">Help Center</a>
+          <a href="#">Royalty Guide</a>
+          <a href="#">Changelog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Partners</a>
+          <a href="#">Contact</a>
+          <a href="#">info@useroy.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2026 Roy. All rights reserved. &nbsp;·&nbsp; <a href="#" style="color:var(--text-muted);transition:color 0.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">Privacy Policy</a> &nbsp;·&nbsp; <a href="#" style="color:var(--text-muted);transition:color 0.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">Terms of Service</a></p>
+      <div class="footer-socials">
+        <a href="#" class="social-link" title="TikTok">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.24 8.24 0 004.82 1.54V6.78a4.85 4.85 0 01-1.05-.09z"/></svg>
+        </a>
+        <a href="#" class="social-link" title="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="social-link" title="Twitter / X">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== VIDEO MODAL ===== -->
+<div class="video-modal" id="video-modal" onclick="closeVideo(event)">
+  <div class="video-modal-inner">
+    <button class="video-modal-close" onclick="closeVideo(null)">×</button>
+    <div class="video-placeholder">
+      <div class="video-placeholder-icon">▶</div>
+      <p>Product demo video coming soon</p>
+    </div>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>
