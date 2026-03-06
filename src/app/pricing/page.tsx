@@ -16,13 +16,6 @@ const CheckIcon = () => (
   </svg>
 );
 
-const CheckIconDark = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="10" stroke="rgba(0,0,0,0.5)" strokeWidth="1.75" />
-    <path d="M7.5 12L10.5 15L16.5 9" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 const DashIcon = () => (
   <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "18px", lineHeight: 1 }}>—</span>
 );
@@ -128,7 +121,15 @@ export default function PricingPage() {
 
         {/* ── Unified pricing table ─────────────── */}
         <section style={{ padding: "0 24px 80px" }}>
-          <div style={{ maxWidth: "1050px", margin: "0 auto", overflowX: "auto" }}>
+          <div
+            style={{
+              maxWidth: "1050px",
+              margin: "0 auto",
+              overflowX: "auto",
+              overflowY: "visible",
+              paddingTop: "20px",
+            }}
+          >
             <div
               style={{
                 display: "grid",
@@ -145,8 +146,11 @@ export default function PricingPage() {
               <div
                 style={{
                   padding: "28px 20px 24px",
+                  background: "#0c0d13",
                   borderLeft: "1px solid rgba(255,255,255,0.08)",
                   borderTop: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px 12px 0 0",
+                  color: "#fff",
                 }}
               >
                 <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "6px" }}>
@@ -235,8 +239,12 @@ export default function PricingPage() {
               <div
                 style={{
                   padding: "28px 20px 24px",
+                  background: "#0c0d13",
                   borderLeft: "1px solid rgba(255,255,255,0.08)",
                   borderTop: "1px solid rgba(255,255,255,0.08)",
+                  borderRight: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px 12px 0 0",
+                  color: "#fff",
                 }}
               >
                 <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "6px" }}>
@@ -307,7 +315,7 @@ export default function PricingPage() {
                       ...(isLast ? { borderBottom: "none", borderRadius: "0 0 12px 12px" } : {}),
                     }}
                   >
-                    {f.register ? <CheckIconDark /> : <span style={{ color: "rgba(0,0,0,0.25)", fontSize: "18px" }}>—</span>}
+                    {f.register ? <CheckIcon /> : <DashIcon />}
                   </div>,
 
                   /* Concierge */
