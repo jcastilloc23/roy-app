@@ -24,6 +24,11 @@ body {
   overflow-x: hidden;
 }
 
+/* Explicit white on all headings — prevents injected third-party CSS from overriding */
+h1, h2, h3, h4, h5, h6 {
+  color: #fff;
+}
+
 a {
   text-decoration: none;
   color: inherit;
@@ -123,6 +128,7 @@ nav {
   gap: 10px;
   font-weight: 700;
   font-size: 18px;
+  color: #fff;
 }
 
 .nav-logo-icon {
@@ -1142,6 +1148,7 @@ footer {
   font-weight: 600;
   margin-bottom: 10px;
   cursor: pointer;
+  color: #fff;
 }
 .faq-answer {
   font-size: 15px;
@@ -1210,5 +1217,19 @@ footer {
   .footer-bottom {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+/* ===== PRICING PAGE ===== */
+.pricing-grid-responsive {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 900px) {
+  .pricing-grid-responsive {
+    grid-template-columns: 1fr !important;
+    max-width: 480px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 }

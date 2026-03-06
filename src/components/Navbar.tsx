@@ -8,7 +8,6 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/whos-it-for", label: "Who it's for" },
   { href: "/royalty-finder", label: "Royalty Finder" },
-  { href: "/partner", label: "Partner" },
   { href: "/pricing", label: "Pricing" },
 ];
 

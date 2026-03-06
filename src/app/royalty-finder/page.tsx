@@ -101,11 +101,14 @@ export default function RoyaltyFinderPage() {
         </section>
 
         {/* ===== LIVE SEARCH RESULTS (injected by external script) ===== */}
+        {/* The isolation wrapper resets inherited styles so the Mogul bundle's
+            injected CSS cannot bleed into the rest of the Roy UI. */}
         <section style={{ padding: "0 24px 80px" }}>
-          <div
-            id="live-search-results-root"
-            style={{ maxWidth: "960px", margin: "0 auto" }}
-          />
+          <div style={{ maxWidth: "960px", margin: "0 auto", all: "initial" as React.CSSProperties["all"], display: "block", fontFamily: "inherit" }}>
+            <div
+              id="live-search-results-root"
+            />
+          </div>
         </section>
       </main>
 
