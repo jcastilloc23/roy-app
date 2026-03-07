@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -21,8 +22,14 @@ export default function Navbar() {
         <div className="nav-inner">
           {/* Logo */}
           <Link href="/" className="nav-logo">
-            <div className="nav-logo-icon">🎵</div>
-            <span>Roy</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/roy-logo.svg"
+              alt="Roy"
+              width={72}
+              height={36}
+              style={{ display: "block" }}
+            />
           </Link>
 
           {/* Desktop nav links */}
@@ -41,16 +48,21 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="nav-actions">
-            <Link href="/login" className="nav-login">
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="btn-primary"
-              style={{ padding: "9px 18px", fontSize: "14px" }}
-            >
-              Get Started Free
-            </Link>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="nav-login">Log In</button>
+              </SignInButton>
+              <Link
+                href="/sign-up"
+                className="btn-primary"
+                style={{ padding: "9px 18px", fontSize: "14px" }}
+              >
+                Get Started Free
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
             {/* Hamburger (mobile) */}
             <button
               className="hamburger"
@@ -138,9 +150,14 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <Link href="/signup" className="btn-primary" onClick={() => setMobileOpen(false)}>
-            Get Started Free
-          </Link>
+          <SignedOut>
+            <Link href="/sign-up" className="btn-primary" onClick={() => setMobileOpen(false)}>
+              Get Started Free
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
         </div>
       )}
     </>

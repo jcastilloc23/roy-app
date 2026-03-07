@@ -9,8 +9,14 @@ export default function Footer() {
           {/* Brand */}
           <div className="footer-brand">
             <div className="footer-logo">
-              <div className="footer-logo-icon">🎵</div>
-              <span>Roy</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/roy-logo.svg"
+                alt="Roy"
+                width={72}
+                height={36}
+                style={{ display: "block" }}
+              />
             </div>
             <p className="footer-tagline">
               The royalty dashboard built for independent artists.

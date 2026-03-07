@@ -72,7 +72,7 @@ export default function Home() {
         {/* ===== ANNOUNCEMENT BANNER ===== */}
         <div className="announcement">
           🎉 Introducing Roy —{" "}
-          <Link href="/signup">
+          <Link href="/sign-up">
             the simplest way for artists to track every royalty dollar they&apos;ve earned →
           </Link>
         </div>
@@ -92,7 +92,7 @@ export default function Home() {
               and what&apos;s missing.
             </p>
             <div className="hero-ctas">
-              <Link href="/signup" className="btn-primary">
+              <Link href="/sign-up" className="btn-primary">
                 Get Started Free <ArrowIcon />
               </Link>
               <a href="#demo" className="hero-video-link">
@@ -173,7 +173,7 @@ export default function Home() {
             <div className="section-tag">One Account. Every Platform.</div>
             <h2>Connect all your royalty sources. Keep 100% of what&apos;s yours.</h2>
             <p>Roy integrates with every major PRO, distributor, and publishing platform — so nothing slips through the cracks.</p>
-            <Link href="/signup" className="btn-primary">
+            <Link href="/sign-up" className="btn-primary">
               Connect Your Accounts <ArrowIcon />
             </Link>
             <div className="integration-chips">
@@ -390,7 +390,7 @@ export default function Home() {
             <h2>Your royalties are waiting. Go get them.</h2>
             <p>Connect your accounts in minutes. Roy will show you exactly what you&apos;re earning — and what you&apos;re missing.</p>
             <div className="cta-btns">
-              <Link href="/signup" className="btn-primary">
+              <Link href="/sign-up" className="btn-primary">
                 Get Started — It&apos;s Free <ArrowIcon />
               </Link>
               <Link href="/contact" className="btn-outline">Talk to us</Link>

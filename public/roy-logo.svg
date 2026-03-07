@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="36" viewBox="0 0 72 36">
+  <!-- Green music note accent -->
+  <circle cx="6" cy="18" r="5" fill="#00d47b" opacity="0.15"/>
+  <!-- Script-style Roy text -->
+  <text
+    x="2"
+    y="27"
+    font-family="Georgia, 'Palatino Linotype', Palatino, 'Book Antiqua', serif"
+    font-style="italic"
+    font-weight="700"
+    font-size="28"
+    fill="#00d47b"
+    letter-spacing="-0.5"
+  >Roy</text>
+</svg>

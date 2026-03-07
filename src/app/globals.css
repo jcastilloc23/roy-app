@@ -29,6 +29,21 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff;
 }
 
+/* Section tag / eyebrow pills — explicit green prevents Mogul script override */
+.section-tag {
+  display: inline-block;
+  background: rgba(0, 212, 123, 0.12);
+  color: #00d47b !important;
+  border: 1px solid rgba(0, 212, 123, 0.25);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
 a {
   text-decoration: none;
   color: inherit;
@@ -205,6 +220,7 @@ footer {
   font-weight: 700;
   font-size: 18px;
   margin-bottom: 12px;
+  color: #fff;
 }
 
 .footer-logo-icon {
@@ -1113,6 +1129,7 @@ footer {
   letter-spacing: -0.02em;
   line-height: 1.15;
   margin-bottom: 16px;
+  color: #fff;
 }
 .audience-content p {
   font-size: 16px;
