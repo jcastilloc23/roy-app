@@ -21,10 +21,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" className={inter.className}>
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" className={inter.className}>
+      <body>
+        <ClerkProvider>
+          {children}
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }

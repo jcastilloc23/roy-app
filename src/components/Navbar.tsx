@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -48,7 +48,7 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="nav-actions">
-            <SignedOut>
+            <Show when="signed-out">
               <SignInButton mode="modal">
                 <button className="nav-login">Log In</button>
               </SignInButton>
@@ -59,10 +59,10 @@ export default function Navbar() {
               >
                 Get Started Free
               </Link>
-            </SignedOut>
-            <SignedIn>
+            </Show>
+            <Show when="signed-in">
               <UserButton />
-            </SignedIn>
+            </Show>
             {/* Hamburger (mobile) */}
             <button
               className="hamburger"
@@ -150,14 +150,14 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <SignedOut>
+          <Show when="signed-out">
             <Link href="/sign-up" className="btn-primary" onClick={() => setMobileOpen(false)}>
               Get Started Free
             </Link>
-          </SignedOut>
-          <SignedIn>
+          </Show>
+          <Show when="signed-in">
             <UserButton />
-          </SignedIn>
+          </Show>
         </div>
       )}
     </>
