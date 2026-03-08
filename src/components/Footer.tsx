@@ -1,4 +1,5 @@
 import Link from "next/link";
+import RoyLogo from "@/components/RoyLogo";
 
 export default function Footer() {
   return (
@@ -9,17 +10,10 @@ export default function Footer() {
           {/* Brand */}
           <div className="footer-brand">
             <div className="footer-logo">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/roy-logo.svg"
-                alt="Roy"
-                width={72}
-                height={36}
-                style={{ display: "block" }}
-              />
+              <RoyLogo height={52} />
             </div>
             <p className="footer-tagline">
-              The royalty dashboard built for independent artists.
+              The music royalties tool built for the indie world.
             </p>
           </div>
 
@@ -29,7 +23,7 @@ export default function Footer() {
               <h4>Product</h4>
               <Link href="/">Home</Link>
               <Link href="/whos-it-for">Who&apos;s it for?</Link>
-              <Link href="/royalty-finder">Royalty Finder</Link>
+              <Link href="/royalty-finder">Roy Tool</Link>
               <Link href="/pricing">Pricing</Link>
             </div>
             <div className="footer-col">

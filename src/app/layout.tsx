@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Roy — Mint for Music Royalties",
+  title: "Roy — The music royalties tool built for the indie world",
   description:
-    "Roy connects all your royalty accounts in one place. Sync your PROs, distributors, MLC, and more. Never miss a dollar again.",
+    "Drop in any royalty statement — from Spotify, ASCAP, DistroKid, the MLC, or anywhere else — and Roy reads it, explains it in plain English, and tells you exactly what's missing or wrong.",
 };
 
 export default function RootLayout({

@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import RoyLogo from "@/components/RoyLogo";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/whos-it-for", label: "Who it's for" },
-  { href: "/royalty-finder", label: "Royalty Finder" },
+  { href: "/royalty-finder", label: "Roy Tool" },
   { href: "/pricing", label: "Pricing" },
 ];
 
@@ -22,14 +23,7 @@ export default function Navbar() {
         <div className="nav-inner">
           {/* Logo */}
           <Link href="/" className="nav-logo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/roy-logo.svg"
-              alt="Roy"
-              width={72}
-              height={36}
-              style={{ display: "block" }}
-            />
+            <RoyLogo height={52} />
           </Link>
 
           {/* Desktop nav links */}

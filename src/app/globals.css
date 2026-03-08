@@ -1238,14 +1238,10 @@ footer {
 }
 
 /* ===== PRICING PAGE ===== */
-.pricing-grid-responsive {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-@media (max-width: 900px) {
-  .pricing-grid-responsive {
+@media (max-width: 600px) {
+  .pricing-cards {
     grid-template-columns: 1fr !important;
-    max-width: 480px !important;
+    max-width: 420px !important;
     margin-left: auto !important;
     margin-right: auto !important;
   }

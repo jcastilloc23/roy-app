@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
 import CounterSection from "@/components/CounterSection";
+import RoyLogo from "@/components/RoyLogo";
 
 export const metadata: Metadata = {
   title: "Roy — Mint for Music Royalties",
@@ -80,16 +81,11 @@ export default function Home() {
         {/* ===== HERO ===== */}
         <section className="hero" id="home">
           <div className="container">
-            <div className="hero-eyebrow">
-              <span className="pill">Mint for Music Royalties</span>
-            </div>
             <h1>
-              Never miss a <span>royalty</span> payment again
+              Never miss a <RoyLogo height="1.5em" inline />alty payment again
             </h1>
             <p className="hero-sub">
-              Roy connects all your PRO, distributor, and publishing accounts
-              in one place — so you always know exactly what you&apos;ve earned
-              and what&apos;s missing.
+              Drop in any royalty statement — from Spotify, ASCAP, DistroKid, the MLC, or anywhere else — and Roy reads it, explains it in plain English, and tells you exactly what&apos;s missing or wrong.
             </p>
             <div className="hero-ctas">
               <Link href="/sign-up" className="btn-primary">
