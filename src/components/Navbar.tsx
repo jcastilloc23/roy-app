@@ -9,7 +9,7 @@ import RoyLogo from "@/components/RoyLogo";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/whos-it-for", label: "Who it's for" },
-  { href: "/royalty-finder", label: "Roy Tool" },
+  { href: "/roy-tool", label: "Roy Tool" },
   { href: "/pricing", label: "Pricing" },
 ];
 
@@ -53,7 +53,7 @@ export default function Navbar() {
           <div className="nav-actions">
             <Show when="signed-out">
               <Link
-                href="/subscribe"
+                href="/sign-up"
                 className="btn-primary"
                 style={{ padding: "9px 18px", fontSize: "14px" }}
               >
@@ -123,7 +123,7 @@ export default function Navbar() {
                 Log In
               </button>
             </SignInButton>
-            <Link href="/subscribe" className="btn-primary" onClick={() => setMobileOpen(false)}>
+            <Link href="/sign-up" className="btn-primary" onClick={() => setMobileOpen(false)}>
               Get Started Free
             </Link>
           </Show>

@@ -27,7 +27,7 @@ export default function SubscribePage() {
 
         <section style={{ padding: "0 24px 80px" }}>
           <div style={{ maxWidth: "860px", margin: "0 auto" }}>
-            <PricingTable />
+            <PricingTable checkoutProps={{ successUrl: "/roy-tool" }} />
           </div>
         </section>
       </main>
