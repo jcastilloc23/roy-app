@@ -38,16 +38,22 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
+            <Show when="signed-out">
+              <li>
+                <SignInButton mode="modal">
+                  <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "rgba(255,255,255,0.7)", padding: 0, fontSize: "15px" }}>
+                    Log In
+                  </button>
+                </SignInButton>
+              </li>
+            </Show>
           </ul>
 
           {/* Actions */}
           <div className="nav-actions">
             <Show when="signed-out">
-              <SignInButton mode="modal">
-                <button className="nav-login">Log In</button>
-              </SignInButton>
               <Link
-                href="/sign-up"
+                href="/subscribe"
                 className="btn-primary"
                 style={{ padding: "9px 18px", fontSize: "14px" }}
               >
@@ -72,33 +78,9 @@ export default function Navbar() {
                 padding: "4px",
               }}
             >
-              <span
-                style={{
-                  display: "block",
-                  width: "24px",
-                  height: "2px",
-                  background: "#fff",
-                  borderRadius: "2px",
-                }}
-              />
-              <span
-                style={{
-                  display: "block",
-                  width: "24px",
-                  height: "2px",
-                  background: "#fff",
-                  borderRadius: "2px",
-                }}
-              />
-              <span
-                style={{
-                  display: "block",
-                  width: "24px",
-                  height: "2px",
-                  background: "#fff",
-                  borderRadius: "2px",
-                }}
-              />
+              <span style={{ display: "block", width: "24px", height: "2px", background: "#fff", borderRadius: "2px" }} />
+              <span style={{ display: "block", width: "24px", height: "2px", background: "#fff", borderRadius: "2px" }} />
+              <span style={{ display: "block", width: "24px", height: "2px", background: "#fff", borderRadius: "2px" }} />
             </button>
           </div>
         </div>
@@ -121,16 +103,7 @@ export default function Navbar() {
         >
           <button
             onClick={() => setMobileOpen(false)}
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "24px",
-              background: "none",
-              border: "none",
-              color: "#fff",
-              fontSize: "28px",
-              cursor: "pointer",
-            }}
+            style={{ position: "absolute", top: "20px", right: "24px", background: "none", border: "none", color: "#fff", fontSize: "28px", cursor: "pointer" }}
           >
             ×
           </button>
@@ -145,7 +118,12 @@ export default function Navbar() {
             </Link>
           ))}
           <Show when="signed-out">
-            <Link href="/sign-up" className="btn-primary" onClick={() => setMobileOpen(false)}>
+            <SignInButton mode="modal">
+              <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "#fff", fontSize: "24px", fontWeight: 600 }}>
+                Log In
+              </button>
+            </SignInButton>
+            <Link href="/subscribe" className="btn-primary" onClick={() => setMobileOpen(false)}>
               Get Started Free
             </Link>
           </Show>

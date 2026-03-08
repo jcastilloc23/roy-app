@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
@@ -43,14 +44,23 @@ function TabButton({
 }
 
 /* ── Drop zone ───────────────────────────────── */
-function DropZone({ label, hint }: { label: string; hint: string }) {
+function DropZone({
+  label,
+  hint,
+  onInteract,
+}: {
+  label: string;
+  hint: string;
+  onInteract: () => void;
+}) {
   const [hovering, setHovering] = useState(false);
 
   return (
     <div
       onDragOver={(e) => { e.preventDefault(); setHovering(true); }}
       onDragLeave={() => setHovering(false)}
-      onDrop={(e) => { e.preventDefault(); setHovering(false); }}
+      onDrop={(e) => { e.preventDefault(); setHovering(false); onInteract(); }}
+      onClick={onInteract}
       style={{
         border: `2px dashed ${hovering ? GREEN : "rgba(0,212,123,0.3)"}`,
         borderRadius: "12px",
@@ -97,7 +107,7 @@ function DropZone({ label, hint }: { label: string; hint: string }) {
         ))}
       </div>
 
-      <label
+      <span
         style={{
           display: "inline-block",
           padding: "10px 24px",
@@ -110,8 +120,7 @@ function DropZone({ label, hint }: { label: string; hint: string }) {
         }}
       >
         Browse files
-        <input type="file" accept=".csv,.pdf,.xls,.xlsx" style={{ display: "none" }} />
-      </label>
+      </span>
     </div>
   );
 }
@@ -167,12 +176,13 @@ function ResultCard({
 }
 
 /* ── Artist tab ──────────────────────────────── */
-function ArtistTab() {
+function ArtistTab({ onInteract }: { onInteract: () => void }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <DropZone
         label="Drop your royalty statement here"
         hint="Spotify, Apple Music, ASCAP, DistroKid, MLC, SoundExchange — any format, any source."
+        onInteract={onInteract}
       />
 
       {/* Mock preview */}
@@ -181,32 +191,10 @@ function ArtistTab() {
           What Roy shows you
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <ResultCard
-            icon="📄"
-            label="Statement identified"
-            value="Spotify for Artists · Q3 2024 · 847 tracks"
-            badge="Parsed"
-            badgeColor="ok"
-          />
-          <ResultCard
-            icon="💰"
-            label="Total earnings identified"
-            value="$1,247.83 across 3 royalty types"
-          />
-          <ResultCard
-            icon="⚠️"
-            label="Anomaly detected"
-            value="Your mechanical rate is 18% below average for your genre"
-            badge="Review"
-            badgeColor="warn"
-          />
-          <ResultCard
-            icon="🔍"
-            label="Missing registrations"
-            value="3 tracks appear in Spotify data but have no MLC registration"
-            badge="Action needed"
-            badgeColor="err"
-          />
+          <ResultCard icon="📄" label="Statement identified" value="Spotify for Artists · Q3 2024 · 847 tracks" badge="Parsed" badgeColor="ok" />
+          <ResultCard icon="💰" label="Total earnings identified" value="$1,247.83 across 3 royalty types" />
+          <ResultCard icon="⚠️" label="Anomaly detected" value="Your mechanical rate is 18% below average for your genre" badge="Review" badgeColor="warn" />
+          <ResultCard icon="🔍" label="Missing registrations" value="3 tracks appear in Spotify data but have no MLC registration" badge="Action needed" badgeColor="err" />
         </div>
       </div>
     </div>
@@ -214,7 +202,7 @@ function ArtistTab() {
 }
 
 /* ── Label tab ───────────────────────────────── */
-function LabelTab() {
+function LabelTab({ onInteract, isSignedIn }: { onInteract: () => void; isSignedIn: boolean }) {
   const mockArtists = [
     { name: "Artist A", sources: 4, status: "ok", note: "All sources reconciled" },
     { name: "Artist B", sources: 3, status: "warn", note: "1 underpayment detected" },
@@ -224,9 +212,50 @@ function LabelTab() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      {/* Upgrade banner for signed-in users on free tier */}
+      {isSignedIn && (
+        <div
+          style={{
+            background: "rgba(0,212,123,0.06)",
+            border: `1px solid rgba(0,212,123,0.2)`,
+            borderRadius: "10px",
+            padding: "16px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: "14px", fontWeight: 600, color: "#fff", marginBottom: "2px" }}>
+              You&apos;re on Roy Artist
+            </div>
+            <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)" }}>
+              Label features require Roy Label — unlimited artists, reconciliation, and more.
+            </div>
+          </div>
+          <Link
+            href="/subscribe"
+            style={{
+              padding: "8px 20px",
+              borderRadius: "8px",
+              background: GREEN,
+              color: "#000",
+              fontWeight: 600,
+              fontSize: "13px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Get Roy Label
+          </Link>
+        </div>
+      )}
+
       <DropZone
         label="Drop statements for any artist in your roster"
         hint="Bulk upload across multiple artists. Roy identifies each statement automatically and builds a per-artist ledger."
+        onInteract={onInteract}
       />
 
       {/* Mock roster preview */}
@@ -242,7 +271,6 @@ function LabelTab() {
             overflow: "hidden",
           }}
         >
-          {/* Table header */}
           <div
             style={{
               display: "grid",
@@ -297,6 +325,15 @@ function LabelTab() {
 /* ══════════════════════════════════════════════ */
 export default function RoyToolPage() {
   const [tab, setTab] = useState<"artist" | "label">("artist");
+  const { isSignedIn } = useAuth();
+  const { openSignUp } = useClerk();
+
+  function handleInteract() {
+    if (!isSignedIn) {
+      openSignUp();
+    }
+    // If signed in, real file handling goes here
+  }
 
   return (
     <>
@@ -366,19 +403,11 @@ export default function RoyToolPage() {
 
             {/* Tab content */}
             <div style={{ padding: "32px" }}>
-              {tab === "artist" ? <ArtistTab /> : <LabelTab />}
+              {tab === "artist"
+                ? <ArtistTab onInteract={handleInteract} />
+                : <LabelTab onInteract={handleInteract} isSignedIn={!!isSignedIn} />
+              }
             </div>
-          </div>
-
-          {/* Signup nudge */}
-          <div style={{ maxWidth: "680px", margin: "20px auto 0", textAlign: "center" }}>
-            <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)", marginBottom: "12px" }}>
-              This is a preview of what Roy surfaces. Sign up to analyze your actual statements.
-            </p>
-            <Link href="/sign-up" className="btn-primary" style={{ fontSize: "14px", padding: "10px 24px" }}>
-              Try Roy free
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </Link>
           </div>
         </section>
 
@@ -424,15 +453,7 @@ export default function RoyToolPage() {
                     padding: "28px",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: 700,
-                      letterSpacing: "0.1em",
-                      color: GREEN,
-                      marginBottom: "12px",
-                    }}
-                  >
+                  <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", color: GREEN, marginBottom: "12px" }}>
                     {item.step}
                   </div>
                   <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "10px", color: "#fff" }}>
@@ -444,30 +465,6 @@ export default function RoyToolPage() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* ── Bottom CTA ───────────────────────── */}
-        <section className="section-cta">
-          <div className="container">
-            <div className="section-tag">Get Started Today</div>
-            <h2>Your royalties are out there. Let&apos;s go find them.</h2>
-            <p>
-              Drop in any statement. Roy reads it, explains it, and tells
-              you if something&apos;s missing.
-            </p>
-            <div className="cta-btns">
-              <Link href="/sign-up" className="btn-primary">
-                Try Roy free{" "}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-              </Link>
-              <Link href="/pricing" className="btn-outline">
-                See pricing
-              </Link>
-            </div>
-            <p style={{ marginTop: "16px", fontSize: "13px", color: "var(--text-muted)" }}>
-              No credit card · Cancel anytime · Real humans on support
-            </p>
           </div>
         </section>
 
