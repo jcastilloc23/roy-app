@@ -39,9 +39,13 @@ roy_app/
       pricing/
         page.tsx           # Pricing page — 3-tier table (hardcoded, not yet wired to Clerk billing)
       (tool)/
-        layout.tsx         # Tool shell layout (ToolNavbar, no marketing nav/footer)
+        layout.tsx         # Tool shell layout — marketing Navbar + ToolSidebar + main content
         roy-tool/
-          page.tsx         # Authenticated tool — statement upload, Artist/Label tabs
+          page.tsx         # Summary tab — statement upload, Artist/Label tabs
+          analytics/
+            page.tsx       # Analytics tab — placeholder (Phase 3)
+          talk/
+            page.tsx       # Talk to Roy tab — placeholder (Phase 2)
       royalty-finder/
         page.tsx           # Old royalty finder (kept for reference, superseded by /roy-tool)
       sign-in/             # Clerk sign-in route (scaffolded)
@@ -49,11 +53,13 @@ roy_app/
       whos-it-for/         # Who It's For page (scaffolded, may be incomplete)
     components/
       Navbar.tsx           # Marketing site sticky navbar
-      ToolNavbar.tsx       # App shell top navbar (Statements / Dashboard / Issues tabs + UserButton)
+      ToolSidebar.tsx      # Left sidebar nav for tool shell (Summary / Analytics / Talk to Roy)
       Footer.tsx           # Footer with nav columns + social icons
       CookieBanner.tsx     # Cookie consent (localStorage-based)
       CounterSection.tsx   # Animated stat counters
-  middleware.ts            # Clerk middleware (if present — check before assuming)
+    lib/
+      supabase.ts          # Supabase client — exports `supabase` (anon/client) and `supabaseAdmin()` (service role/server only)
+  middleware.ts            # Clerk middleware
   MARKET_OPPORTUNITY.md    # Market research, ICP, competitive landscape
   PRD.md                   # Product requirements (living document)
 ```
