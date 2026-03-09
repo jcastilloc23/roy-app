@@ -28,65 +28,66 @@ Industry rate benchmarks (US and major Western markets only — CA, GB, AU, DE, 
 
 Platforms like Boomplay, TikTok, NetEase, Tencent, Luna, and Facebook/Meta pay at structurally lower rates — do not flag these as anomalies. Emerging market territories (CN, VN, PH, ID, IN, TH, KH, NG, KE, etc.) also have lower rates by design.`;
 
-/* ── Column detection ────────────────────────────────────────────────────── */
+/* ── Schema detection via Gemini ─────────────────────────────────────────── */
 
-// DSP-specific column name overrides (keyed by source_type string, lowercase)
-const DSP_COLUMNS: Record<string, {
-  earnings?: string; streams?: string; store?: string; territory?: string; track?: string; period?: string;
-}> = {
-  distrokid: {
-    earnings: "Earnings (USD)", streams: "Quantity", store: "Store",
-    territory: "Country of Sale", track: "Title", period: "Sale Period",
-  },
-  "distrokid for teams": {
-    earnings: "Earnings (USD)", streams: "Quantity", store: "Store",
-    territory: "Country of Sale", track: "Title", period: "Sale Period",
-  },
-  tunecore: {
-    earnings: "Revenue", streams: "Streams", store: "Store",
-    territory: "Territory", track: "Track Title",
-  },
-  "cd baby": {
-    earnings: "Net Sales", streams: "Units", store: "Retailer",
-    territory: "Country", track: "Track Title",
-  },
-  spotify: {
-    earnings: "Royalty", streams: "Streams", territory: "Territory", track: "Track Name",
-  },
-  soundexchange: {
-    earnings: "Royalties", streams: "Plays", territory: "Country", track: "Sound Recording Title",
-  },
-  ascap: { earnings: "Domestic Total", track: "Title" },
-  bmi: { earnings: "Amount", track: "Title" },
-};
-
-const EARNINGS_KEYWORDS = ["earn", "royalt", "revenue", "net", "payment", "amount", "income", "pay"];
-const STREAMS_KEYWORDS  = ["stream", "quantity", "unit", "play", "count", "listen"];
-const STORE_KEYWORDS    = ["store", "platform", "dsp", "service", "retailer", "channel", "outlet"];
-const TERRITORY_KEYWORDS = ["country", "territory", "region", "market", "locale"];
-const TRACK_KEYWORDS    = ["title", "track", "song", "recording", "asset", "work"];
-const PERIOD_KEYWORDS   = ["period", "date", "month", "quarter", "report"];
-
-function findCol(headers: string[], keywords: string[]): string | null {
-  for (const kw of keywords) {
-    const match = headers.find(h => h.toLowerCase().includes(kw));
-    if (match) return match;
-  }
-  return null;
+interface ColumnMap {
+  earnings: string | null;
+  streams: string | null;
+  store: string | null;
+  territory: string | null;
+  track: string | null;
+  period: string | null;
+  artist: string | null;
 }
 
-function resolveColumns(headers: string[], source: string) {
-  const dsp = DSP_COLUMNS[source.toLowerCase()] ?? {};
-  const verify = (col: string | undefined) => col && headers.includes(col) ? col : undefined;
+interface SchemaDetection {
+  header_row: number; // 0-indexed row where column headers live
+  columns: ColumnMap;
+}
 
-  return {
-    earningsCol:  verify(dsp.earnings)  ?? findCol(headers, EARNINGS_KEYWORDS),
-    streamsCol:   verify(dsp.streams)   ?? findCol(headers, STREAMS_KEYWORDS),
-    storeCol:     verify(dsp.store)     ?? findCol(headers, STORE_KEYWORDS),
-    territoryCol: verify(dsp.territory) ?? findCol(headers, TERRITORY_KEYWORDS),
-    trackCol:     verify(dsp.track)     ?? findCol(headers, TRACK_KEYWORDS),
-    periodCol:    verify(dsp.period)    ?? findCol(headers, PERIOD_KEYWORDS),
+type GeminiModel = ReturnType<GoogleGenerativeAI["getGenerativeModel"]>;
+
+async function detectSchema(fileText: string, source: string, model: GeminiModel): Promise<SchemaDetection> {
+  const fallback: SchemaDetection = {
+    header_row: 0,
+    columns: { earnings: null, streams: null, store: null, territory: null, track: null, period: null, artist: null },
   };
+
+  const first20 = fileText.split("\n").slice(0, 20).join("\n");
+
+  const prompt = `These are the first 20 lines of a royalty statement from "${source}".
+
+Some statements include metadata rows (account IDs, titles, etc.) before the real column headers. Identify which row contains the actual column headers and map each column to a standard royalty field.
+
+Return this exact JSON — no markdown, no explanation:
+{
+  "header_row": 0,
+  "columns": {
+    "earnings": "exact column name that contains the payment/royalty/revenue dollar amount, or null",
+    "streams": "exact column name for play count/units/streams/quantity, or null",
+    "store": "exact column name for platform/DSP/store/partner/channel, or null",
+    "territory": "exact column name for country/territory/region, or null",
+    "track": "exact column name for track/song title (not artist, not album), or null",
+    "period": "exact column name for reporting date/period/month, or null",
+    "artist": "exact column name for artist name, or null"
+  }
+}
+
+header_row is 0-indexed. If the column headers are on the very first line, use 0.
+Use null for any field with no clear match.
+Use exact column names as they appear in the file — character-for-character.
+
+File (first 20 lines):
+${first20}`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const parsed = extractJSON(result.response.text()) as SchemaDetection | null;
+    if (!parsed || typeof parsed.header_row !== "number") return fallback;
+    return parsed;
+  } catch {
+    return fallback;
+  }
 }
 
 /* ── Numeric parser ──────────────────────────────────────────────────────── */
@@ -99,7 +100,7 @@ function toNum(val: unknown): number {
   return 0;
 }
 
-/* ── CSV/TSV summarize (client-side parse) ───────────────────────────────── */
+/* ── Local aggregation ───────────────────────────────────────────────────── */
 interface SummarizeStats {
   source: string;
   totalEarnings: number;
@@ -111,12 +112,25 @@ interface SummarizeStats {
   byStore: { name: string; earnings: number; streams: number }[];
   byTerritory: { name: string; earnings: number; streams: number }[];
   topTracks: { track: string; earnings: number; streams: number }[];
-  columnsDetected: Record<string, string>;
+  columnsDetected: Partial<ColumnMap>;
 }
 
-function parseAndAggregate(fileText: string, fileName: string, source: string): SummarizeStats | null {
+async function summarizeTabular(
+  fileText: string,
+  fileName: string,
+  source: string,
+  model: GeminiModel,
+): Promise<SummarizeStats | null> {
+  // 1. Ask Gemini to identify the header row and column mapping
+  const schema = await detectSchema(fileText, source, model);
+  const { columns } = schema;
+
+  // 2. Slice from the detected header row and parse
   const isTsv = fileName.toLowerCase().endsWith(".tsv");
-  const parsed = Papa.parse<Record<string, unknown>>(fileText, {
+  const lines = fileText.split("\n");
+  const dataText = lines.slice(schema.header_row).join("\n");
+
+  const parsed = Papa.parse<Record<string, unknown>>(dataText, {
     header: true,
     skipEmptyLines: true,
     dynamicTyping: true,
@@ -125,9 +139,8 @@ function parseAndAggregate(fileText: string, fileName: string, source: string): 
 
   if (!parsed.data.length) return null;
   const rows = parsed.data;
-  const headers = parsed.meta.fields ?? [];
-  const cols = resolveColumns(headers, source);
 
+  // 3. Aggregate using the detected column names
   let totalEarnings = 0;
   let totalStreams = 0;
   const byStore: Record<string, { earnings: number; streams: number }> = {};
@@ -136,12 +149,12 @@ function parseAndAggregate(fileText: string, fileName: string, source: string): 
   const periods: string[] = [];
 
   for (const row of rows) {
-    const earn    = cols.earningsCol  ? toNum(row[cols.earningsCol])  : 0;
-    const streams = cols.streamsCol   ? toNum(row[cols.streamsCol])   : 0;
-    const store   = cols.storeCol     ? String(row[cols.storeCol] ?? "").trim() || "Unknown" : null;
-    const terr    = cols.territoryCol ? String(row[cols.territoryCol] ?? "").trim() || "Unknown" : null;
-    const track   = cols.trackCol     ? String(row[cols.trackCol] ?? "").trim() || "Unknown" : null;
-    const period  = cols.periodCol    ? String(row[cols.periodCol] ?? "").trim() : null;
+    const earn    = columns.earnings  ? toNum(row[columns.earnings])  : 0;
+    const streams = columns.streams   ? toNum(row[columns.streams])   : 0;
+    const store   = columns.store     ? String(row[columns.store]   ?? "").trim() || null : null;
+    const terr    = columns.territory ? String(row[columns.territory] ?? "").trim() || null : null;
+    const track   = columns.track     ? String(row[columns.track]   ?? "").trim() || null : null;
+    const period  = columns.period    ? String(row[columns.period]  ?? "").trim() || null : null;
 
     totalEarnings += earn;
     totalStreams  += streams;
@@ -164,29 +177,7 @@ function parseAndAggregate(fileText: string, fileName: string, source: string): 
     if (period) periods.push(period);
   }
 
-  const sortedStores = Object.entries(byStore)
-    .sort((a, b) => b[1].earnings - a[1].earnings)
-    .slice(0, 10)
-    .map(([name, v]) => ({ name, ...v }));
-
-  const sortedTerritories = Object.entries(byTerritory)
-    .sort((a, b) => b[1].earnings - a[1].earnings)
-    .slice(0, 10)
-    .map(([name, v]) => ({ name, ...v }));
-
-  const topTracks = Object.entries(byTrack)
-    .sort((a, b) => b[1].earnings - a[1].earnings)
-    .slice(0, 5)
-    .map(([track, v]) => ({ track, ...v }));
-
-  const sortedPeriods = [...periods].sort();
-
-  const columnsDetected: Record<string, string> = {};
-  if (cols.earningsCol)  columnsDetected.earnings  = cols.earningsCol;
-  if (cols.streamsCol)   columnsDetected.streams   = cols.streamsCol;
-  if (cols.storeCol)     columnsDetected.store     = cols.storeCol;
-  if (cols.territoryCol) columnsDetected.territory = cols.territoryCol;
-  if (cols.trackCol)     columnsDetected.track     = cols.trackCol;
+  const sortedPeriods = [...new Set(periods)].sort();
 
   return {
     source,
@@ -196,27 +187,37 @@ function parseAndAggregate(fileText: string, fileName: string, source: string): 
     trackCount: Object.keys(byTrack).length,
     periodStart: sortedPeriods[0] ?? null,
     periodEnd: sortedPeriods[sortedPeriods.length - 1] ?? null,
-    byStore: sortedStores,
-    byTerritory: sortedTerritories,
-    topTracks,
-    columnsDetected,
+    byStore: Object.entries(byStore)
+      .sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 10)
+      .map(([name, v]) => ({ name, ...v })),
+    byTerritory: Object.entries(byTerritory)
+      .sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 10)
+      .map(([name, v]) => ({ name, ...v })),
+    topTracks: Object.entries(byTrack)
+      .sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 5)
+      .map(([track, v]) => ({ track, ...v })),
+    columnsDetected: Object.fromEntries(
+      Object.entries(columns).filter(([, v]) => v !== null)
+    ) as Partial<ColumnMap>,
   };
 }
 
+/* ── Narrative prompt (stats → Roy paragraph) ───────────────────────────── */
 function buildNarrativePrompt(stats: SummarizeStats): string {
-  const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmt = (n: number) =>
+    `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const storeLines = stats.byStore
-    .map(s => `  ${s.name}: ${fmt(s.earnings)}${s.streams ? ` (${s.streams.toLocaleString()} streams)` : ""}`)
+    .map(s => `  ${s.name}: ${fmt(s.earnings)}${s.streams ? ` (${s.streams.toLocaleString()} streams/units)` : ""}`)
     .join("\n");
   const terrLines = stats.byTerritory
     .map(t => `  ${t.name}: ${fmt(t.earnings)}`)
     .join("\n");
   const trackLines = stats.topTracks
-    .map(t => `  ${t.track}: ${fmt(t.earnings)}${t.streams ? ` (${t.streams.toLocaleString()} streams)` : ""}`)
+    .map(t => `  ${t.track}: ${fmt(t.earnings)}${t.streams ? ` (${t.streams.toLocaleString()} streams/units)` : ""}`)
     .join("\n");
 
-  return `These are the exact computed stats for a royalty statement from ${stats.source}. Write a 4–6 sentence summary speaking directly to the rights holder. Use these exact numbers — do not estimate or invent. Sound like a person, not a report.
+  return `These are the exact computed stats from a royalty statement from ${stats.source}. Write a 4–6 sentence summary speaking directly to the rights holder. Use these exact numbers — do not estimate or invent anything. Sound like a person, not a report.
 
 Return this exact JSON — no markdown, no explanation:
 { "summary": "..." }
@@ -229,7 +230,7 @@ Total data rows: ${stats.rowCount.toLocaleString()}
 Unique tracks: ${stats.trackCount.toLocaleString()}
 Period: ${stats.periodStart ?? "unknown"} to ${stats.periodEnd ?? "unknown"}
 
-Top stores/platforms by earnings:
+Top platforms by earnings:
 ${storeLines || "  (not available)"}
 
 Top territories by earnings:
@@ -305,7 +306,6 @@ export async function POST(req: NextRequest) {
 
   const supabase = supabaseAdmin();
 
-  // 1. Fetch statement — verify it belongs to this user
   const { data: statement, error: stmtFetchError } = await supabase
     .from("statements")
     .select("*")
@@ -317,7 +317,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Statement not found" }, { status: 404 });
   }
 
-  // 2. Download file from Storage
   const { data: fileData, error: downloadError } = await supabase.storage
     .from("statements")
     .download(statement.file_url);
@@ -326,7 +325,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Could not retrieve file from storage" }, { status: 500 });
   }
 
-  // 3. Mark processing
   await supabase.from("statements").update({ status: "processing" }).eq("id", statementId);
 
   const fileText = await fileData.text();
@@ -335,18 +333,17 @@ export async function POST(req: NextRequest) {
   let parsed: Record<string, unknown>;
 
   try {
-    // ── Summarize: parse locally, send only aggregated stats to Gemini ──
     if (action === "summarize") {
       const ext = statement.file_name.toLowerCase();
       const isTabular = ext.endsWith(".csv") || ext.endsWith(".tsv");
 
       if (isTabular) {
-        const stats = parseAndAggregate(fileText, statement.file_name, statement.source_type ?? "");
+        const stats = await summarizeTabular(fileText, statement.file_name, statement.source_type ?? "", model);
 
         if (stats) {
           const narrativePrompt = buildNarrativePrompt(stats);
-          const result = await model.generateContent(narrativePrompt);
-          const narrative = extractJSON(result.response.text()) as { summary?: string } | null;
+          const narrativeResult = await model.generateContent(narrativePrompt);
+          const narrative = extractJSON(narrativeResult.response.text()) as { summary?: string } | null;
 
           parsed = {
             summary: narrative?.summary ?? "Roy analyzed your statement.",
@@ -367,23 +364,18 @@ export async function POST(req: NextRequest) {
             columns_detected: stats.columnsDetected,
           };
         } else {
-          // Empty or unparseable — fall through to Gemini
           parsed = await runGeminiSummarize(model, statement.file_name, fileText);
         }
       } else {
-        // PDF / XLS / XLSX — fall through to Gemini
         parsed = await runGeminiSummarize(model, statement.file_name, fileText);
       }
 
-    // ── Other actions: send file text to Gemini ──
     } else {
       const prompt = buildPrompt(action, statement.file_name, fileText);
       const result = await model.generateContent(prompt);
-      const rawText = result.response.text();
-      parsed = extractJSON(rawText) ?? { summary: rawText };
+      parsed = extractJSON(result.response.text()) ?? { summary: result.response.text() };
     }
 
-    // 4. Save to parsed_results
     await supabase.from("parsed_results").upsert({
       statement_id: statementId,
       user_id: userId,
@@ -400,7 +392,6 @@ export async function POST(req: NextRequest) {
       raw_claude_output: { action },
     }, { onConflict: "statement_id" });
 
-    // 5. Mark complete
     await supabase.from("statements").update({ status: "complete" }).eq("id", statementId);
 
     return NextResponse.json({ action, result: parsed });
@@ -412,9 +403,9 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/* ── Gemini fallback summarize (PDF/XLS) ─────────────────────────────────── */
+/* ── Gemini fallback summarize (PDF / XLS / XLSX or parse failure) ────────── */
 async function runGeminiSummarize(
-  model: ReturnType<GoogleGenerativeAI["getGenerativeModel"]>,
+  model: GeminiModel,
   fileName: string,
   fileText: string,
 ): Promise<Record<string, unknown>> {
