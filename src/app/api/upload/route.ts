@@ -60,7 +60,12 @@ export async function POST(req: NextRequest) {
 
 Your only job here is to quickly identify whether an uploaded file is a music royalty statement, and if so, what it is.
 
-You ONLY accept files from DSPs (Spotify, Apple Music, YouTube Music, Amazon Music, TIDAL, Deezer), distributors (DistroKid, CD Baby, TuneCore, AWAL, FUGA), PROs (ASCAP, BMI, SESAC, SoundExchange, GMR), and CMOs (MLC, HFA, Songtrust).
+You ONLY accept files from DSPs (Spotify, Apple Music, YouTube Music, Amazon Music, TIDAL, Deezer), distributors (DistroKid, CD Baby, TuneCore, AWAL, FUGA, SoundCloud for Artists), PROs (ASCAP, BMI, SESAC, SoundExchange, GMR), and CMOs (MLC, HFA, Songtrust).
+
+IMPORTANT: Some statement files have no source name in the filename or file content. Identify them by their column headers instead.
+Known fingerprints:
+- DistroKid (.tsv): headers include "Earnings (USD)", "Country of Sale", "Songwriter Royalties Withheld (USD)"
+- SoundCloud for Artists (.csv): headers include "Revenue (USD)", "Revenue Share (%)", "Split Pay Share (%)" — rows 0-1 are preamble (Account ID + UUID), actual column headers are on row 2
 
 If it is NOT a royalty statement, return exactly:
 {"is_royalty_statement": false}
@@ -70,15 +75,15 @@ Do not explain. Do not add any other fields. Just that JSON.`,
 
   const identifyPrompt = `Look at the first part of this file and identify whether it's a music royalty statement.
 
+IMPORTANT: You are only seeing the first 50KB of what may be a very large file. Do NOT guess at date ranges or row counts — you cannot see the full file. Focus only on what you can reliably determine from this sample.
+
 Return this exact JSON — no markdown, no explanation:
 {
   "is_royalty_statement": true,
-  "source": "platform or org name (e.g. DistroKid, Spotify, ASCAP)",
+  "source": "platform or org name (e.g. DistroKid, SoundCloud for Artists, Spotify, ASCAP)",
   "royalty_type": "mechanical | performance | sync | digital_performance | neighboring_rights | unknown",
-  "period_start": "YYYY-MM-DD or null",
-  "period_end": "YYYY-MM-DD or null",
-  "estimated_rows": number or null,
-  "greeting": "One sentence from Roy — acknowledge what this file is, spoken directly to the user. Warm, specific, professional. E.g. 'This is your DistroKid mechanical royalty statement covering March 2022 through January 2026 — I can see ${file.name.includes("distrokid") ? "DistroKid" : "royalty"} data across multiple platforms and territories.'"
+  "detected_artist": "the artist or label name found in the data rows, or null if multiple different artists appear or none is found",
+  "greeting": "One sentence from Roy — acknowledge what this file is, spoken directly to the user. Warm, specific, professional. Do NOT mention date ranges — you are only seeing a sample. E.g. 'This is your DistroKid mechanical royalty statement — I can see earnings across multiple platforms and territories.' or 'This is a SoundCloud for Artists lifetime statement — I can see your revenue by platform and territory.'"
 }
 
 File name: ${file.name}
@@ -130,9 +135,7 @@ ${fileText}`;
     statementId,
     source: identified.source,
     royalty_type: identified.royalty_type,
-    period_start: identified.period_start,
-    period_end: identified.period_end,
-    estimated_rows: identified.estimated_rows,
+    detected_artist: identified.detected_artist ?? null,
     greeting: identified.greeting,
     file_name: file.name,
   });

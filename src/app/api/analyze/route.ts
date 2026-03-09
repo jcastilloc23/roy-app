@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabase";
+import { matchSchema } from "@/lib/stmts-schema";
 import Papa from "papaparse";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -90,6 +91,18 @@ ${first20}`;
   }
 }
 
+/* ── Artist normalization ────────────────────────────────────────────────── */
+
+/** Strips featuring credits and lowercases for deduplication comparison only — never stored */
+function normalizeArtistForComparison(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+(feat\.?|ft\.?|featuring|with)\s+.*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /* ── Numeric parser ──────────────────────────────────────────────────────── */
 function toNum(val: unknown): number {
   if (typeof val === "number") return isNaN(val) ? 0 : val;
@@ -111,8 +124,11 @@ interface SummarizeStats {
   periodEnd: string | null;
   byStore: { name: string; earnings: number; streams: number }[];
   byTerritory: { name: string; earnings: number; streams: number }[];
+  byPeriod: { period: string; earnings: number; streams: number }[];
   topTracks: { track: string; earnings: number; streams: number }[];
   columnsDetected: Partial<ColumnMap>;
+  /** Unique artist names found in data, canonical casing, deduplicated by normalized form */
+  detectedArtists: string[];
 }
 
 async function summarizeTabular(
@@ -121,13 +137,25 @@ async function summarizeTabular(
   source: string,
   model: GeminiModel,
 ): Promise<SummarizeStats | null> {
-  // 1. Ask Gemini to identify the header row and column mapping
-  const schema = await detectSchema(fileText, source, model);
+  // 1. Try to match against known schemas using column fingerprints — skips Gemini call for known formats
+  const isTsv = fileName.toLowerCase().endsWith(".tsv");
+  const lines = fileText.split("\n");
+  // Scan the first 5 lines for a header row — cheap, no Gemini needed
+  let knownSchema = null;
+  for (let i = 0; i < Math.min(5, lines.length); i++) {
+    const probe = Papa.parse<string[]>(lines[i], { delimiter: isTsv ? "\t" : "" });
+    const headers = (probe.data[0] ?? []).map(h => String(h).trim());
+    knownSchema = matchSchema(headers);
+    if (knownSchema) break;
+  }
+
+  const schema = knownSchema
+    ? { header_row: knownSchema.headerRow, columns: knownSchema.columns as ColumnMap }
+    : await detectSchema(fileText, source, model);
+
   const { columns } = schema;
 
   // 2. Slice from the detected header row and parse
-  const isTsv = fileName.toLowerCase().endsWith(".tsv");
-  const lines = fileText.split("\n");
   const dataText = lines.slice(schema.header_row).join("\n");
 
   const parsed = Papa.parse<Record<string, unknown>>(dataText, {
@@ -146,7 +174,10 @@ async function summarizeTabular(
   const byStore: Record<string, { earnings: number; streams: number }> = {};
   const byTerritory: Record<string, { earnings: number; streams: number }> = {};
   const byTrack: Record<string, { earnings: number; streams: number }> = {};
+  const byPeriod: Record<string, { earnings: number; streams: number }> = {};
   const periods: string[] = [];
+  // Artist deduplication: normalized form → first-seen canonical casing
+  const artistsSeen = new Map<string, string>();
 
   for (const row of rows) {
     const earn    = columns.earnings  ? toNum(row[columns.earnings])  : 0;
@@ -155,6 +186,14 @@ async function summarizeTabular(
     const terr    = columns.territory ? String(row[columns.territory] ?? "").trim() || null : null;
     const track   = columns.track     ? String(row[columns.track]   ?? "").trim() || null : null;
     const period  = columns.period    ? String(row[columns.period]  ?? "").trim() || null : null;
+    const artist  = columns.artist    ? String(row[columns.artist]  ?? "").trim() || null : null;
+
+    if (artist) {
+      const normalized = normalizeArtistForComparison(artist);
+      if (normalized && !artistsSeen.has(normalized)) {
+        artistsSeen.set(normalized, artist);
+      }
+    }
 
     totalEarnings += earn;
     totalStreams  += streams;
@@ -174,7 +213,12 @@ async function summarizeTabular(
       byTrack[track].earnings += earn;
       byTrack[track].streams  += streams;
     }
-    if (period) periods.push(period);
+    if (period) {
+      periods.push(period);
+      byPeriod[period] ??= { earnings: 0, streams: 0 };
+      byPeriod[period].earnings += earn;
+      byPeriod[period].streams  += streams;
+    }
   }
 
   const sortedPeriods = [...new Set(periods)].sort();
@@ -193,12 +237,16 @@ async function summarizeTabular(
     byTerritory: Object.entries(byTerritory)
       .sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 10)
       .map(([name, v]) => ({ name, ...v })),
+    byPeriod: Object.entries(byPeriod)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([period, v]) => ({ period, ...v })),
     topTracks: Object.entries(byTrack)
       .sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 5)
       .map(([track, v]) => ({ track, ...v })),
     columnsDetected: Object.fromEntries(
       Object.entries(columns).filter(([, v]) => v !== null)
     ) as Partial<ColumnMap>,
+    detectedArtists: Array.from(artistsSeen.values()),
   };
 }
 
@@ -217,7 +265,7 @@ function buildNarrativePrompt(stats: SummarizeStats): string {
     .map(t => `  ${t.track}: ${fmt(t.earnings)}${t.streams ? ` (${t.streams.toLocaleString()} streams/units)` : ""}`)
     .join("\n");
 
-  return `These are the exact computed stats from a royalty statement from ${stats.source}. Write a 4–6 sentence summary speaking directly to the rights holder. Use these exact numbers — do not estimate or invent anything. Sound like a person, not a report.
+  return `These are the exact computed stats from a royalty statement from ${stats.source}. Write 2–3 sentences speaking directly to the rights holder. Use these exact numbers — do not estimate or invent anything. Do NOT recap total earnings or total streams — the user can see those numbers. Lead with the single most important insight: rate quality, geographic concentration, a top-track surprise, or a notable pattern. Sound like a sharp analyst giving a take, not a report.
 
 Return this exact JSON — no markdown, no explanation:
 { "summary": "..." }
@@ -298,7 +346,11 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { statementId, action } = await req.json() as { statementId: string; action: AnalyzeAction };
+  const { statementId, action, artist_name } = await req.json() as {
+    statementId: string;
+    action: AnalyzeAction;
+    artist_name?: string;
+  };
 
   if (!statementId || !action) {
     return NextResponse.json({ error: "statementId and action are required" }, { status: 400 });
@@ -345,12 +397,50 @@ export async function POST(req: NextRequest) {
           const narrativeResult = await model.generateContent(narrativePrompt);
           const narrative = extractJSON(narrativeResult.response.text()) as { summary?: string } | null;
 
+          // ── Artist resolution ────────────────────────────────────────────
+          // "various artists" is a label compilation signal — treat as multi
+          const VARIOUS = "various artists";
+          const meaningfulArtists = stats.detectedArtists.filter(
+            a => normalizeArtistForComparison(a) !== VARIOUS,
+          );
+          const isMultiArtist = meaningfulArtists.length > 1;
+          const primaryArtist = meaningfulArtists[0] ?? null;
+
+          let artistId: string | null = null;
+          const confirmedName = artist_name?.trim() || null;
+
+          if (!isMultiArtist && confirmedName) {
+            // Upsert artist — match by user + exact name (case-insensitive)
+            const { data: existing } = await supabase
+              .from("artists")
+              .select("id")
+              .eq("user_id", userId)
+              .ilike("name", confirmedName)
+              .maybeSingle();
+
+            if (existing) {
+              artistId = existing.id;
+            } else {
+              const newArtistId = crypto.randomUUID();
+              await supabase.from("artists").insert({
+                id: newArtistId,
+                user_id: userId,
+                name: confirmedName,
+              });
+              artistId = newArtistId;
+            }
+          }
+          // ────────────────────────────────────────────────────────────────
+
           parsed = {
             summary: narrative?.summary ?? "Roy analyzed your statement.",
             total_earnings: stats.totalEarnings,
             total_streams: stats.totalStreams,
             currency: "USD",
             track_count: stats.trackCount,
+            avg_revenue_per_stream: stats.totalStreams > 0
+              ? Math.round((stats.totalEarnings / stats.totalStreams) * 1000000) / 1000000
+              : null,
             period_start: stats.periodStart,
             period_end: stats.periodEnd,
             source: stats.source,
@@ -359,10 +449,29 @@ export async function POST(req: NextRequest) {
               earnings: t.earnings,
               streams: t.streams || null,
             })),
-            by_store: stats.byStore,
+            by_store: stats.byStore.map(s => ({
+              ...s,
+              rate_per_stream: s.streams > 0
+                ? Math.round((s.earnings / s.streams) * 1000000) / 1000000
+                : null,
+            })),
             by_territory: stats.byTerritory,
+            by_period: stats.byPeriod,
             columns_detected: stats.columnsDetected,
+            // Artist info for UI
+            detected_artist: primaryArtist,
+            artist_count: stats.detectedArtists.length,
+            is_multi_artist: isMultiArtist,
+            artist_id: artistId,
           };
+
+          // Link artist to parsed_result if resolved
+          if (artistId) {
+            await supabase
+              .from("parsed_results")
+              .update({ artist_id: artistId })
+              .eq("statement_id", statementId);
+          }
         } else {
           parsed = await runGeminiSummarize(model, statement.file_name, fileText);
         }

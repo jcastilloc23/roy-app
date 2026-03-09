@@ -6,17 +6,231 @@ import RoyLogo from "@/components/RoyLogo";
 
 const GREEN = "#00d47b";
 
+/* ── Helpers ─────────────────────────────────── */
+function fmtCompact(n: number, dollars = false): string {
+  const prefix = dollars ? "$" : "";
+  if (n >= 1_000_000) return `${prefix}${(n / 1_000_000).toFixed(1)}M`;
+  if (!dollars && n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  if (dollars && n >= 10_000) return `$${(n / 1_000).toFixed(1)}K`;
+  return dollars
+    ? `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : n.toLocaleString();
+}
+
+const DONUT_COLORS = ["#10b981", "#06b6d4", "#8b5cf6", "#f59e0b", "#d946ef", "#84cc16", "#94a3b8"];
+
+const BENCHMARKS: Record<string, [number, number]> = {
+  "Spotify":       [0.003, 0.005],
+  "Apple Music":   [0.006, 0.008],
+  "YouTube Music": [0.001, 0.002],
+  "SoundExchange": [0.0025, 0.004],
+};
+
+/* ── SVG Donut Chart ─────────────────────────── */
+interface DonutSlice { name: string; value: number; streams?: number }
+
+function DonutChart({ data, title }: { data: DonutSlice[]; title: string }) {
+  const [hovered, setHovered] = useState<number | null>(null);
+
+  const top6 = data.slice(0, 6);
+  const otherTotal = data.slice(6).reduce((s, d) => s + d.value, 0);
+  const otherStreams = data.slice(6).reduce((s, d) => s + (d.streams ?? 0), 0);
+  const slices: DonutSlice[] = otherTotal > 0
+    ? [...top6, { name: "Other", value: otherTotal, streams: otherStreams }]
+    : top6;
+  const total = slices.reduce((s, d) => s + d.value, 0);
+  if (total === 0) return null;
+
+  const cx = 60; const cy = 60; const R = 52; const r = 30;
+  let cumAngle = -90;
+  const paths: { d: string; color: string }[] = [];
+
+  const polar = (radius: number, angleDeg: number) => {
+    const rad = (angleDeg * Math.PI) / 180;
+    return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) };
+  };
+
+  for (let i = 0; i < slices.length; i++) {
+    const sweep = (slices[i].value / total) * 360;
+    const startAngle = cumAngle;
+    const endAngle = cumAngle + sweep - 0.4;
+    cumAngle += sweep;
+    const large = sweep > 180 ? 1 : 0;
+    const o1 = polar(R, startAngle); const o2 = polar(R, endAngle);
+    const i1 = polar(r, endAngle);   const i2 = polar(r, startAngle);
+    paths.push({
+      color: DONUT_COLORS[i % DONUT_COLORS.length],
+      d: `M ${o1.x.toFixed(2)} ${o1.y.toFixed(2)} A ${R} ${R} 0 ${large} 1 ${o2.x.toFixed(2)} ${o2.y.toFixed(2)} L ${i1.x.toFixed(2)} ${i1.y.toFixed(2)} A ${r} ${r} 0 ${large} 0 ${i2.x.toFixed(2)} ${i2.y.toFixed(2)} Z`,
+    });
+  }
+
+  const h = hovered !== null ? slices[hovered] : null;
+
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: "12px" }}>
+        {title}
+      </div>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <svg width={120} height={120} viewBox="0 0 120 120" style={{ cursor: "default" }}>
+          {paths.map((p, i) => (
+            <path
+              key={i} d={p.d} fill={p.color}
+              opacity={hovered === null || hovered === i ? 0.9 : 0.35}
+              style={{ transition: "opacity 0.15s" }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+            />
+          ))}
+          {/* Center tooltip */}
+          {h !== null ? (
+            <>
+              <text x={cx} y={cy - 6} textAnchor="middle" fontSize={9} fontWeight={700} fill={DONUT_COLORS[hovered! % DONUT_COLORS.length]}>
+                {fmtCompact(h.value, true)}
+              </text>
+              {h.streams != null && h.streams > 0 && (
+                <text x={cx} y={cy + 7} textAnchor="middle" fontSize={8} fill="rgba(255,255,255,0.45)">
+                  {fmtCompact(h.streams)} Streams
+                </text>
+              )}
+              <text x={cx} y={cy + 18} textAnchor="middle" fontSize={7.5} fill="rgba(255,255,255,0.3)">
+                {Math.round((h.value / total) * 100)}%
+              </text>
+            </>
+          ) : null}
+        </svg>
+      </div>
+      <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "5px" }}>
+        {slices.map((s, i) => {
+          const pct = Math.round((s.value / total) * 100);
+          return (
+            <div key={i}
+              style={{ display: "flex", alignItems: "center", gap: "8px", opacity: hovered === null || hovered === i ? 1 : 0.4, transition: "opacity 0.15s", cursor: "default" }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: DONUT_COLORS[i % DONUT_COLORS.length], flexShrink: 0 }} />
+              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.45)" }}>{pct}%</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── SVG Bar Chart ───────────────────────────── */
+function formatPeriodLabel(p: string): string {
+  const m = p.match(/^(\d{4})-(\d{2})$/);
+  if (m) {
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return months[parseInt(m[2]) - 1] ?? p;
+  }
+  return p.length > 8 ? p.slice(0, 7) : p;
+}
+
+function BarChart({ data }: { data: { period: string; earnings: number; streams: number }[] }) {
+  const [mode, setMode] = useState<"earnings" | "streams">("earnings");
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  if (data.length < 2) return null;
+
+  const values = data.map(d => mode === "earnings" ? d.earnings : d.streams);
+  const maxVal = Math.max(...values, 0);
+  if (maxVal === 0) return null;
+
+  const W = 400; const H = 100; const PAD_TOP = 32; const PAD_BOT = 16;
+  const totalH = PAD_TOP + H + PAD_BOT;
+  const barGap = data.length > 12 ? 2 : 4;
+  const barW = (W / data.length) - barGap;
+
+  // Compute where year labels go: first bar of each new year
+  const yearLabels: { x: number; year: string }[] = [];
+  data.forEach((d, i) => {
+    const year = d.period.slice(0, 4);
+    const prevYear = i > 0 ? data[i - 1].period.slice(0, 4) : null;
+    if (year !== prevYear) {
+      yearLabels.push({ x: i * (W / data.length) + barGap / 2, year });
+    }
+  });
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+          Over time
+        </div>
+        <div style={{ display: "flex", gap: "4px" }}>
+          {(["earnings", "streams"] as const).map(m => (
+            <button key={m} onClick={() => setMode(m)} style={{
+              padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
+              background: mode === m ? GREEN : "transparent",
+              color: mode === m ? "#000" : "rgba(255,255,255,0.4)",
+              border: `1px solid ${mode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
+              cursor: "pointer", fontFamily: "inherit",
+            }}>
+              {m === "earnings" ? "Revenue" : "Streams"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${totalH}`} style={{ width: "100%", height: "auto", display: "block" }}>
+        {/* Year axis labels */}
+        {yearLabels.map(({ x, year }) => (
+          <text key={year} x={x} y={PAD_TOP + H + 12} fontSize={8.5} fill="rgba(255,255,255,0.3)">
+            {year}
+          </text>
+        ))}
+        {data.map((d, i) => {
+          const val = mode === "earnings" ? d.earnings : d.streams;
+          const barH = maxVal > 0 ? (val / maxVal) * H : 0;
+          const x = i * (W / data.length) + barGap / 2;
+          const y = PAD_TOP + H - barH;
+          const isHov = hoveredIdx === i;
+          const valText = mode === "earnings" ? fmtCompact(val, true) : `${fmtCompact(val)} Streams`;
+          const ttX = Math.min(Math.max(x + barW / 2, 40), W - 40);
+          const ttY = Math.max(y - 32, PAD_TOP + 2);
+
+          return (
+            <g key={i}>
+              <rect
+                x={x} y={y} width={barW} height={barH} fill={GREEN} rx={2}
+                opacity={hoveredIdx === null || isHov ? 0.85 : 0.4}
+                style={{ transition: "opacity 0.1s" }}
+              />
+              {/* Transparent hit area — full column height for easy hover */}
+              <rect
+                x={x} y={PAD_TOP} width={barW} height={H + 4} fill="transparent"
+                style={{ cursor: "default" }}
+                onMouseEnter={() => setHoveredIdx(i)}
+                onMouseLeave={() => setHoveredIdx(null)}
+              />
+              {/* Tooltip */}
+              {isHov && (
+                <g>
+                  <rect x={ttX - 42} y={ttY} width={84} height={36} rx={4} fill="#1a1d26" stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+                  <text x={ttX} y={ttY + 14} textAnchor="middle" fontSize={10} fill="#fff" fontWeight={600}>{valText}</text>
+                  <text x={ttX} y={ttY + 27} textAnchor="middle" fontSize={8.5} fill="rgba(255,255,255,0.4)">{d.period}</text>
+                </g>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
 /* ── Types ───────────────────────────────────── */
-type Phase = "idle" | "uploading" | "identified" | "analyzing" | "result" | "error";
+type Phase = "idle" | "uploading" | "identified" | "analyzing" | "result" | "error" | "multi_artist";
 type ActionType = "summarize" | "anomalies" | "cleanup" | "split";
 
 interface IdentifiedFile {
   statementId: string;
   source: string;
   royalty_type: string;
-  period_start: string | null;
-  period_end: string | null;
-  estimated_rows: number | null;
+  detected_artist: string | null;
   greeting: string;
   file_name: string;
 }
@@ -224,16 +438,15 @@ const ACTIONS: {
 /* ── Identified panel ────────────────────────── */
 function IdentifiedPanel({
   identified,
+  artistName,
+  onArtistChange,
   onAction,
 }: {
   identified: IdentifiedFile;
+  artistName: string;
+  onArtistChange: (name: string) => void;
   onAction: (action: ActionType | "talk") => void;
 }) {
-  const period =
-    identified.period_start && identified.period_end
-      ? `${identified.period_start} → ${identified.period_end}`
-      : identified.period_start ?? null;
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       {/* Roy's greeting */}
@@ -255,11 +468,10 @@ function IdentifiedPanel({
       </div>
 
       {/* File metadata */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
         {[
           { label: "Source", value: identified.source || "—" },
           { label: "Type", value: identified.royalty_type || "—" },
-          { label: "Est. rows", value: identified.estimated_rows?.toLocaleString() ?? "—" },
         ].map(({ label, value }) => (
           <div key={label} style={{
             background: "var(--bg3)", border: "1px solid var(--border)",
@@ -271,14 +483,37 @@ function IdentifiedPanel({
         ))}
       </div>
 
-      {period && (
-        <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)", marginTop: "-8px" }}>
-          Period: {period}
+      {/* Artist confirm */}
+      <div style={{
+        background: "var(--bg3)", border: "1px solid var(--border)",
+        borderRadius: "10px", padding: "16px 18px",
+      }}>
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "10px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          Confirm your artist name:
         </div>
-      )}
+        <input
+          type="text"
+          value={artistName}
+          onChange={(e) => onArtistChange(e.target.value)}
+          placeholder="Artist or label name"
+          style={{
+            width: "100%", padding: "10px 12px", borderRadius: "8px",
+            background: "var(--bg2)", border: "1px solid rgba(255,255,255,0.12)",
+            color: "#fff", fontSize: "14px", fontWeight: 500,
+            fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+          }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(0,212,123,0.4)"; }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
+        />
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "8px", lineHeight: 1.5 }}>
+          {identified.detected_artist
+            ? "Roy found this artist in your file — confirm or correct it."
+            : "Roy will use this to organize your statements across uploads."}
+        </div>
+      </div>
 
       {/* Action prompt */}
-      <div style={{ fontSize: "14px", fontWeight: 600, color: "rgba(255,255,255,0.7)", marginTop: "4px" }}>
+      <div style={{ fontSize: "14px", fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>
         What should Roy do with it?
       </div>
 
@@ -419,34 +654,139 @@ function ResultPanel({
       {/* ── Summarize ── */}
       {action === "summarize" && (
         <>
-          {result.summary && <RoyTake text={result.summary as string} label="Roy's summary" />}
+          {/* Multi-artist upgrade prompt */}
+          {result.is_multi_artist && (
+            <div style={{
+              background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)",
+              borderRadius: "10px", padding: "16px 18px",
+            }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#f59e0b", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Multiple artists detected
+              </div>
+              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.75)", lineHeight: 1.6, margin: "0 0 12px" }}>
+                Roy found{result.artist_count ? ` ${result.artist_count}` : ""} different artists in this statement. Managing multiple artists is a <strong style={{ color: "#fff" }}>Roy Label</strong> feature.
+              </p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <a href="/subscribe" style={{
+                  padding: "8px 16px", borderRadius: "7px", fontSize: "13px", fontWeight: 600,
+                  background: "#f59e0b", color: "#000", textDecoration: "none", display: "inline-block",
+                }}>
+                  Upgrade to Roy Label
+                </a>
+                <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", alignSelf: "center" }}>
+                  or split your file by artist and re-upload
+                </span>
+              </div>
+            </div>
+          )}
 
+          {/* Roy's take */}
+          {result.summary && <RoyTake text={result.summary as string} label="Roy's take" />}
+
+          {/* Headline KPI cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
             <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Total earnings</div>
-              <div style={{ fontSize: "20px", fontWeight: 700, color: GREEN }}>
-                {result.total_earnings != null
-                  ? `$${(result.total_earnings as number).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                  : "—"}
+              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Total earnings</div>
+              <div style={{ fontSize: "22px", fontWeight: 700, color: GREEN }}>
+                {result.total_earnings != null ? fmtCompact(result.total_earnings as number, true) : "—"}
               </div>
               {typeof result.currency === "string" && result.currency !== "USD" && (
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{result.currency}</div>
               )}
             </div>
             <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Total streams</div>
-              <div style={{ fontSize: "20px", fontWeight: 700, color: "#fff" }}>
-                {result.total_streams != null ? (result.total_streams as number).toLocaleString() : "—"}
+              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Total streams</div>
+              <div style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>
+                {result.total_streams != null ? fmtCompact(result.total_streams as number) : "—"}
               </div>
             </div>
             <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Tracks</div>
-              <div style={{ fontSize: "20px", fontWeight: 700, color: "#fff" }}>
-                {result.track_count != null ? (result.track_count as number).toLocaleString() : "—"}
+              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg / stream</div>
+              <div style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>
+                {result.avg_revenue_per_stream != null
+                  ? `$${(result.avg_revenue_per_stream as number).toFixed(4)}`
+                  : "—"}
               </div>
             </div>
           </div>
 
+          {/* Bar chart — over time */}
+          {Array.isArray(result.by_period) && result.by_period.length > 1 && (
+            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+              <BarChart data={result.by_period as { period: string; earnings: number; streams: number }[]} />
+            </div>
+          )}
+
+          {/* Revenue per stream — platform table */}
+          {Array.isArray(result.by_store) && (result.by_store as { name: string; earnings: number; streams: number; rate_per_stream?: number | null }[]).some(s => s.rate_per_stream != null && s.streams > 0) && (
+            <div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "10px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+                  Revenue / stream
+                </div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>
+                  US & major Western markets only
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                {(result.by_store as { name: string; earnings: number; streams: number; rate_per_stream?: number | null }[])
+                  .filter(s => s.rate_per_stream != null && s.streams > 0)
+                  .map((s, i) => {
+                    const bench = BENCHMARKS[s.name];
+                    const rate = s.rate_per_stream as number;
+                    let badge: { label: string; color: string; bg: string; border: string };
+                    if (!bench) {
+                      badge = { label: "Varies", color: "rgba(255,255,255,0.4)", bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.1)" };
+                    } else if (rate < bench[0]) {
+                      badge = { label: "Below benchmark", color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.25)" };
+                    } else {
+                      badge = { label: "In range", color: GREEN, bg: "rgba(0,212,123,0.07)", border: "rgba(0,212,123,0.2)" };
+                    }
+                    return (
+                      <div key={i} style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        background: "var(--bg3)", border: "1px solid var(--border)",
+                        borderRadius: "8px", padding: "10px 14px",
+                      }}>
+                        <div style={{ fontSize: "13px", color: "#fff", fontWeight: 500 }}>{s.name}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", fontVariantNumeric: "tabular-nums" }}>
+                            ${rate.toFixed(6)}
+                          </div>
+                          <span style={{
+                            padding: "3px 10px", borderRadius: "100px", fontSize: "11px", fontWeight: 600,
+                            color: badge.color, background: badge.bg, border: `1px solid ${badge.border}`,
+                            whiteSpace: "nowrap",
+                          }}>
+                            {badge.label}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* Donut charts */}
+          {(Array.isArray(result.by_store) || Array.isArray(result.by_territory)) && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+              {Array.isArray(result.by_store) && result.by_store.length > 0 && (
+                <DonutChart
+                  title="By platform"
+                  data={(result.by_store as { name: string; earnings: number; streams: number }[]).map(s => ({ name: s.name, value: s.earnings, streams: s.streams }))}
+                />
+              )}
+              {Array.isArray(result.by_territory) && result.by_territory.length > 0 && (
+                <DonutChart
+                  title="By territory"
+                  data={(result.by_territory as { name: string; earnings: number; streams: number }[]).map(t => ({ name: t.name, value: t.earnings, streams: t.streams }))}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Top tracks */}
           {Array.isArray(result.top_earners) && result.top_earners.length > 0 && (
             <div>
               <div style={{
@@ -466,7 +806,7 @@ function ResultPanel({
                       <div style={{ fontSize: "13px", color: "#fff", fontWeight: 500 }}>{t.track}</div>
                       {t.streams != null && t.streams > 0 && (
                         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", marginTop: "2px" }}>
-                          {t.streams.toLocaleString()} streams
+                          {fmtCompact(t.streams)} streams
                         </div>
                       )}
                     </div>
@@ -475,66 +815,6 @@ function ResultPanel({
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {Array.isArray(result.by_store) && result.by_store.length > 0 && (
-            <div>
-              <div style={{
-                fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em",
-                textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: "10px",
-              }}>
-                By platform
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                {(result.by_store as { name: string; earnings: number; streams: number }[]).map((s, i) => {
-                  const total = (result.by_store as { earnings: number }[]).reduce((sum, x) => sum + x.earnings, 0);
-                  const pct = total > 0 ? Math.round((s.earnings / total) * 100) : 0;
-                  return (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", width: "120px", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {s.name}
-                      </div>
-                      <div style={{ flex: 1, height: "6px", background: "var(--bg3)", borderRadius: "3px", overflow: "hidden" }}>
-                        <div style={{ width: `${pct}%`, height: "100%", background: GREEN, borderRadius: "3px" }} />
-                      </div>
-                      <div style={{ fontSize: "12px", color: GREEN, fontWeight: 600, width: "44px", textAlign: "right", flexShrink: 0 }}>
-                        {pct}%
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {Array.isArray(result.by_territory) && result.by_territory.length > 0 && (
-            <div>
-              <div style={{
-                fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em",
-                textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: "10px",
-              }}>
-                By territory
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                {(result.by_territory as { name: string; earnings: number }[]).map((t, i) => {
-                  const total = (result.by_territory as { earnings: number }[]).reduce((sum, x) => sum + x.earnings, 0);
-                  const pct = total > 0 ? Math.round((t.earnings / total) * 100) : 0;
-                  return (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", width: "120px", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {t.name}
-                      </div>
-                      <div style={{ flex: 1, height: "6px", background: "var(--bg3)", borderRadius: "3px", overflow: "hidden" }}>
-                        <div style={{ width: `${pct}%`, height: "100%", background: "rgba(0,212,123,0.5)", borderRadius: "3px" }} />
-                      </div>
-                      <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontWeight: 600, width: "44px", textAlign: "right", flexShrink: 0 }}>
-                        {pct}%
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             </div>
           )}
@@ -685,6 +965,7 @@ export default function RoyToolPage() {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("idle");
   const [identified, setIdentified] = useState<IdentifiedFile | null>(null);
+  const [artistName, setArtistName] = useState<string>("");
   const [analyzed, setAnalyzed] = useState<AnalyzedResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -712,6 +993,7 @@ export default function RoyToolPage() {
       }
 
       setIdentified(data);
+      setArtistName(data.detected_artist ?? "");
       setPhase("identified");
     } catch {
       setErrorMsg("Upload failed. Check your connection and try again.");
@@ -734,7 +1016,11 @@ export default function RoyToolPage() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statementId: identified.statementId, action }),
+        body: JSON.stringify({
+          statementId: identified.statementId,
+          action,
+          artist_name: artistName.trim() || undefined,
+        }),
       });
       const data = await res.json();
 
@@ -755,6 +1041,7 @@ export default function RoyToolPage() {
   function handleReset() {
     setPhase("idle");
     setIdentified(null);
+    setArtistName("");
     setAnalyzed(null);
     setErrorMsg(null);
   }
@@ -813,7 +1100,12 @@ export default function RoyToolPage() {
               )}
 
               {phase === "identified" && identified && (
-                <IdentifiedPanel identified={identified} onAction={handleAction} />
+                <IdentifiedPanel
+                  identified={identified}
+                  artistName={artistName}
+                  onArtistChange={setArtistName}
+                  onAction={handleAction}
+                />
               )}
 
               {phase === "analyzing" && (
