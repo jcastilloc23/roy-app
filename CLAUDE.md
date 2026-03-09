@@ -23,7 +23,7 @@ See `PRD.md` for product vision. See `MARKET_OPPORTUNITY.md` for market research
 | Runtime | React 19 |
 | Linting | ESLint 9 |
 
-No database yet. No backend API routes yet. No Stripe/billing yet.
+Database: Supabase (Postgres). No backend API routes yet. No Stripe/billing yet.
 
 ---
 
@@ -117,6 +117,68 @@ Enterprise: soft CTA ("Let's talk") on `/pricing`, no self-serve.
 
 ---
 
+## Database Schema — Supabase (Postgres)
+
+Three tables in the `public` schema. All timestamps use `timestamptz`. All IDs are `uuid` with `gen_random_uuid()` default.
+
+```
+artists
+  id          uuid        PK
+  user_id     text        NOT NULL  — Clerk user ID; owner of this artist
+  name        text        NOT NULL
+  created_at  timestamptz NOT NULL  default: now()
+
+statements
+  id           uuid        PK
+  user_id      text        — Clerk user ID
+  status       text        default: 'pending' — pipeline states: pending → processing → complete → failed
+  source_type  text        — file format hint (e.g. 'csv', 'pdf')
+  file_name    text
+  file_size    int8
+  file_type    text        — MIME type
+  uploaded_at  timestamptz default: now()
+
+parsed_results
+  id               uuid     PK
+  statement_id     uuid     FK → statements.id       (cascade delete)
+  artist_id        uuid     FK → artists.id           (cascade delete, nullable)
+  user_id          text     — denormalised from statement for fast queries
+  royalty_type     text     — 'mechanical' | 'performance' | 'sync' | 'digital_performance'
+  source           text     — rights org name: 'Spotify' | 'ASCAP' | 'DistroKid' | etc.
+  currency         text     default: 'USD'
+  period_start     date
+  period_end       date
+  total_earnings   numeric
+  track_count      int4
+  summary          text     — plain-English AI-generated summary (Insights Layer output)
+  flags            jsonb    default: '[]' — anomalies/discrepancies detected by parser
+  normalized_data  jsonb    — structured royalty data extracted from the statement
+  raw_claude_output jsonb   — raw LLM response, kept for debugging and prompt iteration
+  parse_confidence float4   — 0.0–1.0; flag rows below threshold for manual QA
+  created_at       timestamptz default: now()
+```
+
+**Key relationships:**
+- `statements` is the root — no outbound FKs
+- `parsed_results` references both `statements` and `artists`
+- `artists` has no FK dependencies — created at onboarding, before any statements exist
+
+**Conventions:**
+- Always use `timestamptz`, never plain `timestamp`
+- `flags` is a JSONB array — always starts as `[]`, never null; append anomalies as objects
+- `normalized_data` is JSONB — document the expected shape before querying it in code
+- `raw_claude_output` is append-only — never mutate it after write
+- `status` on `statements` is the parsing pipeline state machine — update it as the job progresses
+
+**Env vars needed (add to `.env.local`):**
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=   # server-side only, never expose to client
+```
+
+---
+
 ## Known Issues
 
 - **`.next/routes-manifest.json` ENOENT error:** App needs to be built (`npm run build`) before `npm start`. Always use `npm run dev` in development. This error appears when trying to run the production server without a prior build.
@@ -129,7 +191,7 @@ Enterprise: soft CTA ("Let's talk") on `/pricing`, no self-serve.
 - Pages use inline styles heavily (ported from Mogul's design). This is intentional for now — don't refactor to Tailwind classes unless asked.
 - Components in `src/components/` are server-compatible unless they include `"use client"` at the top.
 - CSS class names like `btn-primary`, `section-tag`, `container`, `page-hero` are defined in `globals.css`, not Tailwind.
-- No ORM, no DB layer — all data is static/hardcoded for now.
+- DB access uses the Supabase JS client (`@supabase/supabase-js`). No ORM. Query directly against the schema above.
 
 ---
 

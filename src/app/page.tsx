@@ -70,14 +70,6 @@ export default function Home() {
       <Navbar />
 
       <main>
-        {/* ===== ANNOUNCEMENT BANNER ===== */}
-        <div className="announcement">
-          🎉 Introducing Roy —{" "}
-          <Link href="/sign-up">
-            the simplest way for artists to track every royalty dollar they&apos;ve earned →
-          </Link>
-        </div>
-
         {/* ===== HERO ===== */}
         <section className="hero" id="home">
           <div className="container">

@@ -86,7 +86,7 @@ export default function WhosItForPage() {
                 <CheckBullet>Detect unclaimed royalties before they expire</CheckBullet>
                 <CheckBullet>Unified payout calendar — know exactly when money is coming</CheckBullet>
               </div>
-              <Link href="/signup" className="btn-primary" style={{ marginTop: "24px" }}>
+              <Link href="/subscribe" className="btn-primary" style={{ marginTop: "24px" }}>
                 Get Started Free <ArrowIcon />
               </Link>
             </div>
@@ -139,7 +139,7 @@ export default function WhosItForPage() {
                 <CheckBullet>Consolidated reports ready to share with your team</CheckBullet>
                 <CheckBullet>Track open claims and pending registrations across all artists</CheckBullet>
               </div>
-              <Link href="/signup" className="btn-primary" style={{ marginTop: "24px" }}>
+              <Link href="/subscribe" className="btn-primary" style={{ marginTop: "24px" }}>
                 Manage Your Roster <ArrowIcon />
               </Link>
             </div>
@@ -254,7 +254,7 @@ export default function WhosItForPage() {
             <h2>Your royalties are waiting. Go get them.</h2>
             <p>Connect your accounts in minutes. Roy will show you exactly what you&apos;re earning — and what you&apos;re missing.</p>
             <div className="cta-btns">
-              <Link href="/signup" className="btn-primary">
+              <Link href="/subscribe" className="btn-primary">
                 Get Started — It&apos;s Free <ArrowIcon />
               </Link>
               <Link href="/contact" className="btn-outline">Talk to us</Link>
