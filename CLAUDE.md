@@ -20,10 +20,12 @@ See `PRD.md` for product vision. See `MARKET_OPPORTUNITY.md` for market research
 | Language | TypeScript |
 | Styling | Tailwind CSS v3 + CSS custom properties |
 | Auth | Clerk (`@clerk/nextjs` v7) |
+| Database | Supabase (Postgres + Storage) |
+| AI | Google Gemini 2.5 Flash (`@google/generative-ai`) |
 | Runtime | React 19 |
 | Linting | ESLint 9 |
 
-Database: Supabase (Postgres). No backend API routes yet. No Stripe/billing yet.
+No Stripe/billing yet.
 
 ---
 
@@ -57,6 +59,9 @@ roy_app/
       Footer.tsx           # Footer with nav columns + social icons
       CookieBanner.tsx     # Cookie consent (localStorage-based)
       CounterSection.tsx   # Animated stat counters
+    api/
+      upload/
+        route.ts           # POST /api/upload — receives file, stores in Supabase Storage, calls Gemini, writes parsed_results
     lib/
       supabase.ts          # Supabase client — exports `supabase` (anon/client) and `supabaseAdmin()` (service role/server only)
   middleware.ts            # Clerk middleware
@@ -142,6 +147,7 @@ statements
   file_name    text
   file_size    int8
   file_type    text        — MIME type
+  file_url     text        — Supabase Storage path to the uploaded file (nullable)
   uploaded_at  timestamptz default: now()
 
 parsed_results
@@ -176,12 +182,40 @@ parsed_results
 - `raw_claude_output` is append-only — never mutate it after write
 - `status` on `statements` is the parsing pipeline state machine — update it as the job progresses
 
+**Supabase Storage:**
+- Bucket: `statements` (private) — stores uploaded royalty statement files
+- Files are uploaded server-side using the service role client
+- Path convention: `{user_id}/{statement_id}/{file_name}`
+
 **Env vars needed (add to `.env.local`):**
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=   # server-side only, never expose to client
+GEMINI_API_KEY=              # server-side only, for Gemini parsing
 ```
+
+---
+
+## AI Architecture — Three Pillars
+
+Roy's AI layer is built around three distinct responsibilities. Keep these separate as the product grows:
+
+1. **Parsing & Data Engineering** (Layer 1 — `api/upload/route.ts`)
+   Gemini extracts and normalizes raw royalty data into a consistent schema. Every `normalized_data.rows` entry uses identical field names (`track_name`, `isrc`, `earnings`, `streams`, `rate_per_stream`, etc.) so reconciliation and analytics pipelines can run without further transformation. Data quality issues (nulls, missing ISRCs, format errors) are flagged here.
+
+2. **Insights & AI Interface** (Layer 2 — `summary` field in `parsed_results`)
+   Plain-English explanation of what the statement means for the rights holder. Written as if a royalty analyst is speaking directly to them. No jargon. This is the "aha moment" — what they earned, at what rate, and the single most important thing to act on.
+
+3. **Anomaly Detection** (Layer 2–3 — `flags` array in `parsed_results`)
+   Pre-analytics flagging against known industry benchmarks:
+   - Spotify mechanical: $0.003–$0.005/stream
+   - Apple Music: $0.006–$0.008/stream
+   - YouTube Music: $0.001–$0.002/stream
+   - SoundExchange: $0.0025–$0.004/stream
+   - Flag types: `missing_isrc`, `unmatched_isrc`, `missing_mlc_registration`, `below_market_rate`, `rate_anomaly`, `data_quality`, `registration_gap`, `underpayment_likely`
+
+**Rule:** Never blur these layers. Data engineering produces clean structured data. AI explains it. Analytics (Phase 3) runs on top of the clean data.
 
 ---
 
