@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieBanner from "@/components/CookieBanner";
 import RoyLogo from "@/components/RoyLogo";
 
 const GREEN = "#00d47b";
@@ -78,7 +77,6 @@ export default function PricingPage() {
 
   return (
     <>
-      <CookieBanner />
       <Navbar />
       <main>
 

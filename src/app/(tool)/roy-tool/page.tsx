@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RoyLogo from "@/components/RoyLogo";
+import { getCountryName } from "@/lib/country-codes";
+import { SiSpotify, SiApplemusic, SiYoutubemusic } from "react-icons/si";
 
 const GREEN = "#00d47b";
 
@@ -23,8 +25,15 @@ const BENCHMARKS: Record<string, [number, number]> = {
   "Spotify":       [0.003, 0.005],
   "Apple Music":   [0.006, 0.008],
   "YouTube Music": [0.001, 0.002],
-  "SoundExchange": [0.0025, 0.004],
 };
+
+/* ── Platform logos ──────────────────────────── */
+function PlatformLogo({ name, size = 20 }: { name: string; size?: number }) {
+  if (name === "Spotify")       return <SiSpotify size={size} color="#1DB954" />;
+  if (name === "Apple Music")   return <SiApplemusic size={size} color="#FC3C44" />;
+  if (name === "YouTube Music") return <SiYoutubemusic size={size} color="#FF0000" />;
+  return null;
+}
 
 /* ── SVG Donut Chart ─────────────────────────── */
 interface DonutSlice { name: string; value: number; streams?: number }
@@ -93,9 +102,6 @@ function DonutChart({ data, title }: { data: DonutSlice[]; title: string }) {
                   {fmtCompact(h.streams)} Streams
                 </text>
               )}
-              <text x={cx} y={cy + 18} textAnchor="middle" fontSize={7.5} fill="rgba(255,255,255,0.3)">
-                {Math.round((h.value / total) * 100)}%
-              </text>
             </>
           ) : null}
         </svg>
@@ -175,7 +181,24 @@ function BarChart({ data }: { data: { period: string; earnings: number; streams:
           ))}
         </div>
       </div>
-      <svg viewBox={`0 0 ${W} ${totalH}`} style={{ width: "100%", height: "auto", display: "block" }}>
+      <svg viewBox={`0 0 ${W} ${totalH}`} style={{ width: "100%", height: "auto", display: "block" }}
+        onMouseLeave={() => setHoveredIdx(null)}
+      >
+        {/* Fixed tooltip at top of chart — never overlaps hit areas */}
+        {hoveredIdx !== null && (() => {
+          const d = data[hoveredIdx];
+          const val = mode === "earnings" ? d.earnings : d.streams;
+          const valText = mode === "earnings" ? fmtCompact(val, true) : `${fmtCompact(val)} Streams`;
+          const barCx = hoveredIdx * (W / data.length) + barGap / 2 + barW / 2;
+          const ttX = Math.min(Math.max(barCx, 42), W - 42);
+          return (
+            <g style={{ pointerEvents: "none" }}>
+              <rect x={ttX - 42} y={2} width={84} height={36} rx={4} fill="#1a1d26" stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+              <text x={ttX} y={16} textAnchor="middle" fontSize={10} fill="#fff" fontWeight={600}>{valText}</text>
+              <text x={ttX} y={29} textAnchor="middle" fontSize={8.5} fill="rgba(255,255,255,0.4)">{d.period}</text>
+            </g>
+          );
+        })()}
         {/* Year axis labels */}
         {yearLabels.map(({ x, year }) => (
           <text key={year} x={x} y={PAD_TOP + H + 12} fontSize={8.5} fill="rgba(255,255,255,0.3)">
@@ -188,9 +211,6 @@ function BarChart({ data }: { data: { period: string; earnings: number; streams:
           const x = i * (W / data.length) + barGap / 2;
           const y = PAD_TOP + H - barH;
           const isHov = hoveredIdx === i;
-          const valText = mode === "earnings" ? fmtCompact(val, true) : `${fmtCompact(val)} Streams`;
-          const ttX = Math.min(Math.max(x + barW / 2, 40), W - 40);
-          const ttY = Math.max(y - 32, PAD_TOP + 2);
 
           return (
             <g key={i}>
@@ -201,19 +221,10 @@ function BarChart({ data }: { data: { period: string; earnings: number; streams:
               />
               {/* Transparent hit area — full column height for easy hover */}
               <rect
-                x={x} y={PAD_TOP} width={barW} height={H + 4} fill="transparent"
+                x={x} y={PAD_TOP} width={barW} height={H} fill="transparent"
                 style={{ cursor: "default" }}
                 onMouseEnter={() => setHoveredIdx(i)}
-                onMouseLeave={() => setHoveredIdx(null)}
               />
-              {/* Tooltip */}
-              {isHov && (
-                <g>
-                  <rect x={ttX - 42} y={ttY} width={84} height={36} rx={4} fill="#1a1d26" stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
-                  <text x={ttX} y={ttY + 14} textAnchor="middle" fontSize={10} fill="#fff" fontWeight={600}>{valText}</text>
-                  <text x={ttX} y={ttY + 27} textAnchor="middle" fontSize={8.5} fill="rgba(255,255,255,0.4)">{d.period}</text>
-                </g>
-              )}
             </g>
           );
         })}
@@ -223,7 +234,7 @@ function BarChart({ data }: { data: { period: string; earnings: number; streams:
 }
 
 /* ── Types ───────────────────────────────────── */
-type Phase = "idle" | "uploading" | "identified" | "analyzing" | "result" | "error" | "multi_artist";
+type Phase = "idle" | "uploading" | "identified" | "analyzing" | "result" | "error" | "multi_artist" | "split_preview";
 type ActionType = "summarize" | "anomalies" | "cleanup" | "split";
 
 interface IdentifiedFile {
@@ -420,7 +431,7 @@ const ACTIONS: {
       </svg>
     ),
     label: "Split this file",
-    desc: "Roy recommends how to break this into separate files by artist, platform, or period.",
+    desc: "File too large for Excel? Roy splits it into 500K-row chunks with the header preserved on every part.",
   },
   {
     id: "talk",
@@ -609,6 +620,225 @@ function RoyTake({ text, label }: { text: string; label: string }) {
   );
 }
 
+/* ── Split preview panel ─────────────────────── */
+const SPLIT_CHUNK_SIZE = 500_000;
+const EXCEL_ROW_LIMIT = 1_048_576;
+const EXCEL_SIZE_WARN_MB = 100;
+
+function SplitPreviewPanel({
+  file,
+  onBack,
+  onReset,
+}: {
+  file: File;
+  onBack: () => void;
+  onReset: () => void;
+}) {
+  const [status, setStatus] = useState<"preview" | "splitting" | "done">("preview");
+  const [partsDone, setPartsDone] = useState(0);
+  const [actualParts, setActualParts] = useState(0);
+
+  const fileSizeMB = file.size / (1024 * 1024);
+  // Rough estimate: DistroKid TSV rows average ~200 bytes
+  const estimatedRows = Math.round(file.size / 200);
+  const estimatedParts = Math.max(1, Math.ceil(estimatedRows / SPLIT_CHUNK_SIZE));
+  const needsSplit = file.size > EXCEL_SIZE_WARN_MB * 1024 * 1024 || estimatedRows > EXCEL_ROW_LIMIT;
+
+  async function doSplit() {
+    setStatus("splitting");
+    // TODO: Replace file.text() with a streaming approach using File.stream() + ReadableStream.
+    // Current approach loads the entire file into memory at once (~3–4× file size in RAM),
+    // which works for files up to ~200MB but will crash browser tabs beyond that.
+    // YouTube Content ID statements for major labels/publishers can reach 5GB+.
+    // The streaming fix: read in 64KB chunks, track newline positions, flush each
+    // 500K-row part to a Blob incrementally — constant memory regardless of file size.
+    const text = await file.text();
+    const allLines = text.split("\n");
+    const header = allLines[0] ?? "";
+    const dataLines = allLines.slice(1).filter((l) => l.trim() !== "");
+    const parts = Math.ceil(dataLines.length / SPLIT_CHUNK_SIZE);
+    setActualParts(parts);
+
+    const dotIdx = file.name.lastIndexOf(".");
+    const base = dotIdx > 0 ? file.name.slice(0, dotIdx) : file.name;
+    const ext = dotIdx > 0 ? file.name.slice(dotIdx) : ".csv";
+
+    for (let i = 0; i < parts; i++) {
+      const chunk = dataLines.slice(i * SPLIT_CHUNK_SIZE, (i + 1) * SPLIT_CHUNK_SIZE);
+      const content = [header, ...chunk].join("\n");
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${base}_part${i + 1}_of_${parts}${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setPartsDone(i + 1);
+      // Small delay so browser doesn't block sequential downloads
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    setStatus("done");
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      {/* Nav row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <button
+          onClick={onBack}
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            background: "transparent", border: "none",
+            color: "rgba(255,255,255,0.5)", cursor: "pointer",
+            fontSize: "13px", fontFamily: "inherit", padding: 0,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Back
+        </button>
+        <button
+          onClick={onReset}
+          style={{
+            padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
+            background: "transparent", border: "1px solid var(--border)",
+            color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          Upload another
+        </button>
+      </div>
+
+      {status === "preview" && (
+        <>
+          {!needsSplit ? (
+            /* File is fine for Excel */
+            <div style={{
+              background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+              borderRadius: "10px", padding: "18px 20px",
+            }}>
+              <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
+                No split needed
+              </div>
+              <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: 0 }}>
+                Your file is {fileSizeMB.toFixed(1)} MB with an estimated{" "}
+                <strong style={{ color: "#fff" }}>{fmtCompact(estimatedRows)} rows</strong> — well within Excel&apos;s 1,048,576 row limit. It should open directly without issues.
+              </p>
+            </div>
+          ) : (
+            /* Split needed */
+            <>
+              <div style={{
+                background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+                borderRadius: "10px", padding: "18px 20px",
+              }}>
+                <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
+                  Roy&apos;s split plan
+                </div>
+                <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: 0 }}>
+                  Your file is <strong style={{ color: "#fff" }}>{fileSizeMB.toFixed(0)} MB</strong> with an estimated{" "}
+                  <strong style={{ color: "#fff" }}>{fmtCompact(estimatedRows)} rows</strong> — over Excel&apos;s limit. Roy will split it into{" "}
+                  <strong style={{ color: GREEN }}>{estimatedParts} parts</strong> of up to{" "}
+                  <strong style={{ color: "#fff" }}>500,000 rows each</strong>. The original header row is preserved on every part.
+                </p>
+              </div>
+
+              {/* File details */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+                {[
+                  { label: "File size", value: `${fileSizeMB.toFixed(1)} MB` },
+                  { label: "Est. rows", value: fmtCompact(estimatedRows) },
+                  { label: "Parts", value: String(estimatedParts) },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{
+                    background: "var(--bg3)", border: "1px solid var(--border)",
+                    borderRadius: "10px", padding: "14px",
+                  }}>
+                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>{label}</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#fff" }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
+                Row count is estimated from file size. The actual split uses real row counts — each part will be named <em>{file.name.replace(/\.[^.]+$/, "")}_part1_of_{estimatedParts}{file.name.slice(file.name.lastIndexOf("."))}</em> etc.
+              </div>
+
+              <button
+                onClick={doSplit}
+                style={{
+                  padding: "14px 24px", borderRadius: "10px", fontSize: "15px", fontWeight: 600,
+                  background: GREEN, color: "#000", border: "none", cursor: "pointer",
+                  fontFamily: "inherit", display: "flex", alignItems: "center", gap: "8px",
+                  alignSelf: "flex-start",
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 15V3M12 15l-4-4M12 15l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3 19h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                Split and download {estimatedParts} files
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      {status === "splitting" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{
+            background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+            borderRadius: "10px", padding: "18px 20px",
+          }}>
+            <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
+              Splitting…
+            </div>
+            <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: "0 0 16px" }}>
+              Downloading part <strong style={{ color: GREEN }}>{partsDone + 1}</strong> of{" "}
+              <strong style={{ color: "#fff" }}>{actualParts || estimatedParts}</strong>. Your browser may ask to allow multiple downloads — click Allow.
+            </p>
+            {/* Progress bar */}
+            <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: "100px", height: "4px", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", background: GREEN, borderRadius: "100px",
+                width: `${((partsDone) / (actualParts || estimatedParts)) * 100}%`,
+                transition: "width 0.3s ease",
+              }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {status === "done" && (
+        <div style={{
+          background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+          borderRadius: "10px", padding: "18px 20px",
+        }}>
+          <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
+            Done
+          </div>
+          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: "0 0 16px" }}>
+            <strong style={{ color: "#fff" }}>{actualParts} files</strong> downloaded. Each part is under 500,000 rows and can be opened directly in Excel.
+          </p>
+          <button
+            onClick={onReset}
+            style={{
+              padding: "10px 20px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+              background: GREEN, color: "#000", border: "none", cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Upload another file
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Result panel ────────────────────────────── */
 function ResultPanel({
   analyzed,
@@ -620,6 +850,7 @@ function ResultPanel({
   onBack: () => void;
 }) {
   const { action, result } = analyzed;
+  const [trackMode, setTrackMode] = useState<"earnings" | "streams">("earnings");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -718,40 +949,35 @@ function ResultPanel({
           )}
 
           {/* Revenue per stream — platform table */}
-          {Array.isArray(result.by_store) && (result.by_store as { name: string; earnings: number; streams: number; rate_per_stream?: number | null }[]).some(s => s.rate_per_stream != null && s.streams > 0) && (
+          {Array.isArray(result.by_store) && (result.by_store as { name: string; earnings: number; streams: number; rate_per_stream?: number | null }[]).some(s => s.rate_per_stream != null && s.streams > 0 && BENCHMARKS[s.name] != null) && (
             <div>
               <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "10px" }}>
                 <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
                   Revenue / stream
                 </div>
-                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>
-                  US & major Western markets only
-                </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {(result.by_store as { name: string; earnings: number; streams: number; rate_per_stream?: number | null }[])
-                  .filter(s => s.rate_per_stream != null && s.streams > 0)
+                  .filter(s => s.rate_per_stream != null && s.streams > 0 && BENCHMARKS[s.name] != null)
                   .map((s, i) => {
                     const bench = BENCHMARKS[s.name];
                     const rate = s.rate_per_stream as number;
-                    let badge: { label: string; color: string; bg: string; border: string };
-                    if (!bench) {
-                      badge = { label: "Varies", color: "rgba(255,255,255,0.4)", bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.1)" };
-                    } else if (rate < bench[0]) {
-                      badge = { label: "Below benchmark", color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.25)" };
-                    } else {
-                      badge = { label: "In range", color: GREEN, bg: "rgba(0,212,123,0.07)", border: "rgba(0,212,123,0.2)" };
-                    }
+                    const badge = rate < bench![0]
+                      ? { label: "Below benchmark", color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.25)" }
+                      : { label: "In range", color: GREEN, bg: "rgba(0,212,123,0.07)", border: "rgba(0,212,123,0.2)" };
                     return (
                       <div key={i} style={{
                         display: "flex", alignItems: "center", justifyContent: "space-between",
                         background: "var(--bg3)", border: "1px solid var(--border)",
                         borderRadius: "8px", padding: "10px 14px",
                       }}>
-                        <div style={{ fontSize: "13px", color: "#fff", fontWeight: 500 }}>{s.name}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <PlatformLogo name={s.name} size={20} />
+                          <span style={{ fontSize: "13px", color: "#fff", fontWeight: 500 }}>{s.name}</span>
+                        </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                           <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", fontVariantNumeric: "tabular-nums" }}>
-                            ${rate.toFixed(6)}
+                            ${rate.toFixed(4)}
                           </div>
                           <span style={{
                             padding: "3px 10px", borderRadius: "100px", fontSize: "11px", fontWeight: 600,
@@ -780,44 +1006,80 @@ function ResultPanel({
               {Array.isArray(result.by_territory) && result.by_territory.length > 0 && (
                 <DonutChart
                   title="By territory"
-                  data={(result.by_territory as { name: string; earnings: number; streams: number }[]).map(t => ({ name: t.name, value: t.earnings, streams: t.streams }))}
+                  data={(result.by_territory as { name: string; earnings: number; streams: number }[]).map(t => ({ name: getCountryName(t.name), value: t.earnings, streams: t.streams }))}
                 />
               )}
             </div>
           )}
 
-          {/* Top tracks */}
-          {Array.isArray(result.top_earners) && result.top_earners.length > 0 && (
-            <div>
-              <div style={{
-                fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em",
-                textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: "10px",
-              }}>
-                Top tracks
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {(result.top_earners as { track: string; earnings: number; streams?: number | null }[]).map((t, i) => (
-                  <div key={i} style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    background: "var(--bg3)", border: "1px solid var(--border)",
-                    borderRadius: "8px", padding: "10px 14px",
-                  }}>
-                    <div>
-                      <div style={{ fontSize: "13px", color: "#fff", fontWeight: 500 }}>{t.track}</div>
-                      {t.streams != null && t.streams > 0 && (
-                        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", marginTop: "2px" }}>
-                          {fmtCompact(t.streams)} streams
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: GREEN }}>
-                      ${t.earnings.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
+          {/* Top tracks — Tremor BarList */}
+          {Array.isArray(result.top_earners) && result.top_earners.length > 0 && (() => {
+            const tracks = result.top_earners as { track: string; earnings: number; streams?: number | null }[];
+            const barData = tracks
+              .map(t => ({
+                name: t.track,
+                value: trackMode === "earnings" ? t.earnings : (t.streams ?? 0),
+              }))
+              .filter(t => t.value > 0)
+              .sort((a, b) => b.value - a.value);
+            const formatter = trackMode === "earnings"
+              ? (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : (n: number) => fmtCompact(n);
+            return (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+                    Top tracks
                   </div>
-                ))}
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    {(["earnings", "streams"] as const).map(m => (
+                      <button key={m} onClick={() => setTrackMode(m)} style={{
+                        padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
+                        background: trackMode === m ? GREEN : "transparent",
+                        color: trackMode === m ? "#000" : "rgba(255,255,255,0.4)",
+                        border: `1px solid ${trackMode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
+                        cursor: "pointer", fontFamily: "inherit",
+                      }}>
+                        {m === "earnings" ? "Revenue" : "Streams"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {barData.map((item, i) => {
+                    const max = barData[0]?.value ?? 1;
+                    const pct = max > 0 ? (item.value / max) * 100 : 0;
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {/* Bar + label */}
+                        <div style={{ flex: 1, position: "relative", height: "36px", borderRadius: "6px", overflow: "hidden", background: "var(--bg3)" }}>
+                          <div style={{
+                            position: "absolute", top: 0, left: 0, bottom: 0,
+                            width: `${pct}%`,
+                            background: "rgba(0,212,123,0.15)",
+                            transition: "width 0.4s ease",
+                          }} />
+                          <div style={{
+                            position: "relative", height: "100%",
+                            display: "flex", alignItems: "center",
+                            padding: "0 10px",
+                            fontSize: "13px", color: "#fff", fontWeight: 500,
+                            overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
+                          }}>
+                            {item.name}
+                          </div>
+                        </div>
+                        {/* Value */}
+                        <div style={{ fontSize: "13px", fontWeight: 700, color: GREEN, flexShrink: 0, minWidth: "64px", textAlign: "right" }}>
+                          {formatter(item.value)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </>
       )}
 
@@ -968,12 +1230,14 @@ export default function RoyToolPage() {
   const [artistName, setArtistName] = useState<string>("");
   const [analyzed, setAnalyzed] = useState<AnalyzedResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   async function handleFile(file: File) {
     setPhase("uploading");
     setIdentified(null);
     setAnalyzed(null);
     setErrorMsg(null);
+    setUploadedFile(file);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -1006,6 +1270,11 @@ export default function RoyToolPage() {
 
     if (action === "talk") {
       router.push(`/roy-tool/talk?statementId=${identified.statementId}`);
+      return;
+    }
+
+    if (action === "split") {
+      setPhase("split_preview");
       return;
     }
 
@@ -1044,6 +1313,7 @@ export default function RoyToolPage() {
     setArtistName("");
     setAnalyzed(null);
     setErrorMsg(null);
+    setUploadedFile(null);
   }
 
   function handleBack() {
@@ -1061,7 +1331,6 @@ export default function RoyToolPage() {
         background: "radial-gradient(ellipse at 50% 0%, rgba(0,212,123,0.07) 0%, transparent 55%)",
       }}>
         <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-          <div className="section-tag" style={{ marginBottom: "24px" }}>Music Rights Transparency</div>
           <h1 style={{
             fontSize: "clamp(36px, 5.5vw, 64px)", fontWeight: 700,
             lineHeight: 1.08, letterSpacing: "-0.025em", marginBottom: "20px",
@@ -1113,6 +1382,10 @@ export default function RoyToolPage() {
                   label="Roy is analyzing your statement…"
                   sublabel="Digging into rates, patterns, and data quality. This can take 20–30 seconds."
                 />
+              )}
+
+              {phase === "split_preview" && uploadedFile && (
+                <SplitPreviewPanel file={uploadedFile} onBack={handleBack} onReset={handleReset} />
               )}
 
               {phase === "result" && analyzed && (

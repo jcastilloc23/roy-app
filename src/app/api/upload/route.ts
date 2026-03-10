@@ -83,7 +83,7 @@ Return this exact JSON — no markdown, no explanation:
   "source": "platform or org name (e.g. DistroKid, SoundCloud for Artists, Spotify, ASCAP)",
   "royalty_type": "mechanical | performance | sync | digital_performance | neighboring_rights | unknown",
   "detected_artist": "the artist or label name found in the data rows, or null if multiple different artists appear or none is found",
-  "greeting": "One sentence from Roy — acknowledge what this file is, spoken directly to the user. Warm, specific, professional. Do NOT mention date ranges — you are only seeing a sample. E.g. 'This is your DistroKid mechanical royalty statement — I can see earnings across multiple platforms and territories.' or 'This is a SoundCloud for Artists lifetime statement — I can see your revenue by platform and territory.'"
+  "greeting": "One sentence from Roy — acknowledge what this file is, spoken directly to the user. Warm, specific, professional. Do NOT mention date ranges. Do NOT include any numbers, values, platform names, or data from the file. Describe only the type and source of the statement. E.g. 'This is your DistroKid mechanical royalty statement — I can see earnings across multiple platforms and territories.' or 'This is a SoundCloud for Artists lifetime statement — I can see your revenue by platform and territory.'"
 }
 
 File name: ${file.name}

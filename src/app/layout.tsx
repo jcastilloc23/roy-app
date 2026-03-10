@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.className} dark`}>
+    <html lang="en" className={inter.className}>
       <body>
         <ClerkProvider>
           {children}

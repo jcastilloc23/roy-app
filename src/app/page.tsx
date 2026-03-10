@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieBanner from "@/components/CookieBanner";
 import CounterSection from "@/components/CounterSection";
 import RoyLogo from "@/components/RoyLogo";
 
@@ -66,7 +65,6 @@ const testimonials = [
 export default function Home() {
   return (
     <>
-      <CookieBanner />
       <Navbar />
 
       <main>

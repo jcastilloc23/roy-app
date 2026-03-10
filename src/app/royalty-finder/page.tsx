@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieBanner from "@/components/CookieBanner";
 import RoyLogo from "@/components/RoyLogo";
 
 const GREEN = "#00d47b";
@@ -337,7 +336,6 @@ export default function RoyToolPage() {
 
   return (
     <>
-      <CookieBanner />
       <Navbar />
       <main>
 

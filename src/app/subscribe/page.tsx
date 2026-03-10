@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieBanner from "@/components/CookieBanner";
 
 const PricingTable = dynamic(
   () => import("@clerk/nextjs").then((mod) => mod.PricingTable),
@@ -13,7 +12,6 @@ const PricingTable = dynamic(
 export default function SubscribePage() {
   return (
     <>
-      <CookieBanner />
       <Navbar />
       <main>
         <div className="page-hero" style={{ paddingBottom: "48px" }}>
@@ -27,7 +25,7 @@ export default function SubscribePage() {
 
         <section style={{ padding: "0 24px 80px" }}>
           <div style={{ maxWidth: "860px", margin: "0 auto" }}>
-            <PricingTable checkoutProps={{ successUrl: "/roy-tool" }} />
+            <PricingTable />
           </div>
         </section>
       </main>

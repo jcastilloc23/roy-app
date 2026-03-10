@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieBanner from "@/components/CookieBanner";
 import RoyLogo from "@/components/RoyLogo";
 
 export const metadata: Metadata = {
@@ -50,14 +49,12 @@ const faqs = [
 export default function WhosItForPage() {
   return (
     <>
-      <CookieBanner />
       <Navbar />
       <main>
 
         {/* ===== PAGE HERO ===== */}
         <div className="page-hero">
           <div className="container">
-            <div className="section-tag">Made for the Music Industry</div>
             <h1>Who is <RoyLogo height="1.5em" inline /> for?</h1>
             <p>
               The music industry is complicated for everyone — artists, managers,
