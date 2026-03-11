@@ -3,14 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabase";
 
-
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-const ALLOWED_EXTENSIONS = [".csv", ".tsv", ".pdf", ".xls", ".xlsx"];
-
-function getExtension(filename: string) {
-  return filename.slice(filename.lastIndexOf(".")).toLowerCase();
-}
 
 function extractJSON(text: string): Record<string, unknown> | null {
   const clean = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -21,46 +14,49 @@ function extractJSON(text: string): Record<string, unknown> | null {
 }
 
 export async function POST(req: NextRequest) {
-  try {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Read raw binary body — client sends file bytes directly with metadata in headers
-  const fileName = decodeURIComponent(req.headers.get("x-file-name") ?? "");
-  const fileType = req.headers.get("x-file-type") ?? "application/octet-stream";
-  const fileSizeHeader = req.headers.get("x-file-size");
-  const fileSize = fileSizeHeader ? parseInt(fileSizeHeader, 10) : null;
-
-  if (!fileName) return NextResponse.json({ error: "No file provided" }, { status: 400 });
-  const fileBuffer = await req.arrayBuffer();
-  if (!fileBuffer.byteLength) return NextResponse.json({ error: "No file provided" }, { status: 400 });
-
-  // 1. Format check — reject unsupported file types before touching storage
-  const ext = getExtension(fileName);
-  if (!ALLOWED_EXTENSIONS.includes(ext)) {
-    return NextResponse.json({
-      error: "unsupported_format",
-      message: `Roy only reads CSV, TSV, PDF, XLS, and XLSX files. You uploaded a ${ext} file.`,
-    }, { status: 415 });
+  const { statementId } = await req.json() as { statementId: string };
+  if (!statementId) {
+    return NextResponse.json({ error: "statementId is required" }, { status: 400 });
   }
 
   const supabase = supabaseAdmin();
-  const statementId = crypto.randomUUID();
-  const storagePath = `${userId}/${statementId}/${fileName}`;
 
-  // 2. Upload to Storage first — needed for large files
-  const { error: storageError } = await supabase.storage
+  const { data: statement, error: stmtError } = await supabase
     .from("statements")
-    .upload(storagePath, fileBuffer, { contentType: fileType });
+    .select("*")
+    .eq("id", statementId)
+    .eq("user_id", userId)
+    .single();
 
-  if (storageError) {
-    return NextResponse.json({ error: `Storage error: ${storageError.message}` }, { status: 500 });
+  if (stmtError || !statement) {
+    return NextResponse.json({ error: "Statement not found" }, { status: 404 });
   }
 
-  // 3. Read first 50KB only — enough to identify any statement, works for huge files
-  const fileText = new TextDecoder().decode(fileBuffer.slice(0, 50000));
+  // Generate a short-lived signed URL and fetch only the first 50KB via Range header.
+  // This avoids downloading the full file (which could be hundreds of MB) just for identification.
+  const { data: signedDownload, error: signedErr } = await supabase.storage
+    .from("statements")
+    .createSignedUrl(statement.file_url, 60);
 
-  // 4. Lightweight Gemini identification — is this a real royalty statement?
+  if (signedErr || !signedDownload) {
+    await supabase.from("statements").delete().eq("id", statementId);
+    return NextResponse.json({ error: "Could not access uploaded file" }, { status: 500 });
+  }
+
+  let fileText: string;
+  try {
+    const rangeRes = await fetch(signedDownload.signedUrl, {
+      headers: { Range: "bytes=0-49999" },
+    });
+    fileText = await rangeRes.text();
+  } catch {
+    await supabase.from("statements").delete().eq("id", statementId);
+    return NextResponse.json({ error: "Could not read uploaded file" }, { status: 500 });
+  }
+
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     systemInstruction: `You are Roy — a music royalty analyst who specializes in transparency for independent artists, labels, and publishers. You know every DSP and PRO statement format on sight.
@@ -90,10 +86,10 @@ Return this exact JSON — no markdown, no explanation:
   "source": "platform or org name (e.g. DistroKid, SoundCloud for Artists, Spotify, ASCAP)",
   "royalty_type": "mechanical | performance | sync | digital_performance | neighboring_rights | unknown",
   "detected_artist": "the artist or label name found in the data rows, or null if multiple different artists appear or none is found",
-  "greeting": "One sentence from Roy — acknowledge what this file is, spoken directly to the user. Warm, specific, professional. Do NOT mention date ranges. Do NOT include any numbers, values, platform names, or data from the file. Describe only the type and source of the statement. E.g. 'This is your DistroKid mechanical royalty statement — I can see earnings across multiple platforms and territories.' or 'This is a SoundCloud for Artists lifetime statement — I can see your revenue by platform and territory.'"
+  "greeting": "One sentence from Roy — acknowledge what this file is, spoken directly to the user. Warm, specific, professional. Do NOT mention date ranges. Do NOT include any numbers, values, platform names, or data from the file. Describe only the type and source of the statement."
 }
 
-File name: ${fileName}
+File name: ${statement.file_name}
 File content (first 50KB):
 ${fileText}`;
 
@@ -101,12 +97,11 @@ ${fileText}`;
 
   try {
     const result = await model.generateContent(identifyPrompt);
-    const rawText = result.response.text();
-    const parsed = extractJSON(rawText);
+    const parsed = extractJSON(result.response.text());
 
     if (!parsed || parsed.is_royalty_statement === false) {
-      // Not a royalty statement — delete from Storage immediately, nothing saved to DB
-      await supabase.storage.from("statements").remove([storagePath]);
+      await supabase.storage.from("statements").remove([statement.file_url]);
+      await supabase.from("statements").delete().eq("id", statementId);
       return NextResponse.json({
         error: "not_royalty_data",
         message: "This file doesn't look like a royalty statement. Roy only reads reports from DSPs, PROs, distributors, and CMOs.",
@@ -115,28 +110,16 @@ ${fileText}`;
 
     identified = parsed;
   } catch (err) {
-    // Gemini failed — clean up storage
-    await supabase.storage.from("statements").remove([storagePath]);
+    await supabase.storage.from("statements").remove([statement.file_url]);
+    await supabase.from("statements").delete().eq("id", statementId);
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  // 5. Save statement to DB — only reaches here if it's a valid royalty statement
-  const { error: stmtError } = await supabase.from("statements").insert({
-    id: statementId,
-    user_id: userId,
-    file_name: fileName,
-    file_size: fileSize,
-    file_type: fileType,
-    file_url: storagePath,
+  await supabase.from("statements").update({
     source_type: String(identified.source ?? ""),
     status: "identified",
-  });
-
-  if (stmtError) {
-    await supabase.storage.from("statements").remove([storagePath]);
-    return NextResponse.json({ error: `DB error: ${stmtError.message}` }, { status: 500 });
-  }
+  }).eq("id", statementId);
 
   return NextResponse.json({
     statementId,
@@ -144,11 +127,6 @@ ${fileText}`;
     royalty_type: identified.royalty_type,
     detected_artist: identified.detected_artist ?? null,
     greeting: identified.greeting,
-    file_name: fileName,
+    file_name: statement.file_name,
   });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[/api/upload] unhandled error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
 }

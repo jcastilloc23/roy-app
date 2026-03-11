@@ -132,6 +132,10 @@ interface SummarizeStats {
   byArtist: { name: string; earnings: number; streams: number }[];
   /** Cross-tab: period → artist → { earnings, streams } — all artists, client filters to top N */
   byPeriodByArtist: Record<string, Record<string, { earnings: number; streams: number }>>;
+  /** Per-artist breakdown maps for drill-down — all artists */
+  byArtistStore: Record<string, Record<string, { earnings: number; streams: number }>>;
+  byArtistTerritory: Record<string, Record<string, { earnings: number; streams: number }>>;
+  byArtistTrack: Record<string, Record<string, { earnings: number; streams: number }>>;
 }
 
 async function summarizeTabular(
@@ -183,6 +187,9 @@ async function summarizeTabular(
   const artistsSeen = new Map<string, string>();
   const byArtist: Record<string, { earnings: number; streams: number }> = {};
   const byPeriodByArtist: Record<string, Record<string, { earnings: number; streams: number }>> = {};
+  const byArtistStore: Record<string, Record<string, { earnings: number; streams: number }>> = {};
+  const byArtistTerritory: Record<string, Record<string, { earnings: number; streams: number }>> = {};
+  const byArtistTrack: Record<string, Record<string, { earnings: number; streams: number }>> = {};
 
   for (const row of rows) {
     const earn    = columns.earnings  ? toNum(row[columns.earnings])  : 0;
@@ -208,6 +215,24 @@ async function summarizeTabular(
         byPeriodByArtist[period][canonical] ??= { earnings: 0, streams: 0 };
         byPeriodByArtist[period][canonical].earnings += earn;
         byPeriodByArtist[period][canonical].streams  += streams;
+      }
+      if (store) {
+        byArtistStore[canonical] ??= {};
+        byArtistStore[canonical][store] ??= { earnings: 0, streams: 0 };
+        byArtistStore[canonical][store].earnings += earn;
+        byArtistStore[canonical][store].streams  += streams;
+      }
+      if (terr) {
+        byArtistTerritory[canonical] ??= {};
+        byArtistTerritory[canonical][terr] ??= { earnings: 0, streams: 0 };
+        byArtistTerritory[canonical][terr].earnings += earn;
+        byArtistTerritory[canonical][terr].streams  += streams;
+      }
+      if (track) {
+        byArtistTrack[canonical] ??= {};
+        byArtistTrack[canonical][track] ??= { earnings: 0, streams: 0 };
+        byArtistTrack[canonical][track].earnings += earn;
+        byArtistTrack[canonical][track].streams  += streams;
       }
     }
 
@@ -267,6 +292,9 @@ async function summarizeTabular(
       .sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 20)
       .map(([name, v]) => ({ name, ...v })),
     byPeriodByArtist,
+    byArtistStore,
+    byArtistTerritory,
+    byArtistTrack,
   };
 }
 
@@ -490,6 +518,27 @@ export async function POST(req: NextRequest) {
             by_artist: isMultiArtist ? stats.byArtist : null,
             top_artists: isMultiArtist ? stats.byArtist.slice(0, 5).map(a => a.name) : null,
             by_period_by_artist: isMultiArtist ? stats.byPeriodByArtist : null,
+            by_artist_detail: isMultiArtist ? Object.fromEntries(
+              stats.byArtist.slice(0, 5).map(a => [a.name, {
+                earnings: a.earnings,
+                streams: a.streams,
+                track_count: Object.keys(stats.byArtistTrack[a.name] ?? {}).length,
+                by_store: Object.entries(stats.byArtistStore[a.name] ?? {})
+                  .sort((x, y) => y[1].earnings - x[1].earnings).slice(0, 10)
+                  .map(([name, v]) => ({
+                    name, ...v,
+                    rate_per_stream: v.streams > 0
+                      ? Math.round((v.earnings / v.streams) * 1000000) / 1000000
+                      : null,
+                  })),
+                by_territory: Object.entries(stats.byArtistTerritory[a.name] ?? {})
+                  .sort((x, y) => y[1].earnings - x[1].earnings).slice(0, 10)
+                  .map(([name, v]) => ({ name, ...v })),
+                top_tracks: Object.entries(stats.byArtistTrack[a.name] ?? {})
+                  .sort((x, y) => y[1].earnings - x[1].earnings).slice(0, 5)
+                  .map(([track, v]) => ({ track, ...v })),
+              }])
+            ) : null,
           };
 
           // Link artist to parsed_result if resolved
