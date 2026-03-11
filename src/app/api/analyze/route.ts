@@ -129,6 +129,9 @@ interface SummarizeStats {
   columnsDetected: Partial<ColumnMap>;
   /** Unique artist names found in data, canonical casing, deduplicated by normalized form */
   detectedArtists: string[];
+  byArtist: { name: string; earnings: number; streams: number }[];
+  /** Cross-tab: period → artist → { earnings, streams } — all artists, client filters to top N */
+  byPeriodByArtist: Record<string, Record<string, { earnings: number; streams: number }>>;
 }
 
 async function summarizeTabular(
@@ -178,6 +181,8 @@ async function summarizeTabular(
   const periods: string[] = [];
   // Artist deduplication: normalized form → first-seen canonical casing
   const artistsSeen = new Map<string, string>();
+  const byArtist: Record<string, { earnings: number; streams: number }> = {};
+  const byPeriodByArtist: Record<string, Record<string, { earnings: number; streams: number }>> = {};
 
   for (const row of rows) {
     const earn    = columns.earnings  ? toNum(row[columns.earnings])  : 0;
@@ -192,6 +197,17 @@ async function summarizeTabular(
       const normalized = normalizeArtistForComparison(artist);
       if (normalized && !artistsSeen.has(normalized)) {
         artistsSeen.set(normalized, artist);
+      }
+      // Use canonical casing for aggregation
+      const canonical = artistsSeen.get(normalized ?? artist) ?? artist;
+      byArtist[canonical] ??= { earnings: 0, streams: 0 };
+      byArtist[canonical].earnings += earn;
+      byArtist[canonical].streams  += streams;
+      if (period) {
+        byPeriodByArtist[period] ??= {};
+        byPeriodByArtist[period][canonical] ??= { earnings: 0, streams: 0 };
+        byPeriodByArtist[period][canonical].earnings += earn;
+        byPeriodByArtist[period][canonical].streams  += streams;
       }
     }
 
@@ -247,6 +263,10 @@ async function summarizeTabular(
       Object.entries(columns).filter(([, v]) => v !== null)
     ) as Partial<ColumnMap>,
     detectedArtists: Array.from(artistsSeen.values()),
+    byArtist: Object.entries(byArtist)
+      .sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 20)
+      .map(([name, v]) => ({ name, ...v })),
+    byPeriodByArtist,
   };
 }
 
@@ -265,7 +285,11 @@ function buildNarrativePrompt(stats: SummarizeStats): string {
     .map(t => `  ${t.track}: ${fmt(t.earnings)}${t.streams ? ` (${t.streams.toLocaleString()} streams/units)` : ""}`)
     .join("\n");
 
-  return `These are the exact computed stats from a royalty statement from ${stats.source}. Write 2–3 sentences speaking directly to the rights holder. Use these exact numbers — do not estimate or invent anything. Do NOT recap total earnings or total streams — the user can see those numbers. Lead with the single most important insight: rate quality, geographic concentration, a top-track surprise, or a notable pattern. Sound like a sharp analyst giving a take, not a report.
+  const multiArtistContext = stats.detectedArtists.length > 1
+    ? `\nThis is a multi-artist label statement with ${stats.detectedArtists.length} artists. Acknowledge the roster context briefly. Do not recap individual artist totals — the user can see those. Lead with the catalog-level insight.`
+    : "";
+
+  return `These are the exact computed stats from a royalty statement from ${stats.source}. Write 2–3 sentences speaking directly to the rights holder. Use these exact numbers — do not estimate or invent anything. Do NOT recap total earnings or total streams — the user can see those numbers. Lead with the single most important insight: rate quality, geographic concentration, a top-track surprise, or a notable pattern. Sound like a sharp analyst giving a take, not a report.${multiArtistContext}
 
 Return this exact JSON — no markdown, no explanation:
 { "summary": "..." }
@@ -463,6 +487,9 @@ export async function POST(req: NextRequest) {
             artist_count: stats.detectedArtists.length,
             is_multi_artist: isMultiArtist,
             artist_id: artistId,
+            by_artist: isMultiArtist ? stats.byArtist : null,
+            top_artists: isMultiArtist ? stats.byArtist.slice(0, 5).map(a => a.name) : null,
+            by_period_by_artist: isMultiArtist ? stats.byPeriodByArtist : null,
           };
 
           // Link artist to parsed_result if resolved

@@ -2,6 +2,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import {
+  AreaChart, Area,
+  BarChart as RBarChart, Bar,
+  XAxis, YAxis, Tooltip as RTooltip,
+  ResponsiveContainer,
+} from "recharts";
 import RoyLogo from "@/components/RoyLogo";
 import { getCountryName } from "@/lib/country-codes";
 import { SiSpotify, SiApplemusic, SiYoutubemusic } from "react-icons/si";
@@ -20,6 +27,7 @@ function fmtCompact(n: number, dollars = false): string {
 }
 
 const DONUT_COLORS = ["#10b981", "#06b6d4", "#8b5cf6", "#f59e0b", "#d946ef", "#84cc16", "#94a3b8"];
+const ARTIST_COLORS = ["#00d47b", "#06b6d4", "#8b5cf6", "#f59e0b", "#d946ef"];
 
 const BENCHMARKS: Record<string, [number, number]> = {
   "Spotify":       [0.003, 0.005],
@@ -126,109 +134,250 @@ function DonutChart({ data, title }: { data: DonutSlice[]; title: string }) {
   );
 }
 
-/* ── SVG Bar Chart ───────────────────────────── */
-function formatPeriodLabel(p: string): string {
+/* ── Time Chart (Recharts-based, replaces custom SVG bar chart) ──────────── */
+type PeriodRow = { period: string; earnings: number; streams: number };
+type PeriodArtistMap = Record<string, Record<string, { earnings: number; streams: number }>>;
+
+function fmtPeriodTick(p: string, granularity: "monthly" | "yearly"): string {
+  if (granularity === "yearly") return p;
   const m = p.match(/^(\d{4})-(\d{2})$/);
   if (m) {
     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    return months[parseInt(m[2]) - 1] ?? p;
+    return `${months[parseInt(m[2]) - 1] ?? ""} '${m[1].slice(2)}`;
   }
-  return p.length > 8 ? p.slice(0, 7) : p;
+  return p;
 }
 
-function BarChart({ data }: { data: { period: string; earnings: number; streams: number }[] }) {
-  const [mode, setMode] = useState<"earnings" | "streams">("earnings");
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+function aggregateYearly(data: PeriodRow[]): PeriodRow[] {
+  const acc: Record<string, { earnings: number; streams: number }> = {};
+  for (const d of data) {
+    const y = d.period.slice(0, 4);
+    acc[y] ??= { earnings: 0, streams: 0 };
+    acc[y].earnings += d.earnings;
+    acc[y].streams  += d.streams;
+  }
+  return Object.entries(acc).sort(([a], [b]) => a.localeCompare(b)).map(([period, v]) => ({ period, ...v }));
+}
 
-  if (data.length < 2) return null;
-
-  const values = data.map(d => mode === "earnings" ? d.earnings : d.streams);
-  const maxVal = Math.max(...values, 0);
-  if (maxVal === 0) return null;
-
-  const W = 400; const H = 100; const PAD_TOP = 32; const PAD_BOT = 16;
-  const totalH = PAD_TOP + H + PAD_BOT;
-  const barGap = data.length > 12 ? 2 : 4;
-  const barW = (W / data.length) - barGap;
-
-  // Compute where year labels go: first bar of each new year
-  const yearLabels: { x: number; year: string }[] = [];
-  data.forEach((d, i) => {
-    const year = d.period.slice(0, 4);
-    const prevYear = i > 0 ? data[i - 1].period.slice(0, 4) : null;
-    if (year !== prevYear) {
-      yearLabels.push({ x: i * (W / data.length) + barGap / 2, year });
+function buildArtistPeriodData(
+  raw: PeriodArtistMap,
+  artists: string[],
+  mode: "earnings" | "streams",
+  granularity: "monthly" | "yearly",
+): Record<string, number | string>[] {
+  const acc: Record<string, Record<string, { earnings: number; streams: number }>> = {};
+  for (const [period, artistData] of Object.entries(raw)) {
+    const key = granularity === "yearly" ? period.slice(0, 4) : period;
+    acc[key] ??= {};
+    for (const artist of artists) {
+      if (artistData[artist]) {
+        acc[key][artist] ??= { earnings: 0, streams: 0 };
+        acc[key][artist].earnings += artistData[artist].earnings;
+        acc[key][artist].streams  += artistData[artist].streams;
+      }
     }
+  }
+  return Object.entries(acc).sort(([a], [b]) => a.localeCompare(b)).map(([period, byArtist]) => {
+    const row: Record<string, number | string> = { period };
+    for (const artist of artists) {
+      row[artist] = mode === "earnings" ? (byArtist[artist]?.earnings ?? 0) : (byArtist[artist]?.streams ?? 0);
+    }
+    return row;
   });
+}
+
+function TimeChart({
+  byPeriod,
+  byPeriodByArtist,
+  topArtists,
+  isLabel,
+}: {
+  byPeriod: PeriodRow[];
+  byPeriodByArtist?: PeriodArtistMap;
+  topArtists?: string[];
+  isLabel: boolean;
+}) {
+  const hasArtistData = isLabel && topArtists && topArtists.length > 0 && byPeriodByArtist != null;
+  const uniqueYears = new Set(byPeriod.map(d => d.period.slice(0, 4))).size;
+
+  const [mode, setMode]           = useState<"earnings" | "streams">("earnings");
+  const [granularity, setGran]    = useState<"monthly" | "yearly">(byPeriod.length > 18 ? "yearly" : "monthly");
+  const [view, setView]           = useState<"totals" | "by_artist">("totals");
+  const [activeArtists, setActive] = useState<Set<string>>(new Set(topArtists ?? []));
+
+  const toggleArtist = (name: string) => {
+    setActive(prev => {
+      const next = new Set(prev);
+      if (next.has(name) && next.size > 1) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const totalsData  = granularity === "yearly" ? aggregateYearly(byPeriod) : byPeriod;
+  const artistData  = hasArtistData && view === "by_artist"
+    ? buildArtistPeriodData(byPeriodByArtist!, topArtists!, mode, granularity)
+    : null;
+  const chartData   = artistData ?? totalsData;
+  const tickInterval = granularity === "yearly" ? 0 : Math.max(0, Math.floor(chartData.length / 8) - 1);
+
+  const valFmt = (n: number) => mode === "earnings" ? fmtCompact(n, true) : fmtCompact(n);
+
+  // Custom dark tooltip
+  const Tip = ({ active, payload, label }: { active?: boolean; payload?: {name:string;value:number;color:string}[]; label?: string }) => {
+    if (!active || !payload?.length) return null;
+    const visible = payload.filter(e => e.value > 0);
+    if (!visible.length) return null;
+    return (
+      <div style={{ background: "#1a1d26", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "10px 14px", minWidth: "130px" }}>
+        <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", marginBottom: "6px" }}>{label}</div>
+        {visible.map((e, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: "14px", fontSize: "12px", fontWeight: 600, marginBottom: "2px" }}>
+            <span style={{ color: e.color }}>
+              {e.name === "earnings" || e.name === "streams" ? (mode === "earnings" ? "Revenue" : "Streams") : e.name}
+            </span>
+            <span style={{ color: "#fff" }}>{valFmt(e.value)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const axisStyle = { fontSize: 9, fill: "rgba(255,255,255,0.28)", fontFamily: "inherit" };
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+      {/* Controls row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", gap: "8px", flexWrap: "wrap" }}>
         <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
           Over time
         </div>
-        <div style={{ display: "flex", gap: "4px" }}>
-          {(["earnings", "streams"] as const).map(m => (
-            <button key={m} onClick={() => setMode(m)} style={{
-              padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
-              background: mode === m ? GREEN : "transparent",
-              color: mode === m ? "#000" : "rgba(255,255,255,0.4)",
-              border: `1px solid ${mode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
-              cursor: "pointer", fontFamily: "inherit",
-            }}>
-              {m === "earnings" ? "Revenue" : "Streams"}
-            </button>
-          ))}
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+          {/* Revenue / Streams */}
+          <div style={{ display: "flex", gap: "3px" }}>
+            {(["earnings", "streams"] as const).map(m => (
+              <button key={m} onClick={() => setMode(m)} style={{
+                padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
+                background: mode === m ? GREEN : "transparent",
+                color: mode === m ? "#000" : "rgba(255,255,255,0.4)",
+                border: `1px solid ${mode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
+                cursor: "pointer", fontFamily: "inherit",
+              }}>
+                {m === "earnings" ? "Revenue" : "Streams"}
+              </button>
+            ))}
+          </div>
+          {/* Monthly / Yearly — only when multi-year */}
+          {uniqueYears > 1 && (
+            <div style={{ display: "flex", gap: "3px" }}>
+              {(["monthly", "yearly"] as const).map(g => (
+                <button key={g} onClick={() => setGran(g)} style={{
+                  padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
+                  background: granularity === g ? "rgba(255,255,255,0.1)" : "transparent",
+                  color: granularity === g ? "#fff" : "rgba(255,255,255,0.4)",
+                  border: `1px solid ${granularity === g ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)"}`,
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  {g === "monthly" ? "Mo" : "Yr"}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* Totals / By Artist — Label only */}
+          {hasArtistData && (
+            <div style={{ display: "flex", gap: "3px" }}>
+              {(["totals", "by_artist"] as const).map(v => (
+                <button key={v} onClick={() => setView(v)} style={{
+                  padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
+                  background: view === v ? "rgba(255,255,255,0.1)" : "transparent",
+                  color: view === v ? "#fff" : "rgba(255,255,255,0.4)",
+                  border: `1px solid ${view === v ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)"}`,
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  {v === "totals" ? "Totals" : "By Artist"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-      <svg viewBox={`0 0 ${W} ${totalH}`} style={{ width: "100%", height: "auto", display: "block" }}
-        onMouseLeave={() => setHoveredIdx(null)}
-      >
-        {/* Fixed tooltip at top of chart — never overlaps hit areas */}
-        {hoveredIdx !== null && (() => {
-          const d = data[hoveredIdx];
-          const val = mode === "earnings" ? d.earnings : d.streams;
-          const valText = mode === "earnings" ? fmtCompact(val, true) : `${fmtCompact(val)} Streams`;
-          const barCx = hoveredIdx * (W / data.length) + barGap / 2 + barW / 2;
-          const ttX = Math.min(Math.max(barCx, 42), W - 42);
-          return (
-            <g style={{ pointerEvents: "none" }}>
-              <rect x={ttX - 42} y={2} width={84} height={36} rx={4} fill="#1a1d26" stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
-              <text x={ttX} y={16} textAnchor="middle" fontSize={10} fill="#fff" fontWeight={600}>{valText}</text>
-              <text x={ttX} y={29} textAnchor="middle" fontSize={8.5} fill="rgba(255,255,255,0.4)">{d.period}</text>
-            </g>
-          );
-        })()}
-        {/* Year axis labels */}
-        {yearLabels.map(({ x, year }) => (
-          <text key={year} x={x} y={PAD_TOP + H + 12} fontSize={8.5} fill="rgba(255,255,255,0.3)">
-            {year}
-          </text>
-        ))}
-        {data.map((d, i) => {
-          const val = mode === "earnings" ? d.earnings : d.streams;
-          const barH = maxVal > 0 ? (val / maxVal) * H : 0;
-          const x = i * (W / data.length) + barGap / 2;
-          const y = PAD_TOP + H - barH;
-          const isHov = hoveredIdx === i;
 
-          return (
-            <g key={i}>
-              <rect
-                x={x} y={y} width={barW} height={barH} fill={GREEN} rx={2}
-                opacity={hoveredIdx === null || isHov ? 0.85 : 0.4}
-                style={{ transition: "opacity 0.1s" }}
+      {/* Chart */}
+      <ResponsiveContainer width="100%" height={130}>
+        {view === "totals" ? (
+          <AreaChart data={totalsData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor={GREEN} stopOpacity={0.22} />
+                <stop offset="95%" stopColor={GREEN} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="period"
+              tickFormatter={p => fmtPeriodTick(p, granularity)}
+              interval={tickInterval}
+              tick={axisStyle}
+              axisLine={false} tickLine={false}
+            />
+            <YAxis hide />
+            <RTooltip content={<Tip />} cursor={{ stroke: "rgba(255,255,255,0.06)", strokeWidth: 1 }} />
+            <Area type="monotone" dataKey={mode} stroke={GREEN} strokeWidth={2}
+              fill="url(#areaGrad)" dot={false}
+              activeDot={{ r: 4, fill: GREEN, strokeWidth: 0 }}
+            />
+          </AreaChart>
+        ) : (
+          <RBarChart data={artistData ?? []} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} barCategoryGap="18%">
+            <XAxis
+              dataKey="period"
+              tickFormatter={p => fmtPeriodTick(p, granularity)}
+              interval={tickInterval}
+              tick={axisStyle}
+              axisLine={false} tickLine={false}
+            />
+            <YAxis hide />
+            <RTooltip content={<Tip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+            {(topArtists ?? []).filter(a => activeArtists.has(a)).map((artist, i, arr) => (
+              <Bar
+                key={artist}
+                dataKey={artist}
+                stackId="a"
+                fill={ARTIST_COLORS[(topArtists ?? []).indexOf(artist) % ARTIST_COLORS.length]}
+                radius={i === arr.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]}
               />
-              {/* Transparent hit area — full column height for easy hover */}
-              <rect
-                x={x} y={PAD_TOP} width={barW} height={H} fill="transparent"
-                style={{ cursor: "default" }}
-                onMouseEnter={() => setHoveredIdx(i)}
-              />
-            </g>
-          );
-        })}
-      </svg>
+            ))}
+          </RBarChart>
+        )}
+      </ResponsiveContainer>
+
+      {/* Artist legend — by_artist view only, clickable pills */}
+      {view === "by_artist" && hasArtistData && (
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "12px", justifyContent: "center" }}>
+          {(topArtists ?? []).map((artist, i) => {
+            const active = activeArtists.has(artist);
+            return (
+              <button
+                key={artist}
+                onClick={() => toggleArtist(artist)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "5px",
+                  padding: "3px 10px", borderRadius: "100px", fontSize: "11px", fontWeight: 500,
+                  background: active ? "rgba(255,255,255,0.07)" : "transparent",
+                  border: `1px solid ${active ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.06)"}`,
+                  color: active ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.22)",
+                  cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+                }}
+              >
+                <span style={{
+                  width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
+                  background: active ? ARTIST_COLORS[i % ARTIST_COLORS.length] : "rgba(255,255,255,0.15)",
+                }} />
+                {artist}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -634,43 +783,54 @@ function SplitPreviewPanel({
   onBack: () => void;
   onReset: () => void;
 }) {
-  const [status, setStatus] = useState<"preview" | "splitting" | "done">("preview");
+  const [status, setStatus] = useState<"counting" | "preview" | "splitting" | "done">("counting");
   const [partsDone, setPartsDone] = useState(0);
-  const [actualParts, setActualParts] = useState(0);
+  const [rowCount, setRowCount] = useState(0);
+  const [partCount, setPartCount] = useState(0);
+  // Store parsed lines in a ref so we only read the file once
+  const linesRef = useRef<{ header: string; dataLines: string[] } | null>(null);
 
   const fileSizeMB = file.size / (1024 * 1024);
-  // Rough estimate: DistroKid TSV rows average ~200 bytes
-  const estimatedRows = Math.round(file.size / 200);
-  const estimatedParts = Math.max(1, Math.ceil(estimatedRows / SPLIT_CHUNK_SIZE));
-  const needsSplit = file.size > EXCEL_SIZE_WARN_MB * 1024 * 1024 || estimatedRows > EXCEL_ROW_LIMIT;
+  const needsSplit = file.size > EXCEL_SIZE_WARN_MB * 1024 * 1024 || rowCount > EXCEL_ROW_LIMIT;
+
+  // Read and count on mount — stores lines for reuse during split
+  useEffect(() => {
+    file.text().then((text) => {
+      const allLines = text.split("\n");
+      const header = allLines[0] ?? "";
+      const dataLines = allLines.slice(1).filter((l) => l.trim() !== "");
+      linesRef.current = { header, dataLines };
+      const parts = Math.max(1, Math.ceil(dataLines.length / SPLIT_CHUNK_SIZE));
+      setRowCount(dataLines.length);
+      setPartCount(parts);
+      setStatus("preview");
+    });
+  }, [file]);
 
   async function doSplit() {
+    if (!linesRef.current) return;
     setStatus("splitting");
+
     // TODO: Replace file.text() with a streaming approach using File.stream() + ReadableStream.
     // Current approach loads the entire file into memory at once (~3–4× file size in RAM),
     // which works for files up to ~200MB but will crash browser tabs beyond that.
     // YouTube Content ID statements for major labels/publishers can reach 5GB+.
     // The streaming fix: read in 64KB chunks, track newline positions, flush each
     // 500K-row part to a Blob incrementally — constant memory regardless of file size.
-    const text = await file.text();
-    const allLines = text.split("\n");
-    const header = allLines[0] ?? "";
-    const dataLines = allLines.slice(1).filter((l) => l.trim() !== "");
-    const parts = Math.ceil(dataLines.length / SPLIT_CHUNK_SIZE);
-    setActualParts(parts);
+    const { header, dataLines } = linesRef.current;
 
     const dotIdx = file.name.lastIndexOf(".");
     const base = dotIdx > 0 ? file.name.slice(0, dotIdx) : file.name;
     const ext = dotIdx > 0 ? file.name.slice(dotIdx) : ".csv";
 
-    for (let i = 0; i < parts; i++) {
+    for (let i = 0; i < partCount; i++) {
       const chunk = dataLines.slice(i * SPLIT_CHUNK_SIZE, (i + 1) * SPLIT_CHUNK_SIZE);
       const content = [header, ...chunk].join("\n");
       const blob = new Blob([content], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${base}_part${i + 1}_of_${parts}${ext}`;
+      a.download = `${base}_part${i + 1}_of_${partCount}${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -712,6 +872,16 @@ function SplitPreviewPanel({
         </button>
       </div>
 
+      {status === "counting" && (
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "24px 0", color: "rgba(255,255,255,0.45)", fontSize: "14px" }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: "spin-ring 1s linear infinite", transformOrigin: "center", flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="9" stroke="rgba(0,212,123,0.3)" strokeWidth="2.5" />
+            <path d="M12 3a9 9 0 019 9" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          Counting rows…
+        </div>
+      )}
+
       {status === "preview" && (
         <>
           {!needsSplit ? (
@@ -724,8 +894,8 @@ function SplitPreviewPanel({
                 No split needed
               </div>
               <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: 0 }}>
-                Your file is {fileSizeMB.toFixed(1)} MB with an estimated{" "}
-                <strong style={{ color: "#fff" }}>{fmtCompact(estimatedRows)} rows</strong> — well within Excel&apos;s 1,048,576 row limit. It should open directly without issues.
+                Your file is {fileSizeMB.toFixed(1)} MB with{" "}
+                <strong style={{ color: "#fff" }}>{fmtCompact(rowCount)} rows</strong> — well within Excel&apos;s 1,048,576 row limit. It should open directly without issues.
               </p>
             </div>
           ) : (
@@ -739,9 +909,9 @@ function SplitPreviewPanel({
                   Roy&apos;s split plan
                 </div>
                 <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: 0 }}>
-                  Your file is <strong style={{ color: "#fff" }}>{fileSizeMB.toFixed(0)} MB</strong> with an estimated{" "}
-                  <strong style={{ color: "#fff" }}>{fmtCompact(estimatedRows)} rows</strong> — over Excel&apos;s limit. Roy will split it into{" "}
-                  <strong style={{ color: GREEN }}>{estimatedParts} parts</strong> of up to{" "}
+                  Your file is <strong style={{ color: "#fff" }}>{fileSizeMB.toFixed(0)} MB</strong> with{" "}
+                  <strong style={{ color: "#fff" }}>{fmtCompact(rowCount)} rows</strong> — over Excel&apos;s limit. Roy will split it into{" "}
+                  <strong style={{ color: GREEN }}>{partCount} parts</strong> of up to{" "}
                   <strong style={{ color: "#fff" }}>500,000 rows each</strong>. The original header row is preserved on every part.
                 </p>
               </div>
@@ -750,8 +920,8 @@ function SplitPreviewPanel({
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
                 {[
                   { label: "File size", value: `${fileSizeMB.toFixed(1)} MB` },
-                  { label: "Est. rows", value: fmtCompact(estimatedRows) },
-                  { label: "Parts", value: String(estimatedParts) },
+                  { label: "Rows", value: fmtCompact(rowCount) },
+                  { label: "Parts", value: String(partCount) },
                 ].map(({ label, value }) => (
                   <div key={label} style={{
                     background: "var(--bg3)", border: "1px solid var(--border)",
@@ -761,10 +931,6 @@ function SplitPreviewPanel({
                     <div style={{ fontSize: "16px", fontWeight: 700, color: "#fff" }}>{value}</div>
                   </div>
                 ))}
-              </div>
-
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
-                Row count is estimated from file size. The actual split uses real row counts — each part will be named <em>{file.name.replace(/\.[^.]+$/, "")}_part1_of_{estimatedParts}{file.name.slice(file.name.lastIndexOf("."))}</em> etc.
               </div>
 
               <button
@@ -780,7 +946,7 @@ function SplitPreviewPanel({
                   <path d="M12 15V3M12 15l-4-4M12 15l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M3 19h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                Split and download {estimatedParts} files
+                Split and download {partCount} files
               </button>
             </>
           )}
@@ -798,13 +964,13 @@ function SplitPreviewPanel({
             </div>
             <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: "0 0 16px" }}>
               Downloading part <strong style={{ color: GREEN }}>{partsDone + 1}</strong> of{" "}
-              <strong style={{ color: "#fff" }}>{actualParts || estimatedParts}</strong>. Your browser may ask to allow multiple downloads — click Allow.
+              <strong style={{ color: "#fff" }}>{partCount}</strong>. Your browser may ask to allow multiple downloads — click Allow.
             </p>
             {/* Progress bar */}
             <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: "100px", height: "4px", overflow: "hidden" }}>
               <div style={{
                 height: "100%", background: GREEN, borderRadius: "100px",
-                width: `${((partsDone) / (actualParts || estimatedParts)) * 100}%`,
+                width: `${(partsDone / partCount) * 100}%`,
                 transition: "width 0.3s ease",
               }} />
             </div>
@@ -821,7 +987,7 @@ function SplitPreviewPanel({
             Done
           </div>
           <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: "0 0 16px" }}>
-            <strong style={{ color: "#fff" }}>{actualParts} files</strong> downloaded. Each part is under 500,000 rows and can be opened directly in Excel.
+            <strong style={{ color: "#fff" }}>{partCount} files</strong> downloaded. Each part is under 500,000 rows and can be opened directly in Excel.
           </p>
           <button
             onClick={onReset}
@@ -851,6 +1017,9 @@ function ResultPanel({
 }) {
   const { action, result } = analyzed;
   const [trackMode, setTrackMode] = useState<"earnings" | "streams">("earnings");
+  const [artistMode, setArtistMode] = useState<"earnings" | "streams">("earnings");
+  const { has } = useAuth();
+  const isLabel = has?.({ feature: "unlimited_artists" }) ?? false;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -885,8 +1054,8 @@ function ResultPanel({
       {/* ── Summarize ── */}
       {action === "summarize" && (
         <>
-          {/* Multi-artist upgrade prompt */}
-          {result.is_multi_artist && (
+          {/* Multi-artist: upgrade prompt (Artist plan) or label badge (Label plan) */}
+          {result.is_multi_artist && !isLabel && (
             <div style={{
               background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)",
               borderRadius: "10px", padding: "16px 18px",
@@ -941,10 +1110,15 @@ function ResultPanel({
             </div>
           </div>
 
-          {/* Bar chart — over time */}
+          {/* Time chart — over time */}
           {Array.isArray(result.by_period) && result.by_period.length > 1 && (
             <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
-              <BarChart data={result.by_period as { period: string; earnings: number; streams: number }[]} />
+              <TimeChart
+                byPeriod={result.by_period as PeriodRow[]}
+                byPeriodByArtist={result.by_period_by_artist as PeriodArtistMap | undefined}
+                topArtists={result.top_artists as string[] | undefined}
+                isLabel={isLabel}
+              />
             </div>
           )}
 
@@ -1011,6 +1185,73 @@ function ResultPanel({
               )}
             </div>
           )}
+
+          {/* Artist Breakdown — Label plan only, multi-artist statements */}
+          {result.is_multi_artist && isLabel && Array.isArray(result.by_artist) && (result.by_artist as { name: string; earnings: number; streams: number }[]).length > 0 && (() => {
+            const artists = result.by_artist as { name: string; earnings: number; streams: number }[];
+            const barData = artists
+              .map(a => ({
+                name: a.name,
+                value: artistMode === "earnings" ? a.earnings : a.streams,
+              }))
+              .filter(a => a.value > 0)
+              .sort((a, b) => b.value - a.value);
+            const formatter = artistMode === "earnings"
+              ? (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : (n: number) => fmtCompact(n);
+            return (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+                    Artist breakdown
+                  </div>
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    {(["earnings", "streams"] as const).map(m => (
+                      <button key={m} onClick={() => setArtistMode(m)} style={{
+                        padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
+                        background: artistMode === m ? GREEN : "transparent",
+                        color: artistMode === m ? "#000" : "rgba(255,255,255,0.4)",
+                        border: `1px solid ${artistMode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
+                        cursor: "pointer", fontFamily: "inherit",
+                      }}>
+                        {m === "earnings" ? "Revenue" : "Streams"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {barData.map((item, i) => {
+                    const max = barData[0]?.value ?? 1;
+                    const pct = max > 0 ? (item.value / max) * 100 : 0;
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ flex: 1, position: "relative", height: "36px", borderRadius: "6px", overflow: "hidden", background: "var(--bg3)" }}>
+                          <div style={{
+                            position: "absolute", top: 0, left: 0, bottom: 0,
+                            width: `${pct}%`,
+                            background: "rgba(0,212,123,0.15)",
+                            transition: "width 0.4s ease",
+                          }} />
+                          <div style={{
+                            position: "relative", height: "100%",
+                            display: "flex", alignItems: "center",
+                            padding: "0 10px",
+                            fontSize: "13px", color: "#fff", fontWeight: 500,
+                            overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
+                          }}>
+                            {item.name}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: "13px", fontWeight: 700, color: GREEN, flexShrink: 0, minWidth: "64px", textAlign: "right" }}>
+                          {formatter(item.value)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Top tracks — Tremor BarList */}
           {Array.isArray(result.top_earners) && result.top_earners.length > 0 && (() => {
@@ -1233,11 +1474,18 @@ export default function RoyToolPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   async function handleFile(file: File) {
-    setPhase("uploading");
+    setUploadedFile(file);
     setIdentified(null);
     setAnalyzed(null);
     setErrorMsg(null);
-    setUploadedFile(file);
+
+    // Large files skip the upload entirely — go straight to split
+    if (file.size > 100 * 1024 * 1024) {
+      setPhase("split_preview");
+      return;
+    }
+
+    setPhase("uploading");
 
     const formData = new FormData();
     formData.append("file", file);
@@ -1320,6 +1568,7 @@ export default function RoyToolPage() {
     if (!identified) { handleReset(); return; }
     setPhase("identified");
     setAnalyzed(null);
+    setErrorMsg(null);
   }
 
   return (
