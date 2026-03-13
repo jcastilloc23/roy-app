@@ -270,6 +270,7 @@ interface IdentifiedFile {
   detected_artist: string | null;
   greeting: string;
   file_name: string;
+  isDuplicate?: boolean;
 }
 
 interface ParsedFlag {
@@ -282,6 +283,7 @@ interface ParsedFlag {
 interface AnalyzedResult {
   action: ActionType;
   result: Record<string, unknown>;
+  cached?: boolean;
 }
 
 /* ── Progress ring ───────────────────────────── */
@@ -460,6 +462,67 @@ function IdentifiedPanel({
   onArtistChange: (name: string) => void;
   onAction: (action: ActionType | "talk") => void;
 }) {
+  if (identified.isDuplicate) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div style={{
+          background: "rgba(245,158,11,0.07)",
+          border: "1px solid rgba(245,158,11,0.2)",
+          borderRadius: "10px",
+          padding: "18px 20px",
+        }}>
+          <div style={{
+            fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em",
+            textTransform: "uppercase", color: "#f59e0b", marginBottom: "10px",
+          }}>
+            Roy recognized this file
+          </div>
+          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: 0 }}>
+            {identified.greeting}
+          </p>
+        </div>
+        <div style={{ fontSize: "14px", fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>
+          What should Roy do with it?
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {ACTIONS.map(({ id, icon, label, desc }) => (
+            <button
+              key={id}
+              onClick={() => onAction(id)}
+              style={{
+                display: "flex", alignItems: "center", gap: "16px",
+                padding: "16px 18px", borderRadius: "10px",
+                background: "var(--bg3)", border: "1px solid var(--border)",
+                cursor: "pointer", textAlign: "left", width: "100%",
+                transition: "border-color 0.15s, background 0.15s",
+                fontFamily: "inherit",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(0,212,123,0.4)";
+                e.currentTarget.style.background = "rgba(0,212,123,0.04)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--border)";
+                e.currentTarget.style.background = "var(--bg3)";
+              }}
+            >
+              <span style={{ flexShrink: 0, width: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {icon}
+              </span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: "#fff", marginBottom: "2px" }}>{label}</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{desc}</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.35 }}>
+                <path d="M6 12l4-4-4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       {/* Roy's greeting */}
@@ -920,6 +983,20 @@ function ResultPanel({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      {/* Previously analyzed notice */}
+      {analyzed.cached && (
+        <div style={{
+          display: "flex", flexDirection: "column",
+          background: "rgba(255,180,0,0.08)", border: "1px solid rgba(255,180,0,0.2)",
+          borderRadius: "8px", padding: "10px 14px",
+          fontSize: "13px", color: "rgba(255,180,0,0.85)",
+        }}>
+          <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,180,0,0.85)", marginBottom: "6px" }}>
+            Roy recognized this file
+          </div>
+          <span>Roy&apos;s already read this one — here&apos;s your existing analysis.</span>
+        </div>
+      )}
       {/* Nav row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button
@@ -1452,6 +1529,41 @@ export default function RoyToolPage() {
         xhr.send(file); // raw binary — no FormData wrapper
       });
 
+      // Duplicate file — skip the action-card step, load cached result directly
+      if (data.duplicate === true) {
+        const dupIdentified: IdentifiedFile = {
+          statementId: data.statementId as string,
+          source: (data.source as string) ?? "",
+          royalty_type: "",
+          detected_artist: null,
+          greeting: `Roy's already read this one. Pick an action below.`,
+          file_name: data.fileName as string,
+          isDuplicate: true,
+        };
+        setIdentified(dupIdentified);
+        setPhase("analyzing");
+
+        try {
+          const res = await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ statementId: data.statementId, action: "summarize" }),
+          });
+          const analyzeData = await res.json();
+          if (res.ok) {
+            setAnalyzed({ action: "summarize", result: analyzeData.result, cached: analyzeData.cached });
+            setPhase("result");
+          } else {
+            // Fall back to showing action cards if cache miss
+            setPhase("identified");
+          }
+        } catch {
+          setPhase("identified");
+        }
+
+        return dupIdentified;
+      }
+
       const result: IdentifiedFile = {
         statementId: data.statementId as string,
         source: data.source as string,
@@ -1513,7 +1625,7 @@ export default function RoyToolPage() {
         return;
       }
 
-      setAnalyzed({ action, result: data.result });
+      setAnalyzed({ action, result: data.result, cached: data.cached });
       setPhase("result");
     } catch {
       setErrorMsg("Analysis failed. Check your connection and try again.");

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabase";
+import crypto from "crypto";
 
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -35,6 +36,9 @@ export async function POST(req: NextRequest) {
   const fileBuffer = await req.arrayBuffer();
   if (!fileBuffer.byteLength) return NextResponse.json({ error: "No file provided" }, { status: 400 });
 
+  const buffer = Buffer.from(fileBuffer);
+  const fileHash = crypto.createHash("sha256").update(buffer).digest("hex");
+
   // 1. Format check — reject unsupported file types before touching storage
   const ext = getExtension(fileName);
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
@@ -45,20 +49,39 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = supabaseAdmin();
+
+  // 2a. Duplicate check — same file content already uploaded by this user
+  const { data: existing } = await supabase
+    .from("statements")
+    .select("id, file_name, source_type, status")
+    .eq("user_id", userId)
+    .eq("file_hash", fileHash)
+    .maybeSingle();
+
+  if (existing) {
+    return NextResponse.json({
+      duplicate: true,
+      statementId: existing.id,
+      fileName: existing.file_name,
+      source: existing.source_type,
+      status: existing.status,
+    });
+  }
+
   const statementId = crypto.randomUUID();
   const storagePath = `${userId}/${statementId}/${fileName}`;
 
   // 2. Upload to Storage first — needed for large files
   const { error: storageError } = await supabase.storage
     .from("statements")
-    .upload(storagePath, fileBuffer, { contentType: fileType });
+    .upload(storagePath, buffer, { contentType: fileType });
 
   if (storageError) {
     return NextResponse.json({ error: `Storage error: ${storageError.message}` }, { status: 500 });
   }
 
   // 3. Read first 50KB only — enough to identify any statement, works for huge files
-  const fileText = new TextDecoder().decode(fileBuffer.slice(0, 50000));
+  const fileText = new TextDecoder().decode(buffer.slice(0, 50000));
 
   // 4. Lightweight Gemini identification — is this a real royalty statement?
   const model = genAI.getGenerativeModel({
@@ -129,6 +152,7 @@ ${fileText}`;
     file_size: fileSize,
     file_type: fileType,
     file_url: storagePath,
+    file_hash: fileHash,
     source_type: String(identified.source ?? ""),
     status: "identified",
   });

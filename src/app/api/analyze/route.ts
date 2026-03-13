@@ -410,6 +410,17 @@ export async function POST(req: NextRequest) {
 
   const supabase = supabaseAdmin();
 
+  // Cache check — if we already have normalized_data for this statement+action, return immediately
+  const { data: cached } = await supabase
+    .from("parsed_results")
+    .select("normalized_data")
+    .eq("statement_id", statementId)
+    .maybeSingle();
+
+  if (cached?.normalized_data && (cached.normalized_data as Record<string, unknown>).action === action) {
+    return NextResponse.json({ action, result: cached.normalized_data, cached: true });
+  }
+
   const { data: statement, error: stmtFetchError } = await supabase
     .from("statements")
     .select("*")
@@ -561,13 +572,19 @@ export async function POST(req: NextRequest) {
       parsed = extractJSON(result.response.text()) ?? { summary: result.response.text() };
     }
 
-    await supabase.from("parsed_results").upsert({
+    const toDate = (v: unknown): string | null => {
+      if (!v) return null;
+      const s = String(v);
+      // "2026-01" → "2026-01-01", "2026-01-31" passes through
+      return /^\d{4}-\d{2}$/.test(s) ? `${s}-01` : s;
+    };
+    const upsertPayload = {
       statement_id: statementId,
       user_id: userId,
       source: statement.source_type ?? null,
       royalty_type: (parsed.royalty_type as string) ?? null,
-      period_start: parsed.period_start ?? null,
-      period_end: parsed.period_end ?? null,
+      period_start: toDate(parsed.period_start),
+      period_end: toDate(parsed.period_end),
       total_earnings: parsed.total_earnings ?? null,
       currency: (parsed.currency as string) ?? "USD",
       track_count: parsed.track_count ?? null,
@@ -575,7 +592,11 @@ export async function POST(req: NextRequest) {
       flags: parsed.flags ?? [],
       normalized_data: { action, ...parsed },
       raw_claude_output: { action },
-    }, { onConflict: "statement_id" });
+    };
+    console.log("[analyze] upserting parsed_results for statement:", statementId);
+    const { data: upsertData, error: upsertErr } = await supabase.from("parsed_results").upsert(upsertPayload, { onConflict: "statement_id" }).select("id");
+    if (upsertErr) console.error("[analyze] parsed_results upsert failed:", JSON.stringify(upsertErr));
+    else console.log("[analyze] parsed_results upsert ok, id:", upsertData?.[0]?.id);
 
     await supabase.from("statements").update({ status: "complete" }).eq("id", statementId);
 
