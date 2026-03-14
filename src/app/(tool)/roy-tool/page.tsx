@@ -1295,6 +1295,42 @@ function ResultPanel({
           {/* Roy's take */}
           {result.summary && <RoyTake text={result.summary as string} label="Roy's take" />}
 
+          {/* Catalog KPI cards — shown only for non-Label multi-artist (gives a taste, gates the breakdown) */}
+          {result.is_multi_artist && !isLabel && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Total earnings
+                </div>
+                <div style={{ fontSize: "22px", fontWeight: 700, color: GREEN }}>
+                  {result.total_earnings != null ? fmtCompact(result.total_earnings as number, true) : "—"}
+                </div>
+                {typeof result.currency === "string" && result.currency !== "USD" && (
+                  <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{result.currency as string}</div>
+                )}
+              </div>
+              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Total streams
+                </div>
+                <div style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>
+                  {result.total_streams != null ? fmtCompact(result.total_streams as number) : "—"}
+                </div>
+              </div>
+              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg / stream</div>
+                <div style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>
+                  {result.total_streams && (result.total_streams as number) > 0 && result.total_earnings != null
+                    ? `$${(Math.round(((result.total_earnings as number) / (result.total_streams as number)) * 1000000) / 1000000).toFixed(4)}`
+                    : "—"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Full breakdown — only for single-artist or Label plan */}
+          {(!result.is_multi_artist || isLabel) && (<>
+
           {/* Artist picker — Label only, multi-artist */}
           {isLabel && result.is_multi_artist && topArtists && topArtists.length > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -1577,6 +1613,8 @@ function ResultPanel({
               </div>
             );
           })()}
+
+          </>)}
         </>
       )}
 
@@ -1879,6 +1917,15 @@ export default function RoyToolPage() {
   async function doUploadLarge(file: File): Promise<void> {
     setPhase("identifying");
     try {
+      // Hash for duplicate detection — same threshold as doUpload (skip for >100MB to avoid loading full file into RAM)
+      let fileHash: string | undefined;
+      if (file.size < 100 * 1024 * 1024) {
+        const hashBuffer = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+        fileHash = Array.from(new Uint8Array(hashBuffer))
+          .map(b => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
       const slice = file.slice(0, 50000);
       const fileContent = await slice.text();
 
@@ -1890,6 +1937,7 @@ export default function RoyToolPage() {
           fileContent,
           fileSize: file.size,
           fileType: file.type,
+          ...(fileHash ? { fileHash } : {}),
         }),
       });
       const data = await res.json() as Record<string, unknown>;
@@ -1900,6 +1948,38 @@ export default function RoyToolPage() {
           : (data.message as string) ?? (data.error as string) ?? "Something went wrong. Please try again.";
         setErrorMsg(msg);
         setPhase("error");
+        return;
+      }
+
+      // Duplicate — try to load cached analysis, fall back to identified panel
+      if (data.duplicate === true) {
+        const dupIdentified: IdentifiedFile = {
+          statementId: data.statementId as string,
+          source: (data.source as string) ?? "",
+          royalty_type: "",
+          detected_artist: null,
+          greeting: `Roy's already read this one. Pick an action below.`,
+          file_name: data.fileName as string,
+          isDuplicate: true,
+        };
+        setIdentified(dupIdentified);
+        setPhase("analyzing");
+        try {
+          const analyzeRes = await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ statementId: data.statementId, action: "summarize" }),
+          });
+          const analyzeData = await analyzeRes.json();
+          if (analyzeRes.ok) {
+            setAnalyzed({ action: "summarize", result: analyzeData.result, cached: analyzeData.cached });
+            setPhase("result");
+          } else {
+            setPhase("identified");
+          }
+        } catch {
+          setPhase("identified");
+        }
         return;
       }
 

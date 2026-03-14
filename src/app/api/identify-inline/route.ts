@@ -18,11 +18,12 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { fileName, fileContent, fileSize, fileType } = await req.json() as {
+  const { fileName, fileContent, fileSize, fileType, fileHash } = await req.json() as {
     fileName: string;
     fileContent: string;
     fileSize?: number;
     fileType?: string;
+    fileHash?: string;
   };
 
   if (!fileName || !fileContent) {
@@ -31,7 +32,27 @@ export async function POST(req: NextRequest) {
 
   const supabase = supabaseAdmin();
 
-  // Create a statement record without storage (large file — processed inline)
+  // Duplicate check — same file content already processed by this user
+  if (fileHash) {
+    const { data: existing } = await supabase
+      .from("statements")
+      .select("id, file_name, source_type, status")
+      .eq("user_id", userId)
+      .eq("file_hash", fileHash)
+      .maybeSingle();
+
+    if (existing) {
+      return NextResponse.json({
+        duplicate: true,
+        statementId: existing.id,
+        fileName: existing.file_name,
+        source: existing.source_type,
+        status: existing.status,
+      });
+    }
+  }
+
+  // Create a statement record without storage (tabular file — processed inline)
   const statementId = crypto.randomUUID();
   const { error: stmtError } = await supabase.from("statements").insert({
     id: statementId,
@@ -40,6 +61,7 @@ export async function POST(req: NextRequest) {
     file_size: fileSize ?? null,
     file_type: fileType ?? null,
     file_url: null,
+    file_hash: fileHash ?? null,
     status: "pending",
   });
 
