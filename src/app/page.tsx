@@ -87,64 +87,74 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Dashboard mockup */}
+            {/* Summary mockup */}
             <div className="hero-mockup">
               <div className="mockup-browser">
                 <div className="mockup-bar">
                   <div className="mockup-dot" />
                   <div className="mockup-dot" />
                   <div className="mockup-dot" />
-                  <div className="mockup-url">app.useroy.com — Dashboard</div>
+                  <div className="mockup-url">app.useroy.com — Summary</div>
                 </div>
-                <div className="mockup-body">
+                <div className="mockup-body" style={{ gridTemplateColumns: "160px 1fr" }}>
                   <div className="mockup-sidebar">
                     <div className="mockup-sidebar-logo">🎵 Roy</div>
                     {[
-                      { icon: "📊", label: "Dashboard", active: true },
-                      { icon: "💰", label: "Royalties" },
-                      { icon: "🎵", label: "Catalogue" },
-                      { icon: "🔗", label: "Accounts" },
-                      { icon: "⚠️", label: "Issues" },
-                      { icon: "📅", label: "Payments" },
-                      { icon: "⚙️", label: "Settings" },
+                      { label: "Summary", active: true },
+                      { label: "Analytics" },
+                      { label: "Talk to Roy" },
                     ].map((item) => (
                       <div
                         key={item.label}
                         className={`mockup-nav-item${item.active ? " active" : ""}`}
                       >
-                        {item.icon} {item.label}
+                        {item.label}
                       </div>
                     ))}
                   </div>
                   <div className="mockup-content">
+                    {/* Roy's take */}
+                    <div style={{
+                      background: "rgba(0,212,123,0.06)", border: "1px solid rgba(0,212,123,0.18)",
+                      borderRadius: "8px", padding: "12px 14px",
+                    }}>
+                      <div style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--green)", marginBottom: "6px" }}>
+                        Roy&apos;s take
+                      </div>
+                      <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.8)", lineHeight: 1.6, margin: 0 }}>
+                        DistroKid paid out $2,847 across 18 tracks for Q4 2024. Your Spotify rate of $0.0035/stream is within benchmark. One track is missing an ISRC — flag it before the next reporting cycle.
+                      </p>
+                    </div>
+                    {/* KPI cards */}
                     <div className="mockup-stat-row">
                       <div className="mockup-stat">
-                        <div className="mockup-stat-label">Total Earned</div>
-                        <div className="mockup-stat-val green">$24,817</div>
+                        <div className="mockup-stat-label">Total earnings</div>
+                        <div className="mockup-stat-val green">$2,847</div>
                       </div>
                       <div className="mockup-stat">
-                        <div className="mockup-stat-label">Pending Payout</div>
-                        <div className="mockup-stat-val">$3,240</div>
+                        <div className="mockup-stat-label">Total streams</div>
+                        <div className="mockup-stat-val">821K</div>
                       </div>
                       <div className="mockup-stat">
-                        <div className="mockup-stat-label">Active Sources</div>
-                        <div className="mockup-stat-val">7 / 9</div>
+                        <div className="mockup-stat-label">Avg / stream</div>
+                        <div className="mockup-stat-val">$0.0035</div>
                       </div>
                     </div>
-                    <div className="mockup-chart-area">
-                      <div className="mockup-chart-label">Monthly Royalties — Last 12 Months</div>
-                      <div className="mockup-bars">
-                        {[40, 55, 70, 45, 85, 60, 90, 75, 65, 80, 95, 72].map((h, i) => (
-                          <div
-                            key={i}
-                            className="mockup-bar-item"
-                            style={{
-                              height: `${h}%`,
-                              background: h === 95 ? "var(--green)" : h >= 80 ? "rgba(0,212,123,0.4)" : undefined,
-                            }}
-                          />
-                        ))}
-                      </div>
+                    {/* By platform */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {[
+                        { name: "Spotify", pct: 60, val: "$1,720" },
+                        { name: "Apple Music", pct: 24, val: "$680" },
+                        { name: "Amazon Music", pct: 16, val: "$447" },
+                      ].map((row) => (
+                        <div key={row.name} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div style={{ fontSize: "10px", color: "var(--text-muted)", width: "80px", flexShrink: 0 }}>{row.name}</div>
+                          <div style={{ flex: 1, background: "rgba(255,255,255,0.06)", borderRadius: "100px", height: "5px", overflow: "hidden" }}>
+                            <div style={{ background: "var(--green)", height: "100%", width: `${row.pct}%`, borderRadius: "100px" }} />
+                          </div>
+                          <div style={{ fontSize: "10px", color: "#fff", fontWeight: 600, width: "40px", textAlign: "right" }}>{row.val}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

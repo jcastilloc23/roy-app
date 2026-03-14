@@ -84,11 +84,7 @@ export default function PricingPage() {
         <div className="page-hero" style={{ paddingBottom: "64px" }}>
           <div className="container">
             <h1 style={{ marginBottom: "16px" }}>
-              Drop in,{" "}
-              <span style={{ color: GREEN }}>
-                <RoyLogo height="1.5em" inline />
-              </span>
-              {" "}is here.
+              <RoyLogo height="1.5em" inline /><span style={{ color: "#fff" }}>,</span> your music rights<br />transparency tool.
             </h1>
             <p style={{ color: "var(--text-muted)" }}>
               No spreadsheets. No finance degree. Just answers.

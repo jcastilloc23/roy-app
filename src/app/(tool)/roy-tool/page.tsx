@@ -2067,7 +2067,11 @@ export default function RoyToolPage() {
               fontSize: "clamp(36px, 5.5vw, 64px)", fontWeight: 700,
               lineHeight: 1.08, letterSpacing: "-0.025em", marginBottom: "20px",
             }}>
-              <RoyLogo height="1.5em" inline /><span style={{ color: "#fff" }}>,</span> your music rights<br />transparency tool.
+              Drop in,{" "}
+              <span style={{ color: GREEN }}>
+                <RoyLogo height="1.5em" inline />
+              </span>
+              {" "}is here.
             </h1>
             <p style={{
               fontSize: "17px", color: "rgba(255,255,255,0.6)",
