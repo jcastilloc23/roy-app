@@ -3,6 +3,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { royaltyTypeLabel } from "@/lib/industry-taxonomy";
+import Papa from "papaparse";
+import { matchSchema } from "@/lib/stmts-schema";
 import {
   AreaChart, Area,
   XAxis, YAxis, Tooltip as RTooltip,
@@ -13,6 +16,196 @@ import { getCountryName } from "@/lib/country-codes";
 import { SiSpotify, SiApplemusic, SiYoutubemusic } from "react-icons/si";
 
 const GREEN = "#00d47b";
+const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50 MB
+
+/* ── Client-side stats for large CSV/TSV files ── */
+// Mirrors the SummarizeStats shape used by the analyze route
+interface LocalStats {
+  source: string;
+  totalEarnings: number;
+  totalStreams: number;
+  rowCount: number;
+  trackCount: number;
+  periodStart: string | null;
+  periodEnd: string | null;
+  byStore: { name: string; earnings: number; streams: number }[];
+  byTerritory: { name: string; earnings: number; streams: number }[];
+  byPeriod: { period: string; earnings: number; streams: number }[];
+  topTracks: { track: string; earnings: number; streams: number }[];
+  columnsDetected: Record<string, string>;
+  detectedArtists: string[];
+  byArtist: { name: string; earnings: number; streams: number }[];
+  byPeriodByArtist: Record<string, Record<string, { earnings: number; streams: number }>>;
+  byArtistStore: Record<string, Record<string, { earnings: number; streams: number }>>;
+  byArtistTerritory: Record<string, Record<string, { earnings: number; streams: number }>>;
+  byArtistTrack: Record<string, Record<string, { earnings: number; streams: number }>>;
+}
+
+function _toNum(val: unknown): number {
+  if (typeof val === "number") return isNaN(val) ? 0 : val;
+  if (typeof val === "string") {
+    const n = parseFloat(val.replace(/[$,\s]/g, ""));
+    return isNaN(n) ? 0 : n;
+  }
+  return 0;
+}
+
+function _normalizeArtist(name: string): string {
+  return name.trim().toLowerCase()
+    .replace(/\s+(feat\.?|ft\.?|featuring|with)\s+.*/i, "")
+    .replace(/\s+/g, " ").trim();
+}
+
+function _guessColumnMap(headers: string[]): Record<string, string | null> {
+  const low = headers.map(h => h.toLowerCase());
+  const find = (pats: RegExp[]): string | null => {
+    for (const pat of pats) {
+      const i = low.findIndex(h => pat.test(h));
+      if (i >= 0) return headers[i];
+    }
+    return null;
+  };
+  return {
+    earnings: find([/earnings|revenue|royalt|amount|payment|payout/]),
+    streams: find([/quantity|streams|plays|units|listens|count/]),
+    store: find([/store|platform|dsp|partner|channel|service/]),
+    territory: find([/country|territory|region|market/]),
+    track: find([/title|track|song|recording/]),
+    period: find([/period|month|date|quarter/]),
+    artist: find([/\bartist\b|band|performer/]),
+  };
+}
+
+async function computeFileStats(file: File, source: string): Promise<LocalStats | null> {
+  const isTsv = file.name.toLowerCase().endsWith(".tsv");
+
+  // Read first 4KB to detect schema without loading the whole file
+  const headerSlice = await file.slice(0, 4096).text();
+  const lines = headerSlice.split("\n");
+
+  let headerRow = 0;
+  let columns: Record<string, string | null> = {
+    earnings: null, streams: null, store: null,
+    territory: null, track: null, period: null, artist: null,
+  };
+
+  for (let i = 0; i < Math.min(5, lines.length); i++) {
+    const probe = Papa.parse<string[]>(lines[i], { delimiter: isTsv ? "\t" : "" });
+    const headers = (probe.data[0] ?? []).map((h: unknown) => String(h).trim());
+    const schema = matchSchema(headers);
+    if (schema) {
+      headerRow = schema.headerRow;
+      columns = { ...columns, ...schema.columns };
+      break;
+    }
+    if (i === 0) columns = _guessColumnMap(headers);
+  }
+
+  // Aggregation state
+  let totalEarnings = 0, totalStreams = 0, rowCount = 0;
+  const byStore: Record<string, { earnings: number; streams: number }> = {};
+  const byTerritory: Record<string, { earnings: number; streams: number }> = {};
+  const byTrack: Record<string, { earnings: number; streams: number }> = {};
+  const byPeriod: Record<string, { earnings: number; streams: number }> = {};
+  const periods: string[] = [];
+  const artistsSeen = new Map<string, string>();
+  const byArtist: Record<string, { earnings: number; streams: number }> = {};
+  const byPeriodByArtist: Record<string, Record<string, { earnings: number; streams: number }>> = {};
+  const byArtistStore: Record<string, Record<string, { earnings: number; streams: number }>> = {};
+  const byArtistTerritory: Record<string, Record<string, { earnings: number; streams: number }>> = {};
+  const byArtistTrack: Record<string, Record<string, { earnings: number; streams: number }>> = {};
+
+  await new Promise<void>((resolve) => {
+    Papa.parse<Record<string, unknown>>(file, {
+      header: true,
+      skipEmptyLines: true,
+      dynamicTyping: true,
+      delimiter: isTsv ? "\t" : "",
+      beforeFirstChunk: (chunk) => {
+        if (headerRow === 0) return chunk;
+        const chunkLines = chunk.split("\n");
+        return chunkLines.slice(headerRow).join("\n");
+      },
+      step: (result) => {
+        const row = result.data;
+        rowCount++;
+        const earn    = columns.earnings  ? _toNum(row[columns.earnings])  : 0;
+        const streams = columns.streams   ? _toNum(row[columns.streams])   : 0;
+        const store   = columns.store     ? String(row[columns.store]   ?? "").trim() || null : null;
+        const terr    = columns.territory ? String(row[columns.territory] ?? "").trim() || null : null;
+        const track   = columns.track     ? String(row[columns.track]   ?? "").trim() || null : null;
+        const period  = columns.period    ? String(row[columns.period]  ?? "").trim() || null : null;
+        const artist  = columns.artist    ? String(row[columns.artist]  ?? "").trim() || null : null;
+
+        if (artist) {
+          const norm = _normalizeArtist(artist);
+          if (norm && !artistsSeen.has(norm)) artistsSeen.set(norm, artist);
+          const canonical = artistsSeen.get(norm) ?? artist;
+          byArtist[canonical] ??= { earnings: 0, streams: 0 };
+          byArtist[canonical].earnings += earn;
+          byArtist[canonical].streams  += streams;
+          if (period) {
+            byPeriodByArtist[period] ??= {};
+            byPeriodByArtist[period][canonical] ??= { earnings: 0, streams: 0 };
+            byPeriodByArtist[period][canonical].earnings += earn;
+            byPeriodByArtist[period][canonical].streams  += streams;
+          }
+          if (store) {
+            byArtistStore[canonical] ??= {};
+            byArtistStore[canonical][store] ??= { earnings: 0, streams: 0 };
+            byArtistStore[canonical][store].earnings += earn;
+            byArtistStore[canonical][store].streams  += streams;
+          }
+          if (terr) {
+            byArtistTerritory[canonical] ??= {};
+            byArtistTerritory[canonical][terr] ??= { earnings: 0, streams: 0 };
+            byArtistTerritory[canonical][terr].earnings += earn;
+            byArtistTerritory[canonical][terr].streams  += streams;
+          }
+          if (track) {
+            byArtistTrack[canonical] ??= {};
+            byArtistTrack[canonical][track] ??= { earnings: 0, streams: 0 };
+            byArtistTrack[canonical][track].earnings += earn;
+            byArtistTrack[canonical][track].streams  += streams;
+          }
+        }
+
+        totalEarnings += earn;
+        totalStreams  += streams;
+        if (store)  { byStore[store]    ??= { earnings: 0, streams: 0 }; byStore[store].earnings    += earn; byStore[store].streams    += streams; }
+        if (terr)   { byTerritory[terr] ??= { earnings: 0, streams: 0 }; byTerritory[terr].earnings += earn; byTerritory[terr].streams += streams; }
+        if (track)  { byTrack[track]    ??= { earnings: 0, streams: 0 }; byTrack[track].earnings    += earn; byTrack[track].streams    += streams; }
+        if (period) { periods.push(period); byPeriod[period] ??= { earnings: 0, streams: 0 }; byPeriod[period].earnings += earn; byPeriod[period].streams += streams; }
+      },
+      complete: () => resolve(),
+      error:    () => resolve(),
+    });
+  });
+
+  if (rowCount === 0) return null;
+
+  const sortedPeriods = [...new Set(periods)].sort();
+  return {
+    source,
+    totalEarnings: Math.round(totalEarnings * 100) / 100,
+    totalStreams:   Math.round(totalStreams),
+    rowCount,
+    trackCount: Object.keys(byTrack).length,
+    periodStart: sortedPeriods[0] ?? null,
+    periodEnd:   sortedPeriods[sortedPeriods.length - 1] ?? null,
+    byStore: Object.entries(byStore).sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 10).map(([name, v]) => ({ name, ...v })),
+    byTerritory: Object.entries(byTerritory).sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 10).map(([name, v]) => ({ name, ...v })),
+    byPeriod: Object.entries(byPeriod).sort(([a], [b]) => a.localeCompare(b)).map(([period, v]) => ({ period, ...v })),
+    topTracks: Object.entries(byTrack).sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 5).map(([track, v]) => ({ track, ...v })),
+    columnsDetected: Object.fromEntries(Object.entries(columns).filter(([, v]) => v !== null)) as Record<string, string>,
+    detectedArtists: Array.from(artistsSeen.values()),
+    byArtist: Object.entries(byArtist).sort((a, b) => b[1].earnings - a[1].earnings).slice(0, 20).map(([name, v]) => ({ name, ...v })),
+    byPeriodByArtist,
+    byArtistStore,
+    byArtistTerritory,
+    byArtistTrack,
+  };
+}
 
 /* ── Helpers ─────────────────────────────────── */
 function fmtCompact(n: number, dollars = false): string {
@@ -260,7 +453,7 @@ function TimeChart({
 }
 
 /* ── Types ───────────────────────────────────── */
-type Phase = "idle" | "uploading" | "identified" | "analyzing" | "result" | "error" | "multi_artist" | "split_preview";
+type Phase = "idle" | "hashing" | "uploading" | "identifying" | "identified" | "analyzing" | "result" | "error" | "multi_artist" | "split_preview";
 type ActionType = "summarize" | "anomalies" | "cleanup" | "split";
 
 interface IdentifiedFile {
@@ -547,7 +740,7 @@ function IdentifiedPanel({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
         {[
           { label: "Source", value: identified.source || "—" },
-          { label: "Type", value: identified.royalty_type || "—" },
+          { label: "Type", value: royaltyTypeLabel(identified.royalty_type) },
         ].map(({ label, value }) => (
           <div key={label} style={{
             background: "var(--bg3)", border: "1px solid var(--border)",
@@ -689,6 +882,7 @@ function RoyTake({ text, label }: { text: string; label: string }) {
 const SPLIT_CHUNK_SIZE = 500_000;
 const EXCEL_ROW_LIMIT = 1_048_576;
 const EXCEL_SIZE_WARN_MB = 100;
+const READ_CHUNK_BYTES = 4 * 1024 * 1024; // 4MB read chunks — constant memory regardless of file size
 
 function SplitPreviewPanel({
   file,
@@ -703,58 +897,102 @@ function SplitPreviewPanel({
   const [partsDone, setPartsDone] = useState(0);
   const [rowCount, setRowCount] = useState(0);
   const [partCount, setPartCount] = useState(0);
-  // Store parsed lines in a ref so we only read the file once
-  const linesRef = useRef<{ header: string; dataLines: string[] } | null>(null);
+  // Only store the header line — data is streamed during split, never all in memory at once
+  const headerRef = useRef<string>("");
 
   const fileSizeMB = file.size / (1024 * 1024);
   const needsSplit = file.size > EXCEL_SIZE_WARN_MB * 1024 * 1024 || rowCount > EXCEL_ROW_LIMIT;
 
-  // Read and count on mount — stores lines for reuse during split
+  // Stream-count rows on mount — reads 4MB at a time, never loads the full file
   useEffect(() => {
-    file.text().then((text) => {
-      const allLines = text.split("\n");
-      const header = allLines[0] ?? "";
-      const dataLines = allLines.slice(1).filter((l) => l.trim() !== "");
-      linesRef.current = { header, dataLines };
-      const parts = Math.max(1, Math.ceil(dataLines.length / SPLIT_CHUNK_SIZE));
-      setRowCount(dataLines.length);
+    async function countRows() {
+      let remainder = "";
+      let isFirstLine = true;
+      let dataCount = 0;
+
+      for (let offset = 0; offset < file.size; offset += READ_CHUNK_BYTES) {
+        const slice = file.slice(offset, Math.min(offset + READ_CHUNK_BYTES, file.size));
+        const text = await slice.text();
+        const combined = remainder + text;
+        const lines = combined.split("\n");
+        remainder = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (isFirstLine) {
+            headerRef.current = line;
+            isFirstLine = false;
+          } else if (line.trim()) {
+            dataCount++;
+          }
+        }
+      }
+      // Count any content left in the last partial line
+      if (remainder.trim() && !isFirstLine) dataCount++;
+
+      const parts = Math.max(1, Math.ceil(dataCount / SPLIT_CHUNK_SIZE));
+      setRowCount(dataCount);
       setPartCount(parts);
       setStatus("preview");
-    });
+    }
+    countRows().catch(() => setStatus("preview"));
   }, [file]);
 
   async function doSplit() {
-    if (!linesRef.current) return;
     setStatus("splitting");
-
-    // TODO: Replace file.text() with a streaming approach using File.stream() + ReadableStream.
-    // Current approach loads the entire file into memory at once (~3–4× file size in RAM),
-    // which works for files up to ~200MB but will crash browser tabs beyond that.
-    // YouTube Content ID statements for major labels/publishers can reach 5GB+.
-    // The streaming fix: read in 64KB chunks, track newline positions, flush each
-    // 500K-row part to a Blob incrementally — constant memory regardless of file size.
-    const { header, dataLines } = linesRef.current;
 
     const dotIdx = file.name.lastIndexOf(".");
     const base = dotIdx > 0 ? file.name.slice(0, dotIdx) : file.name;
     const ext = dotIdx > 0 ? file.name.slice(dotIdx) : ".csv";
+    const header = headerRef.current;
 
-    for (let i = 0; i < partCount; i++) {
-      const chunk = dataLines.slice(i * SPLIT_CHUNK_SIZE, (i + 1) * SPLIT_CHUNK_SIZE);
-      const content = [header, ...chunk].join("\n");
+    let remainder = "";
+    let partLines: string[] = [header];
+    let dataCount = 0;
+    let partIndex = 0;
+    let isFirstLine = true;
+
+    const downloadPart = async (lines: string[]) => {
+      const content = lines.join("\n");
       const blob = new Blob([content], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${base}_part${i + 1}_of_${partCount}${ext}`;
+      a.download = `${base}_part${partIndex + 1}_of_${partCount}${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setPartsDone(i + 1);
-      // Small delay so browser doesn't block sequential downloads
-      await new Promise((r) => setTimeout(r, 300));
+      partIndex++;
+      setPartsDone(partIndex);
+      await new Promise<void>((r) => setTimeout(r, 300));
+    };
+
+    for (let offset = 0; offset < file.size; offset += READ_CHUNK_BYTES) {
+      const slice = file.slice(offset, Math.min(offset + READ_CHUNK_BYTES, file.size));
+      const text = await slice.text();
+      const combined = remainder + text;
+      const lines = combined.split("\n");
+      remainder = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (isFirstLine) { isFirstLine = false; continue; } // skip header row in file
+        if (!line.trim()) continue;
+
+        partLines.push(line);
+        dataCount++;
+
+        if (dataCount >= SPLIT_CHUNK_SIZE) {
+          await downloadPart(partLines);
+          partLines = [header];
+          dataCount = 0;
+        }
+      }
     }
+
+    // Flush any remaining lines
+    if (remainder.trim() && !isFirstLine) partLines.push(remainder);
+    if (partLines.length > 1) await downloadPart(partLines);
+
     setStatus("done");
   }
 
@@ -1491,53 +1729,51 @@ export default function RoyToolPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [splitMode, setSplitMode] = useState(false);
+  const [largeFile, setLargeFile] = useState(false);
 
-  // XHR upload to our API — gives real progress events.
-  // Server handles the Supabase transfer (no RLS issues, no size limit from the browser side).
+  // Presigned upload flow:
+  // 1. Hash file client-side
+  // 2. POST /api/upload-url (duplicate check + get signed URL)
+  // 3. XHR PUT directly to Supabase signed URL (real progress, no size limit)
+  // 4. POST /api/identify to run Gemini identification server-side
   async function doUpload(file: File): Promise<IdentifiedFile | null> {
     setPhase("uploading");
     setUploadProgress(0);
     try {
-      const data = await new Promise<Record<string, unknown>>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/upload");
-        // Send file metadata in headers — avoids multipart parsing entirely
-        xhr.setRequestHeader("x-file-name", encodeURIComponent(file.name));
-        xhr.setRequestHeader("x-file-size", String(file.size));
-        xhr.setRequestHeader("x-file-type", file.type || "application/octet-stream");
-        xhr.setRequestHeader("content-type", file.type || "application/octet-stream");
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
-        };
-        // Browser finished sending — switch to identifying spinner while server processes
-        xhr.upload.onload = () => setUploadProgress(null);
-        xhr.onload = () => {
-          try {
-            const json = JSON.parse(xhr.responseText);
-            if (xhr.status >= 200 && xhr.status < 300) resolve(json);
-            else {
-              const msg = json.error === "not_royalty_data"
-                ? "This file doesn't look like a royalty statement. Roy only reads reports from DSPs, PROs, distributors, and CMOs."
-                : json.message ?? json.error ?? "Something went wrong. Please try again.";
-              reject(new Error(msg));
-            }
-          } catch {
-            reject(new Error(`Server error (${xhr.status}). Please try again.`));
-          }
-        };
-        xhr.onerror = () => reject(new Error("Upload failed. Check your connection and try again."));
-        xhr.send(file); // raw binary — no FormData wrapper
-      });
+      // Step 1 — Hash for duplicate detection (skip for large files — arrayBuffer loads full file into RAM)
+      let fileHash: string | undefined;
+      if (file.size < 100 * 1024 * 1024) {
+        const hashBuffer = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+        fileHash = Array.from(new Uint8Array(hashBuffer))
+          .map(b => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
 
-      // Duplicate file — skip the action-card step, load cached result directly
-      if (data.duplicate === true) {
+      // Step 2 — Request presigned URL (or detect duplicate)
+      const urlRes = await fetch("/api/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileName: file.name, fileSize: file.size, fileType: file.type, ...(fileHash ? { fileHash } : {}) }),
+      });
+      const urlData = await urlRes.json() as Record<string, unknown>;
+
+      if (!urlRes.ok) {
+        const msg = urlData.error === "unsupported_format"
+          ? (urlData.message as string)
+          : (urlData.message as string) ?? (urlData.error as string) ?? "Something went wrong. Please try again.";
+        throw new Error(msg);
+      }
+
+      // Duplicate file — skip upload, load cached result directly
+      if (urlData.duplicate === true) {
         const dupIdentified: IdentifiedFile = {
-          statementId: data.statementId as string,
-          source: (data.source as string) ?? "",
+          statementId: urlData.statementId as string,
+          source: (urlData.source as string) ?? "",
           royalty_type: "",
           detected_artist: null,
           greeting: `Roy's already read this one. Pick an action below.`,
-          file_name: data.fileName as string,
+          file_name: urlData.fileName as string,
           isDuplicate: true,
         };
         setIdentified(dupIdentified);
@@ -1547,14 +1783,13 @@ export default function RoyToolPage() {
           const res = await fetch("/api/analyze", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ statementId: data.statementId, action: "summarize" }),
+            body: JSON.stringify({ statementId: urlData.statementId, action: "summarize" }),
           });
           const analyzeData = await res.json();
           if (res.ok) {
             setAnalyzed({ action: "summarize", result: analyzeData.result, cached: analyzeData.cached });
             setPhase("result");
           } else {
-            // Fall back to showing action cards if cache miss
             setPhase("identified");
           }
         } catch {
@@ -1564,16 +1799,74 @@ export default function RoyToolPage() {
         return dupIdentified;
       }
 
+      const { statementId, signedUrl } = urlData as { statementId: string; signedUrl: string };
+
+      // Helper — remove the orphaned DB row if the upload or identify step fails
+      const cleanupStatement = () =>
+        fetch("/api/upload-url", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ statementId }),
+        }).catch(() => { /* best-effort, ignore errors */ });
+
+      // Step 3 — XHR PUT directly to Supabase signed URL
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("PUT", signedUrl);
+          xhr.setRequestHeader("content-type", file.type || "application/octet-stream");
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          };
+          xhr.upload.onload = () => setUploadProgress(null);
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) resolve();
+            else {
+              let msg = `Upload failed (${xhr.status}). Please try again.`;
+              try {
+                const body = JSON.parse(xhr.responseText);
+                if (body.message) msg = body.message;
+                else if (body.error) msg = body.error;
+              } catch { /* ignore */ }
+              reject(new Error(msg));
+            }
+          };
+          xhr.onerror = () => reject(new Error("Upload failed. Check your connection and try again."));
+          xhr.send(file);
+        });
+      } catch (uploadErr) {
+        await cleanupStatement();
+        throw uploadErr;
+      }
+
+      // Step 4 — Identify (identify route handles its own cleanup on failure)
+      setPhase("identifying");
+      const idRes = await fetch("/api/identify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statementId }),
+      });
+      const idData = await idRes.json() as Record<string, unknown>;
+
+      if (!idRes.ok) {
+        const msg = idData.error === "not_royalty_data"
+          ? "This file doesn't look like a royalty statement. Roy only reads reports from DSPs, PROs, distributors, and CMOs."
+          : (idData.message as string) ?? (idData.error as string) ?? "Something went wrong. Please try again.";
+        // identify route already cleaned up storage+DB for not_royalty_data; for other errors, clean up DB row
+        if (idData.error !== "not_royalty_data") await cleanupStatement();
+        throw new Error(msg);
+      }
+
       const result: IdentifiedFile = {
-        statementId: data.statementId as string,
-        source: data.source as string,
-        royalty_type: data.royalty_type as string,
-        detected_artist: (data.detected_artist as string) ?? null,
-        greeting: data.greeting as string,
-        file_name: data.file_name as string,
+        statementId: idData.statementId as string,
+        source: idData.source as string,
+        royalty_type: idData.royalty_type as string,
+        detected_artist: (idData.detected_artist as string) ?? null,
+        greeting: idData.greeting as string,
+        file_name: idData.file_name as string,
       };
       setIdentified(result);
-      setArtistName((data.detected_artist as string) ?? "");
+      setArtistName((idData.detected_artist as string) ?? "");
       setPhase("identified");
       return result;
     } catch (err) {
@@ -1583,11 +1876,73 @@ export default function RoyToolPage() {
     }
   }
 
+  async function doUploadLarge(file: File): Promise<void> {
+    setPhase("identifying");
+    try {
+      const slice = file.slice(0, 50000);
+      const fileContent = await slice.text();
+
+      const res = await fetch("/api/identify-inline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileContent,
+          fileSize: file.size,
+          fileType: file.type,
+        }),
+      });
+      const data = await res.json() as Record<string, unknown>;
+
+      if (!res.ok) {
+        const msg = data.error === "not_royalty_data"
+          ? "This file doesn't look like a royalty statement. Roy only reads reports from DSPs, PROs, distributors, and CMOs."
+          : (data.message as string) ?? (data.error as string) ?? "Something went wrong. Please try again.";
+        setErrorMsg(msg);
+        setPhase("error");
+        return;
+      }
+
+      setIdentified({
+        statementId: data.statementId as string,
+        source: data.source as string,
+        royalty_type: data.royalty_type as string,
+        detected_artist: (data.detected_artist as string) ?? null,
+        greeting: data.greeting as string,
+        file_name: data.file_name as string,
+      });
+      setArtistName((data.detected_artist as string) ?? "");
+      setPhase("identified");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Upload failed. Check your connection and try again.");
+      setPhase("error");
+    }
+  }
+
   async function handleFile(file: File) {
     setUploadedFile(file);
     setIdentified(null);
     setAnalyzed(null);
     setErrorMsg(null);
+
+    if (splitMode) {
+      setPhase("split_preview");
+      return;
+    }
+
+    // CSV/TSV: always process inline — PapaParse runs in the browser, no upload needed.
+    // Gemini only ever sees aggregated stats or a 50KB sample, never raw rows.
+    // PDF/XLS/XLSX: Gemini needs the actual file content, so those go through Supabase Storage.
+    const name = file.name.toLowerCase();
+    const isTabular = name.endsWith(".csv") || name.endsWith(".tsv");
+
+    if (isTabular) {
+      setLargeFile(true);
+      await doUploadLarge(file);
+      return;
+    }
+
+    setLargeFile(false);
     await doUpload(file);
   }
 
@@ -1608,14 +1963,60 @@ export default function RoyToolPage() {
     setAnalyzed(null);
 
     try {
+      const bodyObj: Record<string, unknown> = {
+        statementId: identified.statementId,
+        action,
+        artist_name: artistName.trim() || undefined,
+      };
+
+      // Large file — no storage copy exists, send data inline
+      if (largeFile && uploadedFile) {
+        if (action === "summarize") {
+          const stats = await computeFileStats(uploadedFile, identified.source);
+          if (stats) {
+            // Trim per-artist cross-tab maps to top 5 artists only — server only uses top 5 for
+            // by_artist_detail anyway, and these maps can be enormous on label statements.
+            const top5 = new Set(stats.byArtist.slice(0, 5).map(a => a.name));
+            bodyObj.precomputedStats = {
+              ...stats,
+              byPeriodByArtist: Object.fromEntries(
+                Object.entries(stats.byPeriodByArtist).map(([p, artists]) => [
+                  p,
+                  Object.fromEntries(Object.entries(artists).filter(([k]) => top5.has(k))),
+                ])
+              ),
+              byArtistStore: Object.fromEntries(
+                Object.entries(stats.byArtistStore).filter(([k]) => top5.has(k))
+              ),
+              byArtistTerritory: Object.fromEntries(
+                Object.entries(stats.byArtistTerritory).filter(([k]) => top5.has(k))
+              ),
+              byArtistTrack: Object.fromEntries(
+                Object.entries(stats.byArtistTrack)
+                  .filter(([k]) => top5.has(k))
+                  .map(([k, tracks]) => [
+                    k,
+                    Object.fromEntries(
+                      Object.entries(tracks)
+                        .sort((a, b) => b[1].earnings - a[1].earnings)
+                        .slice(0, 20)
+                    ),
+                  ])
+              ),
+            };
+          }
+          // If stats is null (unsupported format), server falls back to Gemini with empty fileText
+        } else {
+          // anomalies / cleanup: send first 50KB sample
+          const slice = uploadedFile.slice(0, 50000);
+          bodyObj.inlineContent = await slice.text();
+        }
+      }
+
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          statementId: identified.statementId,
-          action,
-          artist_name: artistName.trim() || undefined,
-        }),
+        body: JSON.stringify(bodyObj),
       });
       const data = await res.json();
 
@@ -1641,6 +2042,8 @@ export default function RoyToolPage() {
     setErrorMsg(null);
     setUploadedFile(null);
     setUploadProgress(null);
+    setSplitMode(false);
+    setLargeFile(false);
   }
 
   function handleBack() {
@@ -1687,8 +2090,84 @@ export default function RoyToolPage() {
           }}>
             <div style={{ padding: "32px" }}>
 
-              {phase === "idle" && (
-                <DropZone onFile={handleFile} />
+              {phase === "idle" && !splitMode && (
+                <>
+                  <DropZone onFile={handleFile} />
+                  <div style={{ textAlign: "center", marginTop: "16px" }}>
+                    <button
+                      onClick={() => setSplitMode(true)}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        fontSize: "13px", color: "rgba(255,255,255,0.45)",
+                        padding: "4px 8px",
+                      }}
+                    >
+                      Splitting a large file? →
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {phase === "idle" && splitMode && (
+                <>
+                  <button
+                    onClick={() => setSplitMode(false)}
+                    style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      fontSize: "13px", color: "rgba(255,255,255,0.45)",
+                      padding: "4px 8px", marginBottom: "16px",
+                      display: "flex", alignItems: "center", gap: "4px",
+                    }}
+                  >
+                    ← Back
+                  </button>
+                  <div
+                    style={{
+                      border: `2px dashed rgba(0,212,123,0.3)`,
+                      borderRadius: "12px",
+                      padding: "48px 32px",
+                      textAlign: "center",
+                      background: "rgba(0,212,123,0.02)",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = ".csv,.tsv";
+                      input.onchange = (e) => {
+                        const f = (e.target as HTMLInputElement).files?.[0];
+                        if (f) handleFile(f);
+                      };
+                      input.click();
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const f = e.dataTransfer.files[0];
+                      if (f) handleFile(f);
+                    }}
+                  >
+                    <div style={{ marginBottom: "16px" }}>
+                      <svg width="40" height="40" viewBox="0 0 18 18" fill="none" style={{ margin: "0 auto" }}>
+                        <rect x="2" y="2" width="6" height="14" rx="2" stroke={GREEN} strokeWidth="1.5" />
+                        <rect x="10" y="2" width="6" height="6" rx="2" stroke={GREEN} strokeWidth="1.5" />
+                        <rect x="10" y="10" width="6" height="6" rx="2" stroke={GREEN} strokeWidth="1.5" />
+                      </svg>
+                    </div>
+                    <div style={{ fontSize: "15px", fontWeight: 600, color: "#fff", marginBottom: "6px" }}>
+                      Drop your large file here
+                    </div>
+                    <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", marginBottom: "20px", lineHeight: 1.5 }}>
+                      Roy will split it into 500K-row chunks with the header preserved on every part. No upload required.
+                    </div>
+                    <span style={{
+                      display: "inline-block", padding: "10px 24px", borderRadius: "8px",
+                      background: GREEN, color: "#000", fontWeight: 600, fontSize: "14px",
+                    }}>
+                      Browse files
+                    </span>
+                  </div>
+                </>
               )}
 
               {phase === "uploading" && (
@@ -1696,7 +2175,7 @@ export default function RoyToolPage() {
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px", padding: "48px 32px" }}>
                     <div style={{ width: "100%", maxWidth: "320px", textAlign: "center" }}>
                       <div style={{ fontSize: "15px", fontWeight: 600, color: "#fff", marginBottom: "6px" }}>
-                        Uploading your statement…
+                        {uploadProgress === 0 ? "Preparing…" : "Uploading your statement…"}
                       </div>
                       <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)", marginBottom: "20px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {uploadedFile?.name}{uploadedFile ? ` · ${(uploadedFile.size / 1024 / 1024).toFixed(1)} MB` : ""}
@@ -1715,6 +2194,13 @@ export default function RoyToolPage() {
                 )
               )}
 
+              {phase === "identifying" && (
+                <ProgressRing
+                  label="Identifying your statement…"
+                  sublabel="Roy is checking what this file is."
+                />
+              )}
+
               {phase === "identified" && identified && (
                 <IdentifiedPanel
                   identified={identified}
@@ -1726,8 +2212,8 @@ export default function RoyToolPage() {
 
               {phase === "analyzing" && (
                 <ProgressRing
-                  label="Roy is analyzing your statement…"
-                  sublabel="Digging into rates, patterns, and data quality. This can take 20–30 seconds."
+                  label={largeFile ? "Reading your file locally…" : "Roy is analyzing your statement…"}
+                  sublabel={largeFile ? "Crunching the data in your browser — no upload needed. Large files may take a moment." : "Digging into rates, patterns, and data quality. This can take 20–30 seconds."}
                 />
               )}
 

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Rights & Royalty Flow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:#08081a; color:#ddd; }
+
+  .page-header {
+    text-align:center; padding:36px 24px 14px;
+    background:linear-gradient(180deg,#141432 0%,#08081a 100%);
+  }
+  .page-header h1 {
+    font-size:1.95rem; font-weight:800;
+    background:linear-gradient(120deg,#a78bfa,#60a5fa,#34d399);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    margin-bottom:7px;
+  }
+  .page-header p { color:#7788aa; font-size:.875rem; max-width:760px; margin:0 auto; line-height:1.6; }
+
+  .kpi-row {
+    display:flex; justify-content:center; gap:40px; padding:20px; flex-wrap:wrap;
+  }
+  .kpi { text-align:center; }
+  .kpi-val {
+    font-size:1.6rem; font-weight:700;
+    background:linear-gradient(120deg,#a78bfa,#60a5fa);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .kpi-lbl { font-size:.7rem; color:#7788aa; margin-top:3px; }
+
+  .legend {
+    display:flex; justify-content:center; flex-wrap:wrap;
+    gap:14px; padding:10px 24px 16px;
+  }
+  .li { display:flex; align-items:center; gap:6px; font-size:.74rem; color:#999; }
+  .ld { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+  .wrap { max-width:1280px; margin:0 auto; padding:0 20px 20px; }
+  svg { width:100%; height:auto; display:block; }
+
+  .tip {
+    position:fixed; background:#1a1a36; border:1px solid #35355a;
+    border-radius:11px; padding:13px 15px; max-width:300px;
+    font-size:.81rem; line-height:1.55; color:#ccc; pointer-events:none;
+    opacity:0; transition:opacity .15s; z-index:200;
+    box-shadow:0 10px 36px rgba(0,0,0,.65);
+  }
+  .tip h3 { color:#fff; font-size:.88rem; margin-bottom:4px; }
+
+  .cards {
+    max-width:1240px; margin:18px auto 0; padding:0 20px;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:14px;
+  }
+  .card {
+    background:linear-gradient(135deg,#181838,#121230);
+    border:1px solid #282848; border-radius:11px; padding:17px;
+  }
+  .card h3 { font-size:.85rem; color:#a78bfa; margin-bottom:6px; }
+  .card p { font-size:.78rem; color:#999; line-height:1.6; }
+
+  .sources { max-width:1240px; margin:24px auto 40px; padding:0 20px 20px; border-top:1px solid #1c1c2e; }
+  .sources h4 { font-size:.82rem; color:#555; margin:16px 0 10px; }
+  .sources ul { list-style:none; display:flex; flex-wrap:wrap; gap:7px; }
+  .sources a {
+    display:inline-block; padding:4px 12px; background:#101028;
+    border:1px solid #282848; border-radius:20px; color:#60a5fa;
+    text-decoration:none; font-size:.73rem; transition:background .2s;
+  }
+  .sources a:hover { background:#1c1c3a; }
+
+  .ng { cursor:pointer; }
+  .ng:hover .box { filter:brightness(1.22); }
+  .ng:hover .glow { opacity:.5; }
+  .glow { opacity:0; transition:opacity .22s; }
+  .pulse { animation:p 3s ease-in-out infinite; }
+  @keyframes p { 0%,100%{opacity:.38} 50%{opacity:.9} }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Music Rights &amp; Royalty Flow</h1>
+  <p>From a single song to every rightsholder — tracing both the <span style="color:#60a5fa">Composition</span> and <span style="color:#f59e0b">Master Recording</span> pipelines, and showing how <span style="color:#fbbf24;font-weight:600">major labels receive payments directly from DSPs</span> while independent artists route through distributors.</p>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-val">~70–80%</div><div class="kpi-lbl">stream revenue → Master side</div></div>
+  <div class="kpi"><div class="kpi-val">~20%</div><div class="kpi-lbl">stream revenue → Publishing side</div></div>
+  <div class="kpi"><div class="kpi-val">~9.4¢</div><div class="kpi-lbl">songwriter earns per $1 of streams</div></div>
+  <div class="kpi"><div class="kpi-val">$9.6B</div><div class="kpi-lbl">global pub revenue est. 2026 (MIDiA)</div></div>
+</div>
+
+<div class="legend">
+  <div class="li"><div class="ld" style="background:#a78bfa"></div>Song</div>
+  <div class="li"><div class="ld" style="background:#f472b6"></div>Revenue Sources</div>
+  <div class="li"><div class="ld" style="background:#60a5fa"></div>Composition / Publishing</div>
+  <div class="li"><div class="ld" style="background:#f59e0b"></div>Master Recording</div>
+  <div class="li"><div class="ld" style="background:#34d399"></div>Collectors</div>
+  <div class="li"><div class="ld" style="background:#6b7280"></div>Final Recipients</div>
+  <div class="li">
+    <svg width="28" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#f59e0b" stroke-width="2.5"/><polygon points="18,2 28,5 18,8" fill="#f59e0b"/></svg>
+    Direct payment
+  </div>
+  <div class="li">
+    <svg width="28" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#888" stroke-width="2" stroke-dasharray="4,3"/><polygon points="18,2 28,5 18,8" fill="#888"/></svg>
+    Via intermediary
+  </div>
+</div>
+
+<div class="wrap">
+<svg viewBox="0 0 1300 1270" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <!-- Arrow markers -->
+  <marker id="mb" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#60a5fa"/></marker>
+  <marker id="ma" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f59e0b"/></marker>
+  <marker id="mg" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#34d399"/></marker>
+  <marker id="mp" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f472b6"/></marker>
+
+  <!-- Gradients -->
+  <linearGradient id="gs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#6d28d9"/></linearGradient>
+  <linearGradient id="gc" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1e40af"/></linearGradient>
+  <linearGradient id="gm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#92400e"/></linearGradient>
+  <linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#065f46"/></linearGradient>
+  <linearGradient id="gp" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#9d174d"/></linearGradient>
+
+  <filter id="gf"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+
+<!-- ═══════════════════════════════════════════════
+     BACKGROUND PANELS
+     Titles sit ABOVE the panel rect so copyright
+     boxes (which start at y≈115) don't overlay them
+═══════════════════════════════════════════════ -->
+
+<!-- Composition panel title (above rect) -->
+<text x="328" y="96" text-anchor="middle" font-family="Inter" font-size="12" fill="#3b82f6" font-weight="700" letter-spacing="2">COMPOSITION SIDE</text>
+<text x="328" y="110" text-anchor="middle" font-family="Inter" font-size="9" fill="#334477">(Music &amp; Lyrics — ~20% of stream revenue)</text>
+<!-- Composition panel rect (starts below title text) -->
+<rect x="12" y="115" width="632" height="654" rx="14" fill="#0b0b22" stroke="#1e1e44" stroke-width="1" opacity=".6"/>
+
+<!-- Master panel title (above rect) -->
+<text x="972" y="96" text-anchor="middle" font-family="Inter" font-size="12" fill="#f59e0b" font-weight="700" letter-spacing="2">MASTER RECORDING SIDE</text>
+<text x="972" y="110" text-anchor="middle" font-family="Inter" font-size="9" fill="#7a6018">(Sound Recording — ~70–80% of stream revenue)</text>
+<!-- Master panel rect (starts below title text) -->
+<rect x="656" y="115" width="632" height="654" rx="14" fill="#130e04" stroke="#4a3a14" stroke-width="1" opacity=".5"/>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 1 — THE SONG  (cy=53)
+═══════════════════════════════════════════════ -->
+<g class="ng" data-k="song">
+  <ellipse class="glow" cx="650" cy="53" rx="116" ry="30" fill="#a78bfa"/>
+  <ellipse class="box" cx="650" cy="53" rx="108" ry="25" fill="url(#gs)" filter="url(#gf)"/>
+  <text x="650" y="48" text-anchor="middle" font-family="Inter" font-size="13" fill="white" font-weight="800">THE SONG</text>
+  <text x="650" y="64" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#ddd0ff">Creates 2 Separate Copyrights</text>
+</g>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 2 — TWO COPYRIGHTS  (y=117, h=42)
+═══════════════════════════════════════════════ -->
+<!-- Song → Comp -->
+<line x1="562" y1="76" x2="272" y2="128" stroke="#3b82f6" stroke-width="2" opacity=".7" marker-end="url(#mb)"/>
+<!-- Song → Master -->
+<line x1="738" y1="76" x2="1028" y2="128" stroke="#f59e0b" stroke-width="2" opacity=".7" marker-end="url(#ma)"/>
+
+<g class="ng" data-k="comp-copy">
+  <rect class="glow" x="138" y="126" width="268" height="46" rx="12" fill="#3b82f6"/>
+  <rect class="box" x="142" y="130" width="260" height="40" rx="10" fill="url(#gc)" opacity=".9"/>
+  <text x="272" y="148" text-anchor="middle" font-family="Inter" font-size="11.5" fill="white" font-weight="700">COMPOSITION ©</text>
+  <text x="272" y="163" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#c0d8ff">Owned by Songwriter / Publisher</text>
+</g>
+
+<g class="ng" data-k="master-copy">
+  <rect class="glow" x="894" y="126" width="268" height="46" rx="12" fill="#f59e0b"/>
+  <rect class="box" x="898" y="130" width="260" height="40" rx="10" fill="url(#gm)" opacity=".9"/>
+  <text x="1028" y="148" text-anchor="middle" font-family="Inter" font-size="11.5" fill="white" font-weight="700">MASTER RECORDING ©</text>
+  <text x="1028" y="163" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#ffe4aa">Owned by Label / Artist</text>
+</g>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 3 — DSP HUB  (y=198, h=60)
+     Central revenue source — feeds both sides
+═══════════════════════════════════════════════ -->
+<g class="ng" data-k="dsp">
+  <rect class="glow" x="430" y="194" width="440" height="68" rx="14" fill="#f472b6"/>
+  <rect class="box" x="434" y="198" width="432" height="60" rx="12" fill="url(#gp)" opacity=".92"/>
+  <text x="650" y="224" text-anchor="middle" font-family="Inter" font-size="14" fill="white" font-weight="800">DSPs</text>
+  <text x="650" y="242" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#ffd0e8">Spotify · Apple Music · Tidal · Amazon Music · YouTube Music</text>
+</g>
+<!-- DSP caption -->
+<text x="650" y="276" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#888">Each stream triggers 2 separate payments:</text>
+<text x="400" y="290" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#60a5fa" font-weight="600">① ~20% → Composition (MLC + PROs)</text>
+<text x="910" y="290" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#fbbf24" font-weight="600">② ~70–80% → Master Recording</text>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 4 — OTHER REVENUE SOURCES  (y=308, h=44)
+     Left = feeds composition  |  Right = feeds master
+═══════════════════════════════════════════════ -->
+
+<!-- LEFT: Sync Licensing -->
+<g class="ng" data-k="sync">
+  <rect class="glow" x="18" y="306" width="148" height="44" rx="9" fill="#f472b6"/>
+  <rect class="box" x="21" y="309" width="142" height="38" rx="8" fill="url(#gp)" opacity=".75"/>
+  <text x="92" y="330" text-anchor="middle" font-family="Inter" font-size="10.5" fill="white" font-weight="600">Sync Licensing</text>
+  <text x="92" y="344" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#ffd0e8">Film · TV · Ads · Games</text>
+</g>
+
+<!-- LEFT: Radio / Live -->
+<g class="ng" data-k="radio">
+  <rect class="glow" x="178" y="306" width="148" height="44" rx="9" fill="#f472b6"/>
+  <rect class="box" x="181" y="309" width="142" height="38" rx="8" fill="url(#gp)" opacity=".72"/>
+  <text x="252" y="330" text-anchor="middle" font-family="Inter" font-size="10.5" fill="white" font-weight="600">Radio / Live</text>
+  <text x="252" y="344" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#ffd0e8">FM/AM · Concerts · Venues</text>
+</g>
+
+<!-- LEFT: Micro-Sync -->
+<g class="ng" data-k="microsync">
+  <rect class="glow" x="338" y="306" width="148" height="44" rx="9" fill="#f472b6"/>
+  <rect class="box" x="341" y="309" width="142" height="38" rx="8" fill="url(#gp)" opacity=".68"/>
+  <text x="412" y="330" text-anchor="middle" font-family="Inter" font-size="10.5" fill="white" font-weight="600">Micro-Sync (UGC)</text>
+  <text x="412" y="344" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#ffd0e8">TikTok · YouTube · Instagram</text>
+</g>
+
+<!-- RIGHT: Digital Radio -->
+<g class="ng" data-k="digradio">
+  <rect class="glow" x="662" y="306" width="148" height="44" rx="9" fill="#f472b6"/>
+  <rect class="box" x="665" y="309" width="142" height="38" rx="8" fill="url(#gp)" opacity=".75"/>
+  <text x="736" y="330" text-anchor="middle" font-family="Inter" font-size="10.5" fill="white" font-weight="600">Digital Radio</text>
+  <text x="736" y="344" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#ffd0e8">Pandora · SiriusXM</text>
+</g>
+
+<!-- RIGHT: Physical / Downloads -->
+<g class="ng" data-k="physical">
+  <rect class="glow" x="822" y="306" width="148" height="44" rx="9" fill="#f472b6"/>
+  <rect class="box" x="825" y="309" width="142" height="38" rx="8" fill="url(#gp)" opacity=".72"/>
+  <text x="896" y="327" text-anchor="middle" font-family="Inter" font-size="10.5" fill="white" font-weight="600">Physical /</text>
+  <text x="896" y="342" text-anchor="middle" font-family="Inter" font-size="10.5" fill="white" font-weight="600">Downloads</text>
+</g>
+
+<!-- RIGHT: Sync also (master side) - label only -->
+<text x="1028" y="322" text-anchor="middle" font-family="Inter" font-size="8" fill="#f472b6" font-style="italic">(Sync also pays</text>
+<text x="1028" y="333" text-anchor="middle" font-family="Inter" font-size="8" fill="#f472b6" font-style="italic">master side directly)</text>
+
+
+<!-- ═══════════════════════════════════════════════
+     ARROWS: Revenue sources → collectors
+═══════════════════════════════════════════════ -->
+
+<!-- DSP → MLC (mechanical royalty from streaming) -->
+<line x1="518" y1="258" x2="165" y2="424" stroke="#3b82f6" stroke-width="2" opacity=".65" marker-end="url(#mb)" class="pulse"/>
+<text x="300" y="332" text-anchor="middle" font-family="Inter" font-size="8" fill="#60a5fa" font-weight="600">mech. royalty</text>
+
+<!-- DSP → PROs (performance royalty from streaming) -->
+<line x1="548" y1="258" x2="360" y2="424" stroke="#3b82f6" stroke-width="1.8" opacity=".55" marker-end="url(#mb)" class="pulse"/>
+<text x="475" y="348" text-anchor="middle" font-family="Inter" font-size="8" fill="#60a5fa" font-weight="600">perf. royalty</text>
+<text x="365" y="286" text-anchor="middle" font-family="Inter" font-size="8" fill="#60a5fa" opacity=".7">~20% total</text>
+
+<!-- DSP → Major Label DIRECT (amber, thick — curves along right edge) -->
+<path d="M 862,258 C 1240,340 1240,556 1136,572" fill="none" stroke="#f59e0b" stroke-width="3.5" opacity=".9" marker-end="url(#ma)" class="pulse"/>
+<text x="1182" y="415" text-anchor="middle" font-family="Inter" font-size="9" fill="#fbbf24" font-weight="800">DIRECT ★</text>
+<text x="1182" y="428" text-anchor="middle" font-family="Inter" font-size="8" fill="#b08020">~70–80%</text>
+<text x="1182" y="440" text-anchor="middle" font-family="Inter" font-size="8" fill="#888">(no distributor)</text>
+
+<!-- DSP → Distributor (indie/mid-tier, dashed) -->
+<line x1="820" y1="258" x2="988" y2="424" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,4" opacity=".5" marker-end="url(#ma)" class="pulse"/>
+<text x="940" y="355" text-anchor="middle" font-family="Inter" font-size="8" fill="#888" font-style="italic">indie / mid-tier</text>
+
+<!-- Sync → MLC (mechanical) + PROs (performance/sync fee) -->
+<line x1="92" y1="350" x2="118" y2="424" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4,4" opacity=".45" marker-end="url(#mb)" class="pulse"/>
+<line x1="115" y1="350" x2="285" y2="424" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="4,4" opacity=".35" marker-end="url(#mb)" class="pulse"/>
+
+<!-- Radio/Live → PROs ONLY (performance royalty only — NOT mechanical) -->
+<line x1="252" y1="350" x2="324" y2="424" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4,4" opacity=".55" marker-end="url(#mb)" class="pulse"/>
+<text x="315" y="392" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#60a5fa" opacity=".8">perf. only</text>
+
+<!-- Micro-Sync → PROs + MLC (both) -->
+<line x1="412" y1="350" x2="345" y2="424" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4,4" opacity=".45" marker-end="url(#mb)" class="pulse"/>
+<line x1="395" y1="350" x2="155" y2="424" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="4,4" opacity=".3" marker-end="url(#mb)" class="pulse"/>
+
+<!-- Digital Radio → SoundExchange (dashed green) -->
+<line x1="736" y1="350" x2="756" y2="424" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,4" opacity=".5" marker-end="url(#mg)" class="pulse"/>
+
+<!-- Physical → Distributor (dashed amber) -->
+<line x1="896" y1="350" x2="970" y2="424" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,4" opacity=".45" marker-end="url(#ma)" class="pulse"/>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 5 — COLLECTORS  (y=424, h=46)
+═══════════════════════════════════════════════ -->
+<text x="225" y="416" text-anchor="middle" font-family="Inter" font-size="9" fill="#3a5a99" font-weight="700" letter-spacing="1">COLLECTION LAYER</text>
+<text x="870" y="416" text-anchor="middle" font-family="Inter" font-size="9" fill="#7a6018" font-weight="700" letter-spacing="1">DISTRIBUTION LAYER</text>
+
+<!-- MLC -->
+<g class="ng" data-k="mlc">
+  <rect class="glow" x="18" y="424" width="196" height="46" rx="10" fill="#34d399"/>
+  <rect class="box" x="21" y="427" width="190" height="40" rx="9" fill="url(#gg)" opacity=".85"/>
+  <text x="116" y="444" text-anchor="middle" font-family="Inter" font-size="11" fill="white" font-weight="700">The MLC</text>
+  <text x="116" y="459" text-anchor="middle" font-family="Inter" font-size="8" fill="#a0f0d0">Mechanical Licensing Collective (US)</text>
+</g>
+<text x="116" y="480" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#445">Harry Fox Agency · Music Reports</text>
+
+<!-- PROs -->
+<g class="ng" data-k="pro">
+  <rect class="glow" x="226" y="424" width="196" height="46" rx="10" fill="#34d399"/>
+  <rect class="box" x="229" y="427" width="190" height="40" rx="9" fill="url(#gg)" opacity=".85"/>
+  <text x="324" y="444" text-anchor="middle" font-family="Inter" font-size="11" fill="white" font-weight="700">PROs</text>
+  <text x="324" y="459" text-anchor="middle" font-family="Inter" font-size="8" fill="#a0f0d0">ASCAP · BMI · SESAC · GMR (US)</text>
+</g>
+<text x="324" y="480" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#445">PRS · GEMA · SACEM · JASRAC (Intl.)</text>
+
+<!-- SoundExchange -->
+<g class="ng" data-k="soundex">
+  <rect class="glow" x="660" y="424" width="210" height="46" rx="10" fill="#34d399"/>
+  <rect class="box" x="663" y="427" width="204" height="40" rx="9" fill="url(#gg)" opacity=".85"/>
+  <text x="765" y="444" text-anchor="middle" font-family="Inter" font-size="11" fill="white" font-weight="700">SoundExchange</text>
+  <text x="765" y="459" text-anchor="middle" font-family="Inter" font-size="8" fill="#a0f0d0">Digital perf. royalties (US)</text>
+</g>
+<text x="765" y="480" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#445">PPL · GVL · SENA — Neighbouring Rights (non-US)</text>
+
+<!-- Distributor -->
+<g class="ng" data-k="distributor">
+  <rect class="glow" x="884" y="424" width="220" height="46" rx="10" fill="#f59e0b"/>
+  <rect class="box" x="887" y="427" width="214" height="40" rx="10" fill="#181000" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="994" y="444" text-anchor="middle" font-family="Inter" font-size="11" fill="#fbbf24" font-weight="700">DISTRIBUTOR</text>
+  <text x="994" y="459" text-anchor="middle" font-family="Inter" font-size="8" fill="#888">Indie / mid-tier path only</text>
+</g>
+<text x="994" y="480" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#445">TuneCore · DistroKid · CD Baby · The Orchard</text>
+
+
+<!-- ═══════════════════════════════════════════════
+     ARROWS: Collectors → Rights Holders
+═══════════════════════════════════════════════ -->
+
+<!-- MLC → Publisher -->
+<line x1="116" y1="470" x2="225" y2="554" stroke="#34d399" stroke-width="1.5" opacity=".6" marker-end="url(#mg)" class="pulse"/>
+<!-- PROs → Publisher (pub share) -->
+<line x1="300" y1="470" x2="265" y2="554" stroke="#34d399" stroke-width="1.5" opacity=".6" marker-end="url(#mg)" class="pulse"/>
+<text x="175" y="518" text-anchor="middle" font-family="Inter" font-size="8" fill="#34d399">pub's share</text>
+
+<!-- PROs → Songwriter DIRECT (writer's share 50%) — curves left to avoid publisher box -->
+<path d="M 229,462 C 34,490 34,638 148,680" fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="6,4" opacity=".55" marker-end="url(#mg)" class="pulse"/>
+<text x="22" y="580" text-anchor="start" font-family="Inter" font-size="8" fill="#34d399" font-weight="600" transform="rotate(-82,22,580)">Writer's Share (50%) direct</text>
+
+<!-- SoundExchange → Label (50%) -->
+<line x1="820" y1="470" x2="908" y2="554" stroke="#34d399" stroke-width="1.5" opacity=".6" marker-end="url(#mg)" class="pulse"/>
+<text x="890" y="520" text-anchor="middle" font-family="Inter" font-size="8" fill="#34d399">50% → Label</text>
+
+<!-- SoundExchange → Artist DIRECT (45%) — curves down-left of label -->
+<path d="M 700,470 C 660,520 700,620 770,680" fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="6,4" opacity=".55" marker-end="url(#mg)" class="pulse"/>
+<text x="640" y="574" text-anchor="middle" font-family="Inter" font-size="8" fill="#34d399" font-weight="600" transform="rotate(-68,640,574)">45% direct</text>
+
+<!-- SoundExchange → Session Musicians (5%) -->
+<path d="M 870,470 C 1060,520 1100,620 1105,680" fill="none" stroke="#34d399" stroke-width="1.2" stroke-dasharray="6,4" opacity=".4" marker-end="url(#mg)" class="pulse"/>
+<text x="1048" y="544" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#34d399" opacity=".7">5% →</text>
+
+<!-- Distributor → Label -->
+<line x1="980" y1="470" x2="1020" y2="554" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,4" opacity=".5" marker-end="url(#ma)" class="pulse"/>
+<text x="1044" y="518" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#888">after fee</text>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 6 — RIGHTS HOLDERS  (y=554, h=52)
+═══════════════════════════════════════════════ -->
+
+<!-- MUSIC PUBLISHER -->
+<g class="ng" data-k="publisher">
+  <rect class="glow" x="88" y="552" width="280" height="52" rx="13" fill="#3b82f6"/>
+  <rect class="box" x="92" y="556" width="272" height="44" rx="11" fill="url(#gc)" opacity=".9"/>
+  <text x="228" y="575" text-anchor="middle" font-family="Inter" font-size="12" fill="white" font-weight="700">MUSIC PUBLISHER</text>
+  <text x="228" y="591" text-anchor="middle" font-family="Inter" font-size="8" fill="#c0d8ff">Sony Music Pub · Universal Pub · Warner Chappell</text>
+</g>
+<text x="228" y="614" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#445">Kobalt · BMG · Concord · Downtown · Songtrust (admin)</text>
+
+<!-- RECORD LABEL -->
+<g class="ng" data-k="label">
+  <rect class="glow" x="796" y="552" width="352" height="52" rx="13" fill="#f59e0b"/>
+  <rect class="box" x="800" y="556" width="344" height="44" rx="11" fill="url(#gm)" opacity=".9"/>
+  <text x="972" y="575" text-anchor="middle" font-family="Inter" font-size="12" fill="white" font-weight="700">RECORD LABEL</text>
+  <text x="972" y="591" text-anchor="middle" font-family="Inter" font-size="8" fill="#ffe4aa">Universal Music Group · Sony Music · Warner Music Group</text>
+</g>
+<text x="972" y="614" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#445">Republic · Interscope · Columbia · Atlantic · Def Jam · Indies</text>
+
+
+<!-- ═══════════════════════════════════════════════
+     ARROWS: Rights Holders → Final Recipients
+═══════════════════════════════════════════════ -->
+
+<!-- Publisher → Songwriter -->
+<line x1="210" y1="602" x2="210" y2="678" stroke="#3b82f6" stroke-width="1.5" opacity=".6" marker-end="url(#mb)" class="pulse"/>
+<text x="120" y="648" text-anchor="middle" font-family="Inter" font-size="8" fill="#60a5fa">pub share (50%)</text>
+<text x="120" y="659" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#3a5a88">+ writer cut/deal</text>
+
+<!-- Label → Artist -->
+<line x1="900" y1="602" x2="876" y2="678" stroke="#f59e0b" stroke-width="1.5" opacity=".6" marker-end="url(#ma)" class="pulse"/>
+<text x="824" y="646" text-anchor="middle" font-family="Inter" font-size="8" fill="#f59e0b">15–25%</text>
+<text x="824" y="657" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#8a6a22">(trad. deal)</text>
+
+<!-- Label keeps -->
+<line x1="1044" y1="602" x2="1044" y2="678" stroke="#f59e0b" stroke-width="1" opacity=".25" marker-end="url(#ma)" class="pulse"/>
+<text x="1098" y="646" text-anchor="middle" font-family="Inter" font-size="8" fill="#666">label keeps</text>
+<text x="1098" y="657" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#555">75–85%</text>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 7 — FINAL RECIPIENTS  (y=678, h=50)
+═══════════════════════════════════════════════ -->
+
+<!-- SONGWRITER -->
+<g class="ng" data-k="songwriter">
+  <rect class="glow" x="88" y="676" width="248" height="50" rx="13" fill="#a78bfa"/>
+  <rect class="box" x="92" y="680" width="240" height="42" rx="11" fill="#0e0e28" stroke="#a78bfa" stroke-width="2"/>
+  <text x="212" y="699" text-anchor="middle" font-family="Inter" font-size="12" fill="#a78bfa" font-weight="700">SONGWRITER</text>
+  <text x="212" y="715" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#777">~9.4¢ per $1 of stream revenue</text>
+</g>
+
+<!-- PERFORMING ARTIST -->
+<g class="ng" data-k="artist">
+  <rect class="glow" x="660" y="676" width="270" height="50" rx="13" fill="#f59e0b"/>
+  <rect class="box" x="664" y="680" width="262" height="42" rx="11" fill="#0e0e08" stroke="#f59e0b" stroke-width="2"/>
+  <text x="795" y="699" text-anchor="middle" font-family="Inter" font-size="12" fill="#f59e0b" font-weight="700">PERFORMING ARTIST</text>
+  <text x="795" y="715" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#777">15–25% trad. · 80–90% indie/distro</text>
+</g>
+
+<!-- SESSION MUSICIANS -->
+<g class="ng" data-k="session">
+  <rect class="glow" x="944" y="676" width="190" height="50" rx="12" fill="#34d399"/>
+  <rect class="box" x="947" y="680" width="184" height="42" rx="11" fill="#080e0c" stroke="#34d399" stroke-width="1.5"/>
+  <text x="1039" y="698" text-anchor="middle" font-family="Inter" font-size="10" fill="#34d399" font-weight="600">SESSION MUSICIANS</text>
+  <text x="1039" y="714" text-anchor="middle" font-family="Inter" font-size="8" fill="#777">5% via SoundExchange</text>
+</g>
+
+
+<!-- ═══════════════════════════════════════════════
+     DIRECT DEAL CALLOUT  (floats on right, between DSP arrow)
+═══════════════════════════════════════════════ -->
+<rect x="1146" y="468" width="138" height="66" rx="10" fill="#1c1200" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="1215" y="488" text-anchor="middle" font-family="Inter" font-size="9" fill="#fbbf24" font-weight="700">★ DIRECT DEAL</text>
+<text x="1215" y="503" text-anchor="middle" font-family="Inter" font-size="8" fill="#aaa">UMG · Sony · Warner</text>
+<text x="1215" y="516" text-anchor="middle" font-family="Inter" font-size="8" fill="#aaa">licensed directly</text>
+<text x="1215" y="529" text-anchor="middle" font-family="Inter" font-size="8" fill="#f59e0b">no distributor</text>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 8 — DEAL TYPE PANELS  (y=790, h=172)
+═══════════════════════════════════════════════ -->
+<!-- Publishing deals -->
+<rect x="12" y="790" width="520" height="172" rx="11" fill="#0c0c20" stroke="#252545" stroke-width="1"/>
+<text x="272" y="812" text-anchor="middle" font-family="Inter" font-size="11" fill="#a78bfa" font-weight="700">PUBLISHING DEAL TYPES</text>
+<text x="30" y="833" font-family="Inter" font-size="9.5" fill="#60a5fa" font-weight="600">Full Publishing</text>
+<text x="30" y="847" font-family="Inter" font-size="8.5" fill="#888">Publisher owns 100% of pub share. Songwriter keeps writer's share direct from PRO.</text>
+<text x="30" y="868" font-family="Inter" font-size="9.5" fill="#60a5fa" font-weight="600">Co-Publishing</text>
+<text x="30" y="882" font-family="Inter" font-size="8.5" fill="#888">Songwriter retains 50% of pub share + full writer's share = ~75% of total royalties.</text>
+<text x="30" y="903" font-family="Inter" font-size="9.5" fill="#60a5fa" font-weight="600">Admin Deal  (e.g. Songtrust)</text>
+<text x="30" y="917" font-family="Inter" font-size="8.5" fill="#888">Songwriter keeps 100% ownership. Pays 10–20% admin fee only. Best for indie songwriters.</text>
+<text x="30" y="938" font-family="Inter" font-size="9.5" fill="#60a5fa" font-weight="600">Self-Pub / DIY</text>
+<text x="30" y="952" font-family="Inter" font-size="8.5" fill="#888">Register directly with PRO + MLC. Keep 100%. More admin burden but maximum ownership.</text>
+
+<!-- Label deals -->
+<rect x="548" y="790" width="540" height="172" rx="11" fill="#110c02" stroke="#362e10" stroke-width="1"/>
+<text x="818" y="812" text-anchor="middle" font-family="Inter" font-size="11" fill="#f59e0b" font-weight="700">LABEL / DISTRIBUTION DEAL TYPES</text>
+<text x="566" y="833" font-family="Inter" font-size="9.5" fill="#f59e0b" font-weight="600">Traditional Label Deal</text>
+<text x="566" y="847" font-family="Inter" font-size="8.5" fill="#888">Label owns masters. Artist gets 15–25% after recoupment. Label has direct DSP licensing deal.</text>
+<text x="566" y="868" font-family="Inter" font-size="9.5" fill="#f59e0b" font-weight="600">360 Deal</text>
+<text x="566" y="882" font-family="Inter" font-size="8.5" fill="#888">Label takes a cut of ALL revenue streams: recording, touring, merchandise, and brand deals.</text>
+<text x="566" y="903" font-family="Inter" font-size="9.5" fill="#f59e0b" font-weight="600">Licence Deal</text>
+<text x="566" y="917" font-family="Inter" font-size="8.5" fill="#888">Artist retains master ownership; licenses it to label for a fixed term. Label pays advance.</text>
+<text x="566" y="938" font-family="Inter" font-size="9.5" fill="#f59e0b" font-weight="600">Distribution-Only Deal  (Indie)</text>
+<text x="566" y="952" font-family="Inter" font-size="8.5" fill="#888">Artist owns master. Distributor routes to DSPs. Artist keeps 80–90% of recording revenue.</text>
+
+
+<!-- ═══════════════════════════════════════════════
+     ROW 9 — STREAMING $ BREAKDOWN  (y=988)
+═══════════════════════════════════════════════ -->
+<rect x="12" y="988" width="1192" height="266" rx="11" fill="#0c0c20" stroke="#252545" stroke-width="1"/>
+<text x="608" y="1011" text-anchor="middle" font-family="Inter" font-size="12" fill="#a78bfa" font-weight="700">WHERE DOES $1 OF STREAMING REVENUE GO?</text>
+<text x="608" y="1025" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#444">Approximate — varies by territory, deal type, and platform. Sources: Billboard, Songtrust, MIDiA.</text>
+
+<!-- Bar chart — left column -->
+<text x="32" y="1052" font-family="Inter" font-size="8.5" fill="#bbb" dominant-baseline="middle">DSP platform keeps</text>
+<rect x="180" y="1040" width="270" height="20" rx="4" fill="#f472b6" opacity=".55"/>
+<text x="456" y="1050" font-family="Inter" font-size="8.5" fill="#f472b6" font-weight="700" dominant-baseline="middle"> ~$0.30</text>
+
+<text x="32" y="1082" font-family="Inter" font-size="8.5" fill="#bbb" dominant-baseline="middle">Record Label (major, after artist)</text>
+<rect x="180" y="1070" width="360" height="20" rx="4" fill="#f59e0b" opacity=".68"/>
+<text x="546" y="1080" font-family="Inter" font-size="8.5" fill="#fbbf24" font-weight="700" dominant-baseline="middle"> ~$0.42</text>
+
+<text x="32" y="1112" font-family="Inter" font-size="8.5" fill="#bbb" dominant-baseline="middle">Performing Artist (trad. deal)</text>
+<rect x="180" y="1100" width="122" height="20" rx="4" fill="#f59e0b" opacity=".35"/>
+<text x="308" y="1110" font-family="Inter" font-size="8.5" fill="#f59e0b" font-weight="700" dominant-baseline="middle"> ~$0.14</text>
+
+<text x="32" y="1142" font-family="Inter" font-size="8.5" fill="#bbb" dominant-baseline="middle">Music Publisher</text>
+<rect x="180" y="1130" width="82" height="20" rx="4" fill="#3b82f6" opacity=".68"/>
+<text x="268" y="1140" font-family="Inter" font-size="8.5" fill="#60a5fa" font-weight="700" dominant-baseline="middle"> ~$0.094</text>
+
+<text x="32" y="1172" font-family="Inter" font-size="8.5" fill="#bbb" dominant-baseline="middle">Songwriter</text>
+<rect x="180" y="1160" width="82" height="20" rx="4" fill="#a78bfa" opacity=".68"/>
+<text x="268" y="1170" font-family="Inter" font-size="8.5" fill="#a78bfa" font-weight="700" dominant-baseline="middle"> ~$0.094</text>
+
+<!-- Indie artist comparison -->
+<text x="32" y="1202" font-family="Inter" font-size="8.5" fill="#bbb" dominant-baseline="middle">Indie artist (owns master)</text>
+<rect x="180" y="1190" width="530" height="20" rx="4" fill="#34d399" opacity=".45"/>
+<text x="716" y="1200" font-family="Inter" font-size="8.5" fill="#34d399" font-weight="700" dominant-baseline="middle"> ~$0.56 ↑ vs. $0.14 for trad. deal</text>
+
+<!-- Notes column -->
+<line x1="760" y1="1035" x2="760" y2="1238" stroke="#252545" stroke-width="1"/>
+<text x="780" y="1054" font-family="Inter" font-size="8" fill="#555">Spotify / Apple keep ~30% of gross before paying anyone</text>
+<text x="780" y="1072" font-family="Inter" font-size="8" fill="#fbbf24">★ Major labels are paid DIRECTLY by the DSP — no distributor cut</text>
+<text x="780" y="1090" font-family="Inter" font-size="8" fill="#555">Indie artist (owns master, distro deal) earns ~$0.56 vs $0.14 trad.</text>
+<text x="780" y="1108" font-family="Inter" font-size="8" fill="#555">Labels recoup recording/marketing advances before paying artists</text>
+<text x="780" y="1126" font-family="Inter" font-size="8" fill="#555">PROs deduct ~12% admin before splitting writer/publisher 50/50</text>
+<text x="780" y="1144" font-family="Inter" font-size="8" fill="#555">SoundExchange: 50% label · 45% artist direct · 5% session musicians</text>
+<text x="780" y="1162" font-family="Inter" font-size="8" fill="#555">US AM/FM radio pays $0 to master side — unique global anomaly</text>
+<text x="780" y="1180" font-family="Inter" font-size="8" fill="#555">Sync fees: freely negotiated — hundreds to hundreds of thousands $</text>
+<text x="780" y="1198" font-family="Inter" font-size="8" fill="#555">TikTok/YouTube micro-sync paid via bulk platform licensing deals</text>
+<text x="780" y="1216" font-family="Inter" font-size="8" fill="#555">Global pub revenue forecast: $9.6B by 2026 (MIDiA Research)</text>
+<text x="780" y="1234" font-family="Inter" font-size="8" fill="#555">Statutory mech rate (US): 12.4¢/track or 2.39¢/min (whichever greater)</text>
+
+</svg>
+</div><!-- /wrap -->
+
+<div class="cards">
+  <div class="card">
+    <h3>★ Major Labels Skip the Distributor</h3>
+    <p>Universal, Sony, and Warner have direct licensing agreements with every major DSP. Spotify pays them directly — no middleman, no fee. The label then pays artists their contractual royalty, only after recouping advances.</p>
+  </div>
+  <div class="card">
+    <h3>The Indie Advantage</h3>
+    <p>Independent artists who own their masters and use a distribution deal (DistroKid, TuneCore, The Orchard) keep 80–90% of master royalties instead of 15–25%. The trade-off is no label advance and no major-label promotion machine.</p>
+  </div>
+  <div class="card">
+    <h3>The Songwriter Gap</h3>
+    <p>Songwriters receive only ~9.4¢ per $1 of stream revenue. US terrestrial AM/FM radio pays nothing to the master recording side at all — a gap that barely exists anywhere else in the world.</p>
+  </div>
+  <div class="card">
+    <h3>Two Parallel Pipelines</h3>
+    <p>Every stream triggers two completely separate royalty flows: the composition side (MLC + PROs → publisher → songwriter) and the master side (directly to the label, or via distributor for indie artists). Different rates, collectors, and timelines.</p>
+  </div>
+</div>
+
+<div class="sources">
+  <h4>Sources</h4>
+  <ul>
+    <li><a href="https://blog.songtrust.com/what-are-music-royalties" target="_blank">Songtrust — Music Royalties Explained</a></li>
+    <li><a href="https://blog.songtrust.com/mechanical-vs-performance-royalties" target="_blank">Songtrust — Mechanical vs Performance</a></li>
+    <li><a href="https://blog.songtrust.com/songwriting-royalties-explained-writers-vs-publishers-share" target="_blank">Songtrust — Writer's vs Publisher's Share</a></li>
+    <li><a href="https://www.billboard.com/pro/music-streaming-royalty-payments-explained-song-profits/" target="_blank">Billboard — Streaming Royalty Splits</a></li>
+    <li><a href="https://www.billboard.com/pro/how-royalties-flow-digital-age-mma-artists-publishers-guest-column/" target="_blank">Billboard — Royalties in the Digital Age</a></li>
+    <li><a href="https://www.midiaresearch.com/blog/music-publishing-forecasts-strong-growth-and-more-to-come" target="_blank">MIDiA — Publishing Forecasts</a></li>
+    <li><a href="https://www.midiaresearch.com/blog/how-music-publishers-are-driving-a-full-stack-revolution" target="_blank">MIDiA — Full Stack Revolution</a></li>
+    <li><a href="https://college.berklee.edu/bt/233/follow_the_money.html" target="_blank">Berklee — Follow the Money</a></li>
+  </ul>
+</div>
+
+<div id="tt" class="tip"></div>
+<script>
+const D = {
+  song:{"t":"The Song","b":"Every recorded song creates TWO separate copyrights at once: the Composition (melody + lyrics) and the Master Recording (the audio file). Each generates independent royalty streams, collected by different organisations on different schedules."},
+  "comp-copy":{"t":"Composition Copyright ©","b":"Covers the melody, lyrics, and arrangement. Owned by the songwriter by default, often partially or fully assigned to a publisher. Generates mechanical, performance, sync, and micro-sync royalties."},
+  "master-copy":{"t":"Master Recording Copyright ©","b":"Covers the specific audio recording. Owned by whoever financed it — usually the label (traditional deal) or the artist (indie deal). Generates recording royalties, SoundExchange digital performance royalties, and neighbouring rights."},
+  dsp:{"t":"DSPs — Digital Service Platforms","b":"Spotify, Apple Music, Amazon Music, Tidal, YouTube Music. Streaming is unique because each play triggers TWO composition payments: a mechanical royalty (→ MLC, for reproducing the song) AND a performance royalty (→ PROs, for publicly performing it). Together these make up ~20% of stream revenue. The remaining ~70–80% goes to the master recording side — directly to major labels, or via distributors for indie artists. DSPs keep ~30%."},
+  sync:{"t":"Sync Licensing","b":"Placing music in film, TV, ads, or games requires TWO licences: a sync licence (from the publisher/songwriter for the composition) and a master-use licence (from the label/artist for the recording). Fees are freely negotiated — from hundreds to hundreds of thousands of dollars."},
+  radio:{"t":"Radio & Live Performance","b":"AM/FM radio and live performances generate PERFORMANCE royalties only — collected by PROs (ASCAP, BMI, SESAC). They do NOT generate mechanical royalties, so the MLC is not involved. Critically, US terrestrial radio also pays NOTHING to the master recording side — unlike virtually every other country in the world."},
+  microsync:{"t":"Micro-Sync / UGC Platforms","b":"TikTok, YouTube, Instagram license music in bulk platform deals. They generate both mechanical and performance royalties on the composition side, paid via the MLC and PROs."},
+  digradio:{"t":"Digital Radio (Non-Interactive)","b":"Pandora and SiriusXM are non-interactive — users can't choose specific songs. They pay digital performance royalties collected by SoundExchange: 50% to the label, 45% directly to the featured artist (bypassing the label), 5% to session musicians."},
+  physical:{"t":"Physical Sales & Downloads","b":"CDs, vinyl, and digital downloads generate mechanical royalties for the composition (via MLC/HFA) and recording royalties for the master side (via label or distributor)."},
+  mlc:{"t":"The MLC — Mechanical Licensing Collective","b":"Created by the Music Modernization Act (2018). Collects and distributes mechanical royalties from US streaming services to publishers and self-administered songwriters. Holds significant 'unmatched' royalties due to incomplete song metadata."},
+  pro:{"t":"PROs — Performing Rights Organisations","b":"ASCAP, BMI, SESAC, and GMR track public performances and collect performance royalties in the US. They split: 50% directly to the writer, 50% to the publisher — after deducting ~12% admin fees. International equivalents (PRS, GEMA, SACEM, JASRAC) handle both mechanicals and performance."},
+  publisher:{"t":"Music Publisher","b":"Administers the composition copyright worldwide: registers songs, pitches for sync, collects from PROs and MLC globally, and pays songwriters. Majors: Sony Music Publishing, UMG Publishing, Warner Chappell. Independents: Kobalt, BMG, Concord. Admin services: Songtrust, CD Baby Pro."},
+  soundex:{"t":"SoundExchange","b":"US statutory body collecting digital performance royalties for sound recordings from non-interactive streaming (Pandora, SiriusXM, cable music channels). Mandatory split: 50% to label, 45% directly to featured artist (independent of label deal), 5% to non-featured session musicians."},
+  distributor:{"t":"Distributor — Indie Path Only","b":"DistroKid, TuneCore, CD Baby, The Orchard, and Virgin Music distribute recordings to DSPs for artists and indie labels without direct DSP licensing deals. They collect royalties and pass them on minus a fee (flat fee or 10–20%). Major labels bypass distributors entirely."},
+  label:{"t":"Record Label","b":"Finances recording, marketing, and promotion. Owns or controls the master recording. Under traditional deals: takes 75–85% and recoups advances before paying the artist. Major labels (UMG, Sony, Warner) have direct licensing deals with every major DSP — no distributor needed."},
+  songwriter:{"t":"Songwriter","b":"The creator of the melody and lyrics. Receives ~9.4¢ per $1 of stream revenue via the publishing pipeline. Gets writer's share directly from PROs (bypassing the publisher), plus their contractual split from the publisher. Multiple co-writers divide these amounts."},
+  artist:{"t":"Performing Artist","b":"The recording artist. Traditional label deal: 15–25% of master royalties, only after the label recoups its advance. Indie/distribution deal: 80–90% of master royalties with no recoupment. Also receives 45% of SoundExchange digital performance royalties directly, regardless of label deal."},
+  session:{"t":"Session Musicians","b":"Non-featured performers on the recording. Receive 5% of digital performance royalties via SoundExchange in the US, and similar payments via neighbouring rights organisations internationally. One of the few ongoing royalty streams for session players."}
+};
+const tt=document.getElementById('tt');
+document.querySelectorAll('.ng').forEach(el=>{
+  const k=el.dataset.k; if(!k||!D[k]) return;
+  el.addEventListener('mouseenter',()=>{tt.innerHTML=`<h3>${D[k].t}</h3><p>${D[k].b}</p>`;tt.style.opacity='1';});
+  el.addEventListener('mousemove',e=>{
+    let x=e.clientX+16,y=e.clientY+12;
+    if(x+320>window.innerWidth) x=e.clientX-324;
+    if(y+190>window.innerHeight) y=e.clientY-190;
+    tt.style.left=x+'px';tt.style.top=y+'px';
+  });
+  el.addEventListener('mouseleave',()=>{tt.style.opacity='0';});
+});
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabase";
 import { matchSchema } from "@/lib/stmts-schema";
+import { taxonomyPromptBlock } from "@/lib/industry-taxonomy";
 import Papa from "papaparse";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -21,9 +22,11 @@ const ROY_SYSTEM = `You are Roy — a music royalty analyst who specializes in t
 
 You've spent your career in music royalties. You know every DSP statement format, every PRO quirk, every reason a payment comes in short. You speak directly, warmly, and specifically. You use real numbers. You never hide behind jargon. When something looks wrong, you say so plainly.
 
+${taxonomyPromptBlock()}
+
 Industry rate benchmarks (US and major Western markets only — CA, GB, AU, DE, FR):
-- Spotify mechanical: $0.003–$0.005/stream
-- Apple Music mechanical: $0.006–$0.008/stream
+- Spotify: $0.003–$0.005/stream
+- Apple Music: $0.006–$0.008/stream
 - YouTube Music: $0.001–$0.002/stream
 - SoundExchange digital performance: $0.0025–$0.004/stream
 
@@ -398,10 +401,14 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { statementId, action, artist_name } = await req.json() as {
+  const { statementId, action, artist_name, precomputedStats, inlineContent } = await req.json() as {
     statementId: string;
     action: AnalyzeAction;
     artist_name?: string;
+    /** Client-side PapaParse result for large CSV/TSV files — skips server-side file download */
+    precomputedStats?: SummarizeStats;
+    /** First 50KB of file content for anomaly/cleanup actions on large files */
+    inlineContent?: string;
   };
 
   if (!statementId || !action) {
@@ -432,17 +439,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Statement not found" }, { status: 404 });
   }
 
-  const { data: fileData, error: downloadError } = await supabase.storage
-    .from("statements")
-    .download(statement.file_url);
+  let fileText = inlineContent ?? "";
+  if (!precomputedStats && !inlineContent) {
+    // Normal flow — download from Supabase Storage
+    if (!statement.file_url) {
+      return NextResponse.json({ error: "No file available for this statement" }, { status: 400 });
+    }
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from("statements")
+      .download(statement.file_url);
 
-  if (downloadError || !fileData) {
-    return NextResponse.json({ error: "Could not retrieve file from storage" }, { status: 500 });
+    if (downloadError || !fileData) {
+      return NextResponse.json({ error: "Could not retrieve file from storage" }, { status: 500 });
+    }
+    fileText = await fileData.text();
   }
 
   await supabase.from("statements").update({ status: "processing" }).eq("id", statementId);
-
-  const fileText = await fileData.text();
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", systemInstruction: ROY_SYSTEM });
 
   let parsed: Record<string, unknown>;
@@ -452,8 +465,12 @@ export async function POST(req: NextRequest) {
       const ext = statement.file_name.toLowerCase();
       const isTabular = ext.endsWith(".csv") || ext.endsWith(".tsv");
 
-      if (isTabular) {
-        const stats = await summarizeTabular(fileText, statement.file_name, statement.source_type ?? "", model);
+      // Use client-provided stats for large files (PapaParse ran in the browser)
+      const stats = precomputedStats ?? (isTabular
+        ? await summarizeTabular(fileText, statement.file_name, statement.source_type ?? "", model)
+        : null);
+
+      if (isTabular || precomputedStats) {
 
         if (stats) {
           const narrativePrompt = buildNarrativePrompt(stats);

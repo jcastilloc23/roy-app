@@ -18,44 +18,33 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { statementId } = await req.json() as { statementId: string };
-  if (!statementId) {
-    return NextResponse.json({ error: "statementId is required" }, { status: 400 });
+  const { fileName, fileContent, fileSize, fileType } = await req.json() as {
+    fileName: string;
+    fileContent: string;
+    fileSize?: number;
+    fileType?: string;
+  };
+
+  if (!fileName || !fileContent) {
+    return NextResponse.json({ error: "fileName and fileContent are required" }, { status: 400 });
   }
 
   const supabase = supabaseAdmin();
 
-  const { data: statement, error: stmtError } = await supabase
-    .from("statements")
-    .select("*")
-    .eq("id", statementId)
-    .eq("user_id", userId)
-    .single();
+  // Create a statement record without storage (large file — processed inline)
+  const statementId = crypto.randomUUID();
+  const { error: stmtError } = await supabase.from("statements").insert({
+    id: statementId,
+    user_id: userId,
+    file_name: fileName,
+    file_size: fileSize ?? null,
+    file_type: fileType ?? null,
+    file_url: null,
+    status: "pending",
+  });
 
-  if (stmtError || !statement) {
-    return NextResponse.json({ error: "Statement not found" }, { status: 404 });
-  }
-
-  // Generate a short-lived signed URL and fetch only the first 50KB via Range header.
-  // This avoids downloading the full file (which could be hundreds of MB) just for identification.
-  const { data: signedDownload, error: signedErr } = await supabase.storage
-    .from("statements")
-    .createSignedUrl(statement.file_url, 60);
-
-  if (signedErr || !signedDownload) {
-    await supabase.from("statements").delete().eq("id", statementId);
-    return NextResponse.json({ error: "Could not access uploaded file" }, { status: 500 });
-  }
-
-  let fileText: string;
-  try {
-    const rangeRes = await fetch(signedDownload.signedUrl, {
-      headers: { Range: "bytes=0-49999" },
-    });
-    fileText = await rangeRes.text();
-  } catch {
-    await supabase.from("statements").delete().eq("id", statementId);
-    return NextResponse.json({ error: "Could not read uploaded file" }, { status: 500 });
+  if (stmtError) {
+    return NextResponse.json({ error: `DB error: ${stmtError.message}` }, { status: 500 });
   }
 
   const model = genAI.getGenerativeModel({
@@ -92,9 +81,9 @@ Return this exact JSON — no markdown, no explanation:
   "greeting": "One sentence from Roy — acknowledge what this file is, spoken directly to the user. Warm, specific, professional. Do NOT mention date ranges. Do NOT include any numbers, values, platform names, or data from the file. Describe only the type and source of the statement."
 }
 
-File name: ${statement.file_name}
+File name: ${fileName}
 File content (first 50KB):
-${fileText}`;
+${fileContent}`;
 
   let identified: Record<string, unknown>;
 
@@ -103,7 +92,6 @@ ${fileText}`;
     const parsed = extractJSON(result.response.text());
 
     if (!parsed || parsed.is_royalty_statement === false) {
-      await supabase.storage.from("statements").remove([statement.file_url]);
       await supabase.from("statements").delete().eq("id", statementId);
       return NextResponse.json({
         error: "not_royalty_data",
@@ -113,7 +101,6 @@ ${fileText}`;
 
     identified = parsed;
   } catch (err) {
-    await supabase.storage.from("statements").remove([statement.file_url]);
     await supabase.from("statements").delete().eq("id", statementId);
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -130,6 +117,6 @@ ${fileText}`;
     royalty_type: identified.royalty_type,
     detected_artist: identified.detected_artist ?? null,
     greeting: identified.greeting,
-    file_name: statement.file_name,
+    file_name: fileName,
   });
 }
