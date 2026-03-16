@@ -440,6 +440,7 @@ export async function POST(req: NextRequest) {
   }
 
   let fileText = inlineContent ?? "";
+  let pdfInlinePart: { inlineData: { data: string; mimeType: string } } | null = null;
   if (!precomputedStats && !inlineContent) {
     // Normal flow — download from Supabase Storage
     if (!statement.file_url) {
@@ -452,7 +453,15 @@ export async function POST(req: NextRequest) {
     if (downloadError || !fileData) {
       return NextResponse.json({ error: "Could not retrieve file from storage" }, { status: 500 });
     }
-    fileText = await fileData.text();
+
+    const isPdf = statement.file_name.toLowerCase().endsWith(".pdf");
+    if (isPdf) {
+      // PDFs must be sent as base64 inline data — text() gives binary garbage
+      const buf = Buffer.from(await fileData.arrayBuffer());
+      pdfInlinePart = { inlineData: { data: buf.toString("base64"), mimeType: "application/pdf" } };
+    } else {
+      fileText = await fileData.text();
+    }
   }
 
   await supabase.from("statements").update({ status: "processing" }).eq("id", statementId);
@@ -576,17 +585,27 @@ export async function POST(req: NextRequest) {
               .update({ artist_id: artistId })
               .eq("statement_id", statementId);
           }
+        } else if (pdfInlinePart) {
+          parsed = await runGeminiSummarizePdf(model, statement.file_name, pdfInlinePart);
         } else {
           parsed = await runGeminiSummarize(model, statement.file_name, fileText);
         }
+      } else if (pdfInlinePart) {
+        parsed = await runGeminiSummarizePdf(model, statement.file_name, pdfInlinePart);
       } else {
         parsed = await runGeminiSummarize(model, statement.file_name, fileText);
       }
 
     } else {
-      const prompt = buildPrompt(action, statement.file_name, fileText);
-      const result = await model.generateContent(prompt);
-      parsed = extractJSON(result.response.text()) ?? { summary: result.response.text() };
+      if (pdfInlinePart) {
+        const promptText = buildPromptForPdf(action, statement.file_name);
+        const result = await model.generateContent([pdfInlinePart, { text: promptText }]);
+        parsed = extractJSON(result.response.text()) ?? { summary: result.response.text() };
+      } else {
+        const prompt = buildPrompt(action, statement.file_name, fileText);
+        const result = await model.generateContent(prompt);
+        parsed = extractJSON(result.response.text()) ?? { summary: result.response.text() };
+      }
     }
 
     const toDate = (v: unknown): string | null => {
@@ -650,4 +669,82 @@ ${fileText.slice(0, 50000)}`;
 
   const result = await model.generateContent(prompt);
   return extractJSON(result.response.text()) ?? { summary: result.response.text() };
+}
+
+/* ── Gemini PDF summarize — uses native inlineData (binary-safe) ────────── */
+async function runGeminiSummarizePdf(
+  model: GeminiModel,
+  fileName: string,
+  inlinePart: { inlineData: { data: string; mimeType: string } },
+): Promise<Record<string, unknown>> {
+  const prompt = `Summarize this royalty statement. Return this exact JSON — no markdown, no explanation:
+{
+  "summary": "4-6 sentences from Roy speaking directly to the rights holder. What did they earn, from where, at what rates, over what period. Specific numbers. Sound like a person.",
+  "total_earnings": number or null,
+  "currency": "USD or detected",
+  "track_count": number or null,
+  "period_start": "YYYY-MM-DD or null",
+  "period_end": "YYYY-MM-DD or null",
+  "source": "platform name",
+  "top_earners": [{ "track": "string", "earnings": number, "streams": number or null }]
+}
+Limit top_earners to 5.
+File name: ${fileName}`;
+
+  const result = await model.generateContent([inlinePart, { text: prompt }]);
+  return extractJSON(result.response.text()) ?? { summary: result.response.text() };
+}
+
+/* ── Prompt builder for PDF actions (file goes as inlineData, not text) ─── */
+function buildPromptForPdf(action: Exclude<AnalyzeAction, "summarize">, fileName: string): string {
+  switch (action) {
+    case "anomalies":
+      return `Audit this royalty statement for anomalies and issues. Return this exact JSON — no markdown, no explanation:
+{
+  "anomaly_summary": "2-3 sentences from Roy summarizing the overall health of this statement and the most critical finding.",
+  "flags": [
+    {
+      "type": "missing_isrc | unmatched_isrc | missing_mlc_registration | below_market_rate | rate_anomaly | data_quality | registration_gap | underpayment_likely",
+      "severity": "info | warning | error",
+      "track": "track name or null",
+      "description": "Roy speaking directly — what the issue is, why it costs money, what to do. Consolidate patterns into single flags rather than one flag per row. Max 10 flags total, prioritize actionable ones."
+    }
+  ]
+}
+File name: ${fileName}`;
+
+    case "cleanup":
+      return `Analyze the data quality of this royalty statement and describe what needs to be cleaned. Return this exact JSON — no markdown, no explanation:
+{
+  "cleanup_summary": "2-3 sentences from Roy describing the overall data quality and what the biggest issues are.",
+  "issues": [
+    {
+      "issue": "short description (e.g. 'Null values in ISRC column')",
+      "affected_rows": number or null,
+      "recommendation": "what to do about it"
+    }
+  ],
+  "column_map": { "original_column_name": "recommended_standard_name" },
+  "ready_for_analytics": true or false,
+  "blocker": "what's preventing analytics readiness, or null if ready"
+}
+File name: ${fileName}`;
+
+    case "split":
+      return `Analyze how this royalty statement should be split into separate files. Return this exact JSON — no markdown, no explanation:
+{
+  "split_summary": "2-3 sentences from Roy explaining the best way to break this file apart and why.",
+  "recommended_split_by": "artist | platform | territory | period | royalty_type",
+  "reason": "why this split makes the most sense for this file",
+  "split_groups": [
+    {
+      "group_name": "string (e.g. 'Spotify', 'Artist A', 'US')",
+      "estimated_rows": number or null,
+      "notes": "anything notable about this group"
+    }
+  ]
+}
+Limit split_groups to the most meaningful 10 groups.
+File name: ${fileName}`;
+  }
 }

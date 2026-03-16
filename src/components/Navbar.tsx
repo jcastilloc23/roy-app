@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import RoyLogo from "@/components/RoyLogo";
 
 const navLinks = [
@@ -40,7 +40,7 @@ export default function Navbar() {
             ))}
             <Show when="signed-out">
               <li>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" forceRedirectUrl="/roy-tool">
                   <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "rgba(255,255,255,0.7)", padding: 0, fontSize: "15px" }}>
                     Log In
                   </button>
@@ -52,13 +52,11 @@ export default function Navbar() {
           {/* Actions */}
           <div className="nav-actions">
             <Show when="signed-out">
-              <Link
-                href="/sign-up"
-                className="btn-primary"
-                style={{ padding: "9px 18px", fontSize: "14px" }}
-              >
-                Get Started Free
-              </Link>
+              <SignUpButton mode="modal" forceRedirectUrl="/roy-tool">
+                <button className="btn-primary" style={{ padding: "9px 18px", fontSize: "14px" }}>
+                  Get Started Free
+                </button>
+              </SignUpButton>
             </Show>
             <Show when="signed-in">
               <UserButton />
@@ -118,14 +116,16 @@ export default function Navbar() {
             </Link>
           ))}
           <Show when="signed-out">
-            <SignInButton mode="modal">
+            <SignInButton mode="modal" forceRedirectUrl="/roy-tool">
               <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "#fff", fontSize: "24px", fontWeight: 600 }}>
                 Log In
               </button>
             </SignInButton>
-            <Link href="/sign-up" className="btn-primary" onClick={() => setMobileOpen(false)}>
-              Get Started Free
-            </Link>
+            <SignUpButton mode="modal" forceRedirectUrl="/roy-tool">
+              <button className="btn-primary" onClick={() => setMobileOpen(false)}>
+                Get Started Free
+              </button>
+            </SignUpButton>
           </Show>
           <Show when="signed-in">
             <UserButton />

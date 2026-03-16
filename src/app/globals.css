@@ -1039,8 +1039,8 @@ footer {
   animation-play-state: paused;
 }
 @keyframes scroll-logos {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.33%); }
 }
 .logo-item {
   display: flex;
@@ -1049,16 +1049,17 @@ footer {
   padding: 0 40px;
   white-space: nowrap;
 }
-.logo-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.25);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: color 0.2s;
+.logo-item {
+  text-decoration: none;
 }
-.logo-item:hover .logo-name {
-  color: rgba(255, 255, 255, 0.5);
+.logo-item svg {
+  height: 32px;
+  width: auto;
+  color: rgba(255, 255, 255, 0.28);
+  transition: color 0.25s;
+}
+.logo-item:hover svg {
+  color: var(--logo-brand-color);
 }
 
 /* ===== CTA SECTION ===== */

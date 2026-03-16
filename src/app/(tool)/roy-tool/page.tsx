@@ -2294,12 +2294,27 @@ export default function RoyToolPage() {
                 />
               )}
 
-              {phase === "analyzing" && (
-                <ProgressRing
-                  label={largeFile ? "Reading your file locally…" : "Roy is analyzing your statement…"}
-                  sublabel={largeFile ? "Crunching the data in your browser — no upload needed. Large files may take a moment." : "Digging into rates, patterns, and data quality. This can take 20–30 seconds."}
-                />
-              )}
+              {phase === "analyzing" && (() => {
+                const isPdfFile = uploadedFile?.name.toLowerCase().endsWith(".pdf") ?? false;
+                return (
+                  <ProgressRing
+                    label={
+                      largeFile
+                        ? "Reading your file locally…"
+                        : isPdfFile
+                        ? "Roy is reading the PDF…"
+                        : "Roy is analyzing your statement…"
+                    }
+                    sublabel={
+                      largeFile
+                        ? "Crunching the data in your browser — no upload needed. Large files may take a moment."
+                        : isPdfFile
+                        ? "Parsing the document with AI — longer PDFs may take up to a minute."
+                        : "Digging into rates, patterns, and data quality. This can take 20–30 seconds."
+                    }
+                  />
+                );
+              })()}
 
               {phase === "split_preview" && uploadedFile && (
                 <SplitPreviewPanel file={uploadedFile} onBack={handleBack} onReset={handleReset} />
