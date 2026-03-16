@@ -1034,13 +1034,14 @@ footer {
   gap: 0;
   animation: scroll-logos 28s linear infinite;
   width: max-content;
+  will-change: transform;
 }
 .logos-track:hover {
   animation-play-state: paused;
 }
 @keyframes scroll-logos {
   0%   { transform: translateX(0); }
-  100% { transform: translateX(-33.33%); }
+  100% { transform: translateX(-33.333%); }
 }
 .logo-item {
   display: flex;
@@ -1060,6 +1061,15 @@ footer {
 }
 .logo-item:hover svg {
   color: var(--logo-brand-color);
+}
+.logo-img {
+  height: 40px;
+  width: auto;
+  filter: grayscale(1) opacity(0.4);
+  transition: filter 0.25s;
+}
+.logo-item:hover .logo-img {
+  filter: grayscale(0) opacity(1);
 }
 
 /* ===== CTA SECTION ===== */

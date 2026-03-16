@@ -3,17 +3,27 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroCTA from "@/components/HeroCTA";
 import RoyLogo from "@/components/RoyLogo";
-import { SiSpotify, SiApplemusic, SiSoundcloud, SiDistrokid } from "react-icons/si";
+import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutubemusic, SiTidal, SiBandcamp, SiPandora } from "react-icons/si";
 
 export const metadata: Metadata = {
   title: "Roy — Music Royalty Transparency",
 };
 
-const logos = [
-  { name: "Spotify",     Icon: SiSpotify,     brandColor: "#1DB954", url: "https://open.spotify.com" },
-  { name: "Apple Music", Icon: SiApplemusic,  brandColor: "#FC3C44", url: "https://music.apple.com" },
-  { name: "SoundCloud",  Icon: SiSoundcloud,  brandColor: "#FF5500", url: "https://soundcloud.com" },
-  { name: "DistroKid",   Icon: SiDistrokid,   brandColor: "#5B4FE8", url: "https://distrokid.com" },
+type LogoEntry =
+  | { name: string; Icon: React.ComponentType<{ size?: number; "aria-label"?: string }>; brandColor: string; url: string }
+  | { name: string; src: string; url: string };
+
+const logos: LogoEntry[] = [
+  { name: "Spotify",       Icon: SiSpotify,      brandColor: "#1DB954", url: "https://open.spotify.com" },
+  { name: "Apple Music",   Icon: SiApplemusic,   brandColor: "#FC3C44", url: "https://music.apple.com" },
+  { name: "YouTube Music", Icon: SiYoutubemusic, brandColor: "#FF0000", url: "https://music.youtube.com" },
+  { name: "SoundCloud",    Icon: SiSoundcloud,   brandColor: "#FF5500", url: "https://soundcloud.com" },
+  { name: "TIDAL",         Icon: SiTidal,        brandColor: "#00FFFF", url: "https://tidal.com" },
+  { name: "Bandcamp",      Icon: SiBandcamp,     brandColor: "#1DA0C3", url: "https://bandcamp.com" },
+  { name: "DistroKid",     src: "/logos/distrokid.png",               url: "https://distrokid.com" },
+  { name: "CD Baby",       src: "/logos/cd_baby.png",                    url: "https://cdbaby.com" },
+  { name: "Pandora",       Icon: SiPandora,      brandColor: "#224099", url: "https://pandora.com" },
+  { name: "BMI",           src: "/logos/bmi.png",                         url: "https://bmi.com" },
 ];
 
 export default function Home() {
@@ -188,9 +198,12 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="logo-item"
-                  style={{ "--logo-brand-color": logo.brandColor } as React.CSSProperties}
+                  style={"Icon" in logo ? { "--logo-brand-color": logo.brandColor } as React.CSSProperties : undefined}
                 >
-                  <logo.Icon size={32} aria-label={logo.name} />
+                  {"Icon" in logo
+                    ? <logo.Icon size={32} aria-label={logo.name} />
+                    : <img src={logo.src} alt={logo.name} className="logo-img" />
+                  }
                 </a>
               ))}
             </div>
