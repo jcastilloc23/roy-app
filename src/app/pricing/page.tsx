@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import RoyLogo from "@/components/RoyLogo";
 
-const GREEN = "#00d47b";
+const GREEN = "#C8FF00";
 
 /* ── Icons ────────────────────────────────────── */
 const CheckIcon = () => (

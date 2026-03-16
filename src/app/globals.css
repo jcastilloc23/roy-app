@@ -3,13 +3,32 @@
 @tailwind utilities;
 
 :root {
-  --green: #00d47b;
-  --green-dark: #00b869;
-  --bg: #05060a;
-  --bg2: #0c0d13;
-  --bg3: #111218;
-  --border: rgba(255, 255, 255, 0.08);
-  --text-muted: #8a8f9a;
+  /* Roy Design System v2 — canonical tokens */
+  --roy-bg:         #0D0D0F;
+  --roy-surface:    #16161A;
+  --roy-surface-2:  #1E1E24;
+  --roy-border:     #2A2A35;
+  --roy-accent:     #C8FF00;
+  --roy-accent-dim: #8FAF00;
+  --roy-text:       #F0F0F0;
+  --roy-text-muted: #7A7A8C;
+  --roy-success:    #22C55E;
+  --roy-warning:    #F59E0B;
+  --roy-error:      #EF4444;
+  --roy-highlight:  rgba(200, 255, 0, 0.08);
+  --font-display:   var(--font-display-loaded), Georgia, serif;
+  --font-ui:        var(--font-ui-loaded), system-ui, sans-serif;
+  --font-mono:      var(--font-mono-loaded), 'IBM Plex Mono', monospace;
+
+  /* Old tokens remapped — do not remove, used by marketing CSS */
+  --green:      var(--roy-accent);
+  --green-dark: var(--roy-accent-dim);
+  --bg:         var(--roy-bg);
+  --bg2:        var(--roy-surface);
+  --bg3:        var(--roy-surface-2);
+  --border:     var(--roy-border);
+  --text-muted: var(--roy-text-muted);
+
 }
 
 html {
@@ -17,9 +36,9 @@ html {
 }
 
 body {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-ui);
   background: var(--bg);
-  color: #fff;
+  color: var(--roy-text);
   line-height: 1.6;
   overflow-x: hidden;
 }
@@ -32,9 +51,9 @@ h1, h2, h3, h4, h5, h6 {
 /* Section tag / eyebrow pills — explicit green prevents Mogul script override */
 .section-tag {
   display: inline-block;
-  background: rgba(0, 212, 123, 0.12);
-  color: #00d47b !important;
-  border: 1px solid rgba(0, 212, 123, 0.25);
+  background: rgba(200, 255, 0, 0.12);
+  color: var(--green) !important;
+  border: 1px solid rgba(200, 255, 0, 0.25);
   border-radius: 100px;
   padding: 6px 16px;
   font-size: 12px;
@@ -67,9 +86,9 @@ ul {
 
 .pill {
   display: inline-block;
-  background: rgba(0, 212, 123, 0.12);
+  background: rgba(200, 255, 0, 0.12);
   color: var(--green);
-  border: 1px solid rgba(0, 212, 123, 0.25);
+  border: 1px solid rgba(200, 255, 0, 0.25);
   border-radius: 100px;
   padding: 6px 16px;
   font-size: 13px;
@@ -122,7 +141,7 @@ nav {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(5, 6, 10, 0.92);
+  background: rgba(13, 13, 15, 0.92);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
 }
@@ -301,7 +320,7 @@ footer {
 }
 
 .footer-socials a:hover {
-  background: rgba(0, 212, 123, 0.15);
+  background: rgba(200, 255, 0, 0.15);
   color: var(--green);
 }
 
@@ -375,8 +394,8 @@ footer {
 
 /* ===== ANNOUNCEMENT ===== */
 .announcement {
-  background: rgba(0, 212, 123, 0.08);
-  border-bottom: 1px solid rgba(0, 212, 123, 0.15);
+  background: rgba(200, 255, 0, 0.08);
+  border-bottom: 1px solid rgba(200, 255, 0, 0.15);
   text-align: center;
   padding: 10px 24px;
   font-size: 13px;
@@ -410,7 +429,7 @@ footer {
   transform: translateX(-50%);
   width: 800px;
   height: 600px;
-  background: radial-gradient(ellipse, rgba(0, 212, 123, 0.12) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(200, 255, 0, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 .hero-eyebrow {
@@ -539,7 +558,7 @@ footer {
   cursor: pointer;
 }
 .mockup-nav-item.active {
-  background: rgba(0, 212, 123, 0.1);
+  background: rgba(200, 255, 0, 0.1);
   color: var(--green);
 }
 .mockup-content {
@@ -593,7 +612,7 @@ footer {
 }
 .mockup-bar-item {
   flex: 1;
-  background: rgba(0, 212, 123, 0.2);
+  background: rgba(200, 255, 0, 0.2);
   border-radius: 3px 3px 0 0;
 }
 
@@ -706,7 +725,7 @@ footer {
 .bullet-check {
   width: 18px;
   height: 18px;
-  background: rgba(0, 212, 123, 0.15);
+  background: rgba(200, 255, 0, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -824,7 +843,7 @@ footer {
   color: #ef4444;
 }
 .badge-ok {
-  background: rgba(0, 212, 123, 0.15);
+  background: rgba(200, 255, 0, 0.15);
   color: var(--green);
 }
 .timeline-row {
@@ -931,7 +950,7 @@ footer {
   transition: border-color 0.3s;
 }
 .testimonial-card:hover {
-  border-color: rgba(0, 212, 123, 0.3);
+  border-color: rgba(200, 255, 0, 0.3);
 }
 .testimonial-stars {
   color: var(--green);
@@ -1057,7 +1076,7 @@ footer {
   transform: translateX(-50%);
   width: 600px;
   height: 500px;
-  background: radial-gradient(ellipse, rgba(0, 212, 123, 0.1) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(200, 255, 0, 0.1) 0%, transparent 70%);
   pointer-events: none;
 }
 .section-cta h2 {
@@ -1086,7 +1105,7 @@ footer {
 .page-hero {
   padding: 80px 24px 60px;
   text-align: center;
-  background: radial-gradient(ellipse at 50% 0%, rgba(0, 212, 123, 0.07) 0%, transparent 55%);
+  background: radial-gradient(ellipse at 50% 0%, rgba(200, 255, 0, 0.07) 0%, transparent 55%);
 }
 .page-hero h1 {
   font-size: clamp(32px, 5vw, 60px);

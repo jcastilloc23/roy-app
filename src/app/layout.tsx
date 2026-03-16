@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, DM_Serif_Display, DM_Mono, DM_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
@@ -9,8 +9,32 @@ const inter = Inter({
   display: "swap",
 });
 
+const dmSerifDisplay = DM_Serif_Display({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display-loaded",
+  display: "swap",
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  variable: "--font-mono-loaded",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-ui-loaded",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Roy — The music royalties tool built for the indie world",
+  title: {
+    default: "Roy — Music Royalty Transparency",
+    template: "%s — Roy",
+  },
   description:
     "Drop in any royalty statement — from Spotify, ASCAP, DistroKid, the MLC, or anywhere else — and Roy reads it, explains it in plain English, and tells you exactly what's missing or wrong.",
 };
@@ -21,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" className={`${inter.className} ${dmSerifDisplay.variable} ${dmMono.variable} ${dmSans.variable}`}>
       <body>
         <ClerkProvider>
           {children}

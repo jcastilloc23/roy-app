@@ -37,12 +37,13 @@ export default function ToolSidebar() {
     <aside style={{
       width: "200px",
       minHeight: "calc(100vh - 64px)",
-      background: "var(--bg)",
-      borderRight: "1px solid var(--border)",
+      background: "var(--roy-bg)",
+      borderRight: "1px solid var(--roy-border)",
       display: "flex",
       flexDirection: "column",
       padding: "24px 12px",
       flexShrink: 0,
+      fontFamily: "var(--font-ui)",
     }}>
       <nav style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
         {navItems.map(({ href, label, Icon }) => {
@@ -59,8 +60,8 @@ export default function ToolSidebar() {
                 borderRadius: "8px",
                 fontSize: "14px",
                 fontWeight: isActive ? 600 : 400,
-                color: isActive ? "var(--green)" : "var(--text-muted)",
-                background: isActive ? "rgba(0,212,123,0.08)" : "transparent",
+                color: isActive ? "var(--roy-accent)" : "var(--roy-text-muted)",
+                background: isActive ? "var(--roy-highlight)" : "transparent",
                 textDecoration: "none",
                 transition: "background 0.15s, color 0.15s",
               }}
@@ -76,8 +77,8 @@ export default function ToolSidebar() {
       <div style={{
         marginTop: "auto",
         padding: "14px",
-        background: "var(--bg2)",
-        border: "1px solid var(--border)",
+        background: "var(--roy-surface)",
+        border: "1px solid var(--roy-border)",
         borderRadius: "10px",
       }}>
         <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>Roy Label</div>
@@ -90,7 +91,7 @@ export default function ToolSidebar() {
             display: "block",
             textAlign: "center",
             padding: "7px 0",
-            background: "var(--green)",
+            background: "var(--roy-accent)",
             color: "#000",
             borderRadius: "6px",
             fontSize: "12px",

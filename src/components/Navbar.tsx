@@ -92,7 +92,7 @@ export default function Navbar() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(5,6,10,0.97)",
+            background: "rgba(13,13,15,0.97)",
             zIndex: 99,
             display: "flex",
             flexDirection: "column",

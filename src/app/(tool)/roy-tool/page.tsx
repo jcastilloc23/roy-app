@@ -15,7 +15,7 @@ import RoyLogo from "@/components/RoyLogo";
 import { getCountryName } from "@/lib/country-codes";
 import { SiSpotify, SiApplemusic, SiYoutubemusic } from "react-icons/si";
 
-const GREEN = "#00d47b";
+const GREEN = "#C8FF00";
 const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50 MB
 
 /* ── Client-side stats for large CSV/TSV files ── */
@@ -219,7 +219,7 @@ function fmtCompact(n: number, dollars = false): string {
 }
 
 const DONUT_COLORS = ["#10b981", "#06b6d4", "#8b5cf6", "#f59e0b", "#d946ef", "#84cc16", "#94a3b8"];
-const ARTIST_COLORS = ["#00d47b", "#06b6d4", "#8b5cf6", "#f59e0b", "#d946ef"];
+const ARTIST_COLORS = ["#C8FF00", "#06b6d4", "#8b5cf6", "#f59e0b", "#d946ef"];
 
 const BENCHMARKS: Record<string, [number, number]> = {
   "Spotify":       [0.003, 0.005],
@@ -491,10 +491,10 @@ function ProgressRing({ label, sublabel }: { label: string; sublabel?: string })
       `}</style>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "28px", padding: "48px 32px" }}>
         <div style={{ width: "100%", maxWidth: "260px", display: "flex", flexDirection: "column", gap: "10px" }}>
-          <div style={{ height: "3px", borderRadius: "99px", background: "rgba(0,212,123,0.12)", overflow: "hidden", position: "relative" }}>
+          <div style={{ height: "3px", borderRadius: "99px", background: "rgba(200,255,0,0.12)", overflow: "hidden", position: "relative" }}>
             <div style={{
               position: "absolute", inset: 0,
-              background: `linear-gradient(90deg, transparent 0%, ${GREEN} 40%, rgba(0,212,123,0.4) 60%, transparent 100%)`,
+              background: `linear-gradient(90deg, transparent 0%, ${GREEN} 40%, rgba(200,255,0,0.4) 60%, transparent 100%)`,
               animation: "shimmer-bar 1.6s ease-in-out infinite",
             }} />
           </div>
@@ -527,11 +527,11 @@ function DropZone({ onFile }: { onFile: (file: File) => void }) {
       onDragLeave={() => setHovering(false)}
       onDrop={handleDrop}
       style={{
-        border: `2px dashed ${hovering ? GREEN : "rgba(0,212,123,0.3)"}`,
+        border: `2px dashed ${hovering ? GREEN : "rgba(200,255,0,0.3)"}`,
         borderRadius: "12px",
         padding: "48px 32px",
         textAlign: "center",
-        background: hovering ? "rgba(0,212,123,0.04)" : "rgba(0,212,123,0.02)",
+        background: hovering ? "rgba(200,255,0,0.04)" : "rgba(200,255,0,0.02)",
         transition: "all 0.2s",
         cursor: "pointer",
       }}
@@ -560,7 +560,7 @@ function DropZone({ onFile }: { onFile: (file: File) => void }) {
         {["CSV", "TSV", "PDF", "XLS", "XLSX"].map((fmt) => (
           <span key={fmt} style={{
             padding: "3px 12px", borderRadius: "100px",
-            border: "1px solid rgba(0,212,123,0.25)",
+            border: "1px solid rgba(200,255,0,0.25)",
             fontSize: "11px", fontWeight: 600, color: GREEN, letterSpacing: "0.06em",
           }}>
             {fmt}
@@ -691,8 +691,8 @@ function IdentifiedPanel({
                 fontFamily: "inherit",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(0,212,123,0.4)";
-                e.currentTarget.style.background = "rgba(0,212,123,0.04)";
+                e.currentTarget.style.borderColor = "rgba(200,255,0,0.4)";
+                e.currentTarget.style.background = "rgba(200,255,0,0.04)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = "var(--border)";
@@ -720,8 +720,8 @@ function IdentifiedPanel({
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       {/* Roy's greeting */}
       <div style={{
-        background: "rgba(0,212,123,0.05)",
-        border: "1px solid rgba(0,212,123,0.15)",
+        background: "rgba(200,255,0,0.05)",
+        border: "1px solid rgba(200,255,0,0.15)",
         borderRadius: "10px",
         padding: "18px 20px",
       }}>
@@ -771,7 +771,7 @@ function IdentifiedPanel({
             color: "#fff", fontSize: "14px", fontWeight: 500,
             fontFamily: "inherit", outline: "none", boxSizing: "border-box",
           }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(0,212,123,0.4)"; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(200,255,0,0.4)"; }}
           onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
         />
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "8px", lineHeight: 1.5 }}>
@@ -801,8 +801,8 @@ function IdentifiedPanel({
               fontFamily: "inherit",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(0,212,123,0.4)";
-              e.currentTarget.style.background = "rgba(0,212,123,0.04)";
+              e.currentTarget.style.borderColor = "rgba(200,255,0,0.4)";
+              e.currentTarget.style.background = "rgba(200,255,0,0.04)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = "var(--border)";
@@ -831,7 +831,7 @@ function FlagCard({ flag }: { flag: ParsedFlag }) {
   const colors = {
     error: { bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.2)", text: "#ef4444", badge: "Action needed" },
     warning: { bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.2)", text: "#f59e0b", badge: "Review" },
-    info: { bg: "rgba(0,212,123,0.08)", border: "rgba(0,212,123,0.2)", text: GREEN, badge: "Info" },
+    info: { bg: "rgba(200,255,0,0.08)", border: "rgba(200,255,0,0.2)", text: GREEN, badge: "Info" },
   };
   const c = colors[flag.severity] ?? colors.info;
 
@@ -864,7 +864,7 @@ function FlagCard({ flag }: { flag: ParsedFlag }) {
 function RoyTake({ text, label }: { text: string; label: string }) {
   return (
     <div style={{
-      background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+      background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
       borderRadius: "10px", padding: "18px 20px",
     }}>
       <div style={{
@@ -1029,7 +1029,7 @@ function SplitPreviewPanel({
       {status === "counting" && (
         <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "24px 0", color: "rgba(255,255,255,0.45)", fontSize: "14px" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: "spin-ring 1s linear infinite", transformOrigin: "center", flexShrink: 0 }}>
-            <circle cx="12" cy="12" r="9" stroke="rgba(0,212,123,0.3)" strokeWidth="2.5" />
+            <circle cx="12" cy="12" r="9" stroke="rgba(200,255,0,0.3)" strokeWidth="2.5" />
             <path d="M12 3a9 9 0 019 9" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" />
           </svg>
           Counting rows…
@@ -1041,7 +1041,7 @@ function SplitPreviewPanel({
           {!needsSplit ? (
             /* File is fine for Excel */
             <div style={{
-              background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+              background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
               borderRadius: "10px", padding: "18px 20px",
             }}>
               <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
@@ -1056,7 +1056,7 @@ function SplitPreviewPanel({
             /* Split needed */
             <>
               <div style={{
-                background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+                background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
                 borderRadius: "10px", padding: "18px 20px",
               }}>
                 <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
@@ -1110,7 +1110,7 @@ function SplitPreviewPanel({
       {status === "splitting" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div style={{
-            background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+            background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
             borderRadius: "10px", padding: "18px 20px",
           }}>
             <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
@@ -1134,7 +1134,7 @@ function SplitPreviewPanel({
 
       {status === "done" && (
         <div style={{
-          background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+          background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
           borderRadius: "10px", padding: "18px 20px",
         }}>
           <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
@@ -1421,7 +1421,7 @@ function ResultPanel({
                     const rate = s.rate_per_stream as number;
                     const badge = rate < bench![0]
                       ? { label: "Below benchmark", color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.25)" }
-                      : { label: "In range", color: GREEN, bg: "rgba(0,212,123,0.07)", border: "rgba(0,212,123,0.2)" };
+                      : { label: "In range", color: GREEN, bg: "rgba(200,255,0,0.07)", border: "rgba(200,255,0,0.2)" };
                     return (
                       <div key={i} style={{
                         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -1529,7 +1529,7 @@ function ResultPanel({
                     return (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <div style={{ flex: 1, position: "relative", height: "36px", borderRadius: "6px", overflow: "hidden", background: "var(--bg3)" }}>
-                          <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${pct}%`, background: "rgba(0,212,123,0.15)", transition: "width 0.4s ease" }} />
+                          <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${pct}%`, background: "rgba(200,255,0,0.15)", transition: "width 0.4s ease" }} />
                           <div style={{ position: "relative", height: "100%", display: "flex", alignItems: "center", padding: "0 10px", fontSize: "13px", color: "#fff", fontWeight: 500, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                             {item.name}
                           </div>
@@ -1589,7 +1589,7 @@ function ResultPanel({
                           <div style={{
                             position: "absolute", top: 0, left: 0, bottom: 0,
                             width: `${pct}%`,
-                            background: "rgba(0,212,123,0.15)",
+                            background: "rgba(200,255,0,0.15)",
                             transition: "width 0.4s ease",
                           }} />
                           <div style={{
@@ -1638,7 +1638,7 @@ function ResultPanel({
               </div>
               {(result.flags as ParsedFlag[]).length === 0 && (
                 <div style={{
-                  background: "rgba(0,212,123,0.05)", border: "1px solid rgba(0,212,123,0.15)",
+                  background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
                   borderRadius: "10px", padding: "14px 16px", fontSize: "13px", color: GREEN,
                 }}>
                   ✓ No issues detected — statement looks clean.
@@ -1710,7 +1710,7 @@ function ResultPanel({
               <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>Split by:</div>
               <span style={{
                 padding: "4px 12px", borderRadius: "100px",
-                background: "rgba(0,212,123,0.1)", border: "1px solid rgba(0,212,123,0.25)",
+                background: "rgba(200,255,0,0.1)", border: "1px solid rgba(200,255,0,0.25)",
                 fontSize: "12px", fontWeight: 600, color: GREEN,
               }}>
                 {result.recommended_split_by as string}
@@ -2140,7 +2140,7 @@ export default function RoyToolPage() {
         <section style={{
           padding: "72px 24px 56px",
           textAlign: "center",
-          background: "radial-gradient(ellipse at 50% 0%, rgba(0,212,123,0.07) 0%, transparent 55%)",
+          background: "radial-gradient(ellipse at 50% 0%, rgba(200,255,0,0.07) 0%, transparent 55%)",
         }}>
           <div style={{ maxWidth: "720px", margin: "0 auto" }}>
             <h1 style={{
@@ -2207,11 +2207,11 @@ export default function RoyToolPage() {
                   </button>
                   <div
                     style={{
-                      border: `2px dashed rgba(0,212,123,0.3)`,
+                      border: `2px dashed rgba(200,255,0,0.3)`,
                       borderRadius: "12px",
                       padding: "48px 32px",
                       textAlign: "center",
-                      background: "rgba(0,212,123,0.02)",
+                      background: "rgba(200,255,0,0.02)",
                       cursor: "pointer",
                     }}
                     onClick={() => {

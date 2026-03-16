@@ -6,9 +6,7 @@ import CounterSection from "@/components/CounterSection";
 import RoyLogo from "@/components/RoyLogo";
 
 export const metadata: Metadata = {
-  title: "Roy — Mint for Music Royalties",
-  description:
-    "Roy connects all your royalty accounts in one place. Sync your PROs, distributors, MLC, and more. Never miss a dollar again.",
+  title: "Roy — Music Royalty Transparency",
 };
 
 const ArrowIcon = () => (

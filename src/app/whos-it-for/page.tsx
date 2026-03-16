@@ -5,9 +5,7 @@ import Footer from "@/components/Footer";
 import RoyLogo from "@/components/RoyLogo";
 
 export const metadata: Metadata = {
-  title: "Who is Roy for? — Roy",
-  description:
-    "Whether you're an artist, producer, manager, or business manager — Roy makes royalty tracking simple for everyone in the music industry.",
+  title: "Who It's For",
 };
 
 const ArrowIcon = () => (
