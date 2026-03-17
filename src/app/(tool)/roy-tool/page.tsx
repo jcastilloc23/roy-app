@@ -649,15 +649,29 @@ function IdentifiedPanel({
   artistName,
   onArtistChange,
   onAction,
+  onReset,
 }: {
   identified: IdentifiedFile;
   artistName: string;
   onArtistChange: (name: string) => void;
   onAction: (action: ActionType | "talk") => void;
+  onReset: () => void;
 }) {
   if (identified.isDuplicate) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <button
+            onClick={onReset}
+            style={{
+              padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
+              background: "transparent", border: "1px solid var(--roy-border)",
+              color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Upload another
+          </button>
+        </div>
         <div style={{
           background: "rgba(245,158,11,0.07)",
           border: "1px solid rgba(245,158,11,0.2)",
@@ -718,6 +732,18 @@ function IdentifiedPanel({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button
+          onClick={onReset}
+          style={{
+            padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
+            background: "transparent", border: "1px solid var(--roy-border)",
+            color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          Upload another
+        </button>
+      </div>
       {/* Roy's greeting */}
       <div style={{
         background: "rgba(200,255,0,0.05)",
@@ -1823,24 +1849,7 @@ export default function RoyToolPage() {
           isDuplicate: true,
         };
         setIdentified(dupIdentified);
-        setPhase("analyzing");
-
-        try {
-          const res = await fetch("/api/analyze", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ statementId: urlData.statementId, action: "summarize" }),
-          });
-          const analyzeData = await res.json();
-          if (res.ok) {
-            setAnalyzed({ action: "summarize", result: analyzeData.result, cached: analyzeData.cached });
-            setPhase("result");
-          } else {
-            setPhase("identified");
-          }
-        } catch {
-          setPhase("identified");
-        }
+        setPhase("identified");
 
         return dupIdentified;
       }
@@ -1973,23 +1982,7 @@ export default function RoyToolPage() {
           isDuplicate: true,
         };
         setIdentified(dupIdentified);
-        setPhase("analyzing");
-        try {
-          const analyzeRes = await fetch("/api/analyze", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ statementId: data.statementId, action: "summarize" }),
-          });
-          const analyzeData = await analyzeRes.json();
-          if (analyzeRes.ok) {
-            setAnalyzed({ action: "summarize", result: analyzeData.result, cached: analyzeData.cached });
-            setPhase("result");
-          } else {
-            setPhase("identified");
-          }
-        } catch {
-          setPhase("identified");
-        }
+        setPhase("identified");
         return;
       }
 
@@ -2316,6 +2309,7 @@ export default function RoyToolPage() {
                   artistName={artistName}
                   onArtistChange={setArtistName}
                   onAction={handleAction}
+                  onReset={handleReset}
                 />
               )}
 
