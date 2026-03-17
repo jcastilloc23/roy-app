@@ -10,7 +10,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="footer-brand">
             <div className="footer-logo">
-              <RoyLogo height={52} />
+              <RoyLogo height={32} />
             </div>
             <p className="footer-tagline">
               The music royalties tool built for the indie world.
@@ -29,11 +29,6 @@ export default function Footer() {
             <div className="footer-col">
               <h4>Company</h4>
               <Link href="/contact">Contact</Link>
-            </div>
-            <div className="footer-col">
-              <h4>Account</h4>
-              <Link href="/sign-in">Log In</Link>
-              <Link href="/sign-up">Sign Up</Link>
             </div>
             <div className="footer-col">
               <h4>Legal</h4>

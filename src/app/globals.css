@@ -225,7 +225,7 @@ nav {
 footer {
   background: var(--bg2);
   border-top: 1px solid var(--border);
-  padding: 48px 0 24px;
+  padding: 48px 0 32px;
 }
 
 .footer-inner {
@@ -237,7 +237,7 @@ footer {
 .footer-top {
   display: grid;
   grid-template-columns: 200px 1fr;
-  gap: 80px;
+  gap: 48px;
   margin-bottom: 32px;
 }
 
@@ -272,11 +272,12 @@ footer {
 
 .footer-nav {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 32px;
 }
 
 .footer-col h4 {
+  font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
@@ -301,7 +302,8 @@ footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 20px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 }
 
 .footer-copy {

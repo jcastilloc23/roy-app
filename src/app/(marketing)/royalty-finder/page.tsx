@@ -3,8 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth, useClerk } from "@clerk/nextjs";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import RoyLogo from "@/components/RoyLogo";
 
 const GREEN = "#C8FF00";
@@ -335,139 +333,135 @@ export default function RoyToolPage() {
   }
 
   return (
-    <>
-      <Navbar />
-      <main>
+    <main>
 
-        {/* ── Hero ─────────────────────────────── */}
-        <section
-          style={{
-            padding: "100px 24px 64px",
-            textAlign: "center",
-            background: "radial-gradient(ellipse at 50% 0%, rgba(200,255,0,0.07) 0%, transparent 55%)",
-          }}
-        >
-          <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-            <div className="section-tag" style={{ marginBottom: "24px" }}>
-              Music Rights Transparency
-            </div>
-            <h1
-              style={{
-                fontSize: "clamp(36px, 5.5vw, 64px)",
-                fontWeight: 700,
-                lineHeight: 1.08,
-                letterSpacing: "-0.025em",
-                marginBottom: "20px",
-              }}
-            >
-              <RoyLogo height="1.5em" inline /><span style={{ color: "#fff" }}>,</span> your music rights<br />transparency tool.
-            </h1>
-            <p
-              style={{
-                fontSize: "17px",
-                color: "rgba(255,255,255,0.6)",
-                lineHeight: 1.65,
-                maxWidth: "520px",
-                margin: "0 auto 0",
-              }}
-            >
-              Drop in any royalty statement — CSV, PDF, or Excel — and Roy reads it, explains it in plain English, and tells you exactly what&apos;s missing or wrong.
-            </p>
+      {/* ── Hero ─────────────────────────────── */}
+      <section
+        style={{
+          padding: "100px 24px 64px",
+          textAlign: "center",
+          background: "radial-gradient(ellipse at 50% 0%, rgba(200,255,0,0.07) 0%, transparent 55%)",
+        }}
+      >
+        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+          <div className="section-tag" style={{ marginBottom: "24px" }}>
+            Music Rights Transparency
           </div>
-        </section>
-
-        {/* ── Tool card ────────────────────────── */}
-        <section style={{ padding: "0 24px 80px" }}>
-          <div
+          <h1
             style={{
-              maxWidth: "680px",
-              margin: "0 auto",
-              background: "var(--bg2)",
-              border: "1px solid var(--border)",
-              borderRadius: "8px",
-              overflow: "hidden",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
+              fontSize: "clamp(36px, 5.5vw, 64px)",
+              fontWeight: 700,
+              lineHeight: 1.08,
+              letterSpacing: "-0.025em",
+              marginBottom: "20px",
             }}
           >
-            {/* Tab bar */}
-            <div style={{ display: "flex", borderBottom: "1px solid var(--border)" }}>
-              <TabButton active={tab === "artist"} onClick={() => setTab("artist")}>
-                I&apos;m an artist
-              </TabButton>
-              <TabButton active={tab === "label"} onClick={() => setTab("label")}>
-                I&apos;m a label
-              </TabButton>
-            </div>
+            <RoyLogo height="1.5em" inline /><span style={{ color: "#fff" }}>,</span> your music rights<br />transparency tool.
+          </h1>
+          <p
+            style={{
+              fontSize: "17px",
+              color: "rgba(255,255,255,0.6)",
+              lineHeight: 1.65,
+              maxWidth: "520px",
+              margin: "0 auto 0",
+            }}
+          >
+            Drop in any royalty statement — CSV, PDF, or Excel — and Roy reads it, explains it in plain English, and tells you exactly what&apos;s missing or wrong.
+          </p>
+        </div>
+      </section>
 
-            {/* Tab content */}
-            <div style={{ padding: "32px" }}>
-              {tab === "artist"
-                ? <ArtistTab onInteract={handleInteract} />
-                : <LabelTab onInteract={handleInteract} isSignedIn={!!isSignedIn} />
-              }
-            </div>
-          </div>
-        </section>
-
-        {/* ── How it works ─────────────────────── */}
-        <section
+      {/* ── Tool card ────────────────────────── */}
+      <section style={{ padding: "0 24px 80px" }}>
+        <div
           style={{
-            padding: "80px 24px",
-            borderTop: "1px solid var(--border)",
+            maxWidth: "680px",
+            margin: "0 auto",
             background: "var(--bg2)",
+            border: "1px solid var(--border)",
+            borderRadius: "8px",
+            overflow: "hidden",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
           }}
         >
-          <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-            <div style={{ textAlign: "center", marginBottom: "48px" }}>
-              <div className="section-tag">How Roy works</div>
-              <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 700, letterSpacing: "-0.02em" }}>
-                No integrations. No setup. Just drop it in.
-              </h2>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }}>
-              {[
-                {
-                  step: "01",
-                  title: "Drop in your statement",
-                  body: "Any file, any format. Spotify CSV, ASCAP quarterly PDF, DistroKid export, MLC report — Roy identifies it automatically. No mapping, no templates.",
-                },
-                {
-                  step: "02",
-                  title: "Roy reads and explains it",
-                  body: "Our AI parsing engine normalizes the data and generates a plain-English summary. You see exactly what you earned, from where, and at what rate — without needing a finance degree.",
-                },
-                {
-                  step: "03",
-                  title: "Roy flags what's wrong",
-                  body: "Missing registrations, rate anomalies, unmatched ISRCs, late payments — Roy surfaces discrepancies before royalties expire. The average PRO royalty expires in 2–3 years if unclaimed.",
-                },
-              ].map((item) => (
-                <div
-                  key={item.step}
-                  style={{
-                    background: "var(--bg3)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "8px",
-                    padding: "28px",
-                  }}
-                >
-                  <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", color: GREEN, marginBottom: "12px" }}>
-                    {item.step}
-                  </div>
-                  <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "10px", color: "#fff" }}>
-                    {item.title}
-                  </div>
-                  <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}>
-                    {item.body}
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* Tab bar */}
+          <div style={{ display: "flex", borderBottom: "1px solid var(--border)" }}>
+            <TabButton active={tab === "artist"} onClick={() => setTab("artist")}>
+              I&apos;m an artist
+            </TabButton>
+            <TabButton active={tab === "label"} onClick={() => setTab("label")}>
+              I&apos;m a label
+            </TabButton>
           </div>
-        </section>
 
-      </main>
-      <Footer />
-    </>
+          {/* Tab content */}
+          <div style={{ padding: "32px" }}>
+            {tab === "artist"
+              ? <ArtistTab onInteract={handleInteract} />
+              : <LabelTab onInteract={handleInteract} isSignedIn={!!isSignedIn} />
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ── How it works ─────────────────────── */}
+      <section
+        style={{
+          padding: "80px 24px",
+          borderTop: "1px solid var(--border)",
+          background: "var(--bg2)",
+        }}
+      >
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <div className="section-tag">How Roy works</div>
+            <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 700, letterSpacing: "-0.02em" }}>
+              No integrations. No setup. Just drop it in.
+            </h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }}>
+            {[
+              {
+                step: "01",
+                title: "Drop in your statement",
+                body: "Any file, any format. Spotify CSV, ASCAP quarterly PDF, DistroKid export, MLC report — Roy identifies it automatically. No mapping, no templates.",
+              },
+              {
+                step: "02",
+                title: "Roy reads and explains it",
+                body: "Our AI parsing engine normalizes the data and generates a plain-English summary. You see exactly what you earned, from where, and at what rate — without needing a finance degree.",
+              },
+              {
+                step: "03",
+                title: "Roy flags what's wrong",
+                body: "Missing registrations, rate anomalies, unmatched ISRCs, late payments — Roy surfaces discrepancies before royalties expire. The average PRO royalty expires in 2–3 years if unclaimed.",
+              },
+            ].map((item) => (
+              <div
+                key={item.step}
+                style={{
+                  background: "var(--bg3)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "8px",
+                  padding: "28px",
+                }}
+              >
+                <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", color: GREEN, marginBottom: "12px" }}>
+                  {item.step}
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "10px", color: "#fff" }}>
+                  {item.title}
+                </div>
+                <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}>
+                  {item.body}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+    </main>
   );
 }
