@@ -501,7 +501,7 @@ footer {
 /* ===== HERO MOCKUP ===== */
 .hero-mockup {
   max-width: 800px;
-  margin: 40px auto 0;
+  margin: 40px auto 60px;
 }
 .mockup-browser {
   background: var(--bg3);
@@ -1004,7 +1004,7 @@ footer {
 
 /* ===== LOGOS SCROLLER ===== */
 .section-logos {
-  padding: 60px 0;
+  padding: 80px 0;
   border-bottom: 1px solid var(--border);
   overflow: hidden;
 }

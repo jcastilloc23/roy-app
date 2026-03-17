@@ -32,7 +32,7 @@ export default function Home() {
       <section className="hero" id="home">
         <div className="container">
           <h1>
-            Never miss a <RoyLogo height="1.5em" inline />alty payment again
+            Your personal music <RoyLogo height="1.5em" inline />alty analyst.
           </h1>
           <p className="hero-sub">
             Drop in any royalty statement — from Spotify, ASCAP, DistroKid, the MLC, or anywhere else — and Roy reads it, explains it in plain English, and tells you exactly what&apos;s missing or wrong.
