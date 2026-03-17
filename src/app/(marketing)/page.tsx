@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import HeroCTA from "@/components/HeroCTA";
 import RoyLogo from "@/components/RoyLogo";
 import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutubemusic, SiBandcamp, SiPandora } from "react-icons/si";
@@ -37,82 +38,24 @@ export default function Home() {
             Drop in any royalty statement — from Spotify, ASCAP, DistroKid, the MLC, or anywhere else — and Roy reads it, explains it in plain English, and tells you exactly what&apos;s missing or wrong.
           </p>
           <HeroCTA />
-
-          {/* Summary mockup */}
-          <div className="hero-mockup">
-            <div className="mockup-browser">
-              <div className="mockup-bar">
-                <div className="mockup-dot" />
-                <div className="mockup-dot" />
-                <div className="mockup-dot" />
-                <div className="mockup-url">app.useroy.com — Summary</div>
-              </div>
-              <div className="mockup-body" style={{ gridTemplateColumns: "160px 1fr" }}>
-                <div className="mockup-sidebar">
-                  <div className="mockup-sidebar-logo">🎵 Roy</div>
-                  {[
-                    { label: "Summary", active: true },
-                    { label: "Analytics" },
-                    { label: "Talk to Roy" },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className={`mockup-nav-item${item.active ? " active" : ""}`}
-                    >
-                      {item.label}
-                    </div>
-                  ))}
-                </div>
-                <div className="mockup-content">
-                  {/* Roy's take */}
-                  <div style={{
-                    background: "rgba(200,255,0,0.06)", border: "1px solid rgba(200,255,0,0.18)",
-                    borderRadius: "8px", padding: "12px 14px",
-                  }}>
-                    <div style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--green)", marginBottom: "6px" }}>
-                      Roy&apos;s take
-                    </div>
-                    <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.8)", lineHeight: 1.6, margin: 0 }}>
-                      DistroKid paid out $2,847 across 18 tracks for Q4 2024. Your Spotify rate of $0.0035/stream is within benchmark. One track is missing an ISRC — flag it before the next reporting cycle.
-                    </p>
-                  </div>
-                  {/* KPI cards */}
-                  <div className="mockup-stat-row">
-                    <div className="mockup-stat">
-                      <div className="mockup-stat-label">Total earnings</div>
-                      <div className="mockup-stat-val green">$2,847</div>
-                    </div>
-                    <div className="mockup-stat">
-                      <div className="mockup-stat-label">Total streams</div>
-                      <div className="mockup-stat-val">821K</div>
-                    </div>
-                    <div className="mockup-stat">
-                      <div className="mockup-stat-label">Avg / stream</div>
-                      <div className="mockup-stat-val">$0.0035</div>
-                    </div>
-                  </div>
-                  {/* By platform */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    {[
-                      { name: "Spotify", pct: 60, val: "$1,720" },
-                      { name: "Apple Music", pct: 24, val: "$680" },
-                      { name: "Amazon Music", pct: 16, val: "$447" },
-                    ].map((row) => (
-                      <div key={row.name} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <div style={{ fontSize: "10px", color: "var(--text-muted)", width: "80px", flexShrink: 0 }}>{row.name}</div>
-                        <div style={{ flex: 1, background: "rgba(255,255,255,0.06)", borderRadius: "100px", height: "5px", overflow: "hidden" }}>
-                          <div style={{ background: "var(--green)", height: "100%", width: `${row.pct}%`, borderRadius: "100px" }} />
-                        </div>
-                        <div style={{ fontSize: "10px", color: "#fff", fontWeight: 600, width: "40px", textAlign: "right" }}>{row.val}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
+
+      {/* Roy tool mockup — stacked screenshots */}
+      <div className="hero-mockup">
+        <Link href="/roy-tool" style={{ display: "block", cursor: "pointer" }}>
+          <img
+            src="/screenshots/roy-tool-result.png"
+            alt="Roy tool — Roy's Take, earnings summary, and benchmark stats"
+            style={{ width: "100%", borderRadius: "12px 12px 0 0", display: "block" }}
+          />
+          <img
+            src="/screenshots/roy-tool-result-2.png"
+            alt="Roy tool — revenue over time chart and per-platform benchmark rates"
+            style={{ width: "100%", borderRadius: "0 0 12px 12px", display: "block" }}
+          />
+        </Link>
+      </div>
 
       {/* ===== CAPABILITIES ===== */}
       <section style={{ background: "var(--bg)", padding: "80px 0" }}>

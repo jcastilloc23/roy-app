@@ -142,6 +142,12 @@ ${fileText}`;
     // Gemini failed — clean up storage
     await supabase.storage.from("statements").remove([storagePath]);
     const message = err instanceof Error ? err.message : "Unknown error";
+    if (message.includes("429") || message.toLowerCase().includes("too many requests")) {
+      return NextResponse.json(
+        { error: "rate_limit", message: "Roy is a little overloaded right now — please try again in a moment." },
+        { status: 429 }
+      );
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 

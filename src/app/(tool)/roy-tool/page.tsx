@@ -685,7 +685,7 @@ function IdentifiedPanel({
               style={{
                 display: "flex", alignItems: "center", gap: "16px",
                 padding: "16px 18px", borderRadius: "8px",
-                background: "var(--bg3)", border: "1px solid var(--border)",
+                background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
                 cursor: "pointer", textAlign: "left", width: "100%",
                 transition: "border-color 0.15s, background 0.15s",
                 fontFamily: "inherit",
@@ -695,8 +695,8 @@ function IdentifiedPanel({
                 e.currentTarget.style.background = "rgba(200,255,0,0.04)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "var(--border)";
-                e.currentTarget.style.background = "var(--bg3)";
+                e.currentTarget.style.borderColor = "var(--roy-border)";
+                e.currentTarget.style.background = "var(--roy-surface-2)";
               }}
             >
               <span style={{ flexShrink: 0, width: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -743,7 +743,7 @@ function IdentifiedPanel({
           { label: "Type", value: royaltyTypeLabel(identified.royalty_type) },
         ].map(({ label, value }) => (
           <div key={label} style={{
-            background: "var(--bg3)", border: "1px solid var(--border)",
+            background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
             borderRadius: "8px", padding: "14px",
           }}>
             <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>{label}</div>
@@ -754,7 +754,7 @@ function IdentifiedPanel({
 
       {/* Artist confirm */}
       <div style={{
-        background: "var(--bg3)", border: "1px solid var(--border)",
+        background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
         borderRadius: "8px", padding: "16px 18px",
       }}>
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "10px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
@@ -767,7 +767,7 @@ function IdentifiedPanel({
           placeholder="Artist or label name"
           style={{
             width: "100%", padding: "10px 12px", borderRadius: "8px",
-            background: "var(--bg2)", border: "1px solid rgba(255,255,255,0.12)",
+            background: "var(--roy-surface)", border: "1px solid rgba(255,255,255,0.12)",
             color: "#fff", fontSize: "14px", fontWeight: 500,
             fontFamily: "inherit", outline: "none", boxSizing: "border-box",
           }}
@@ -795,7 +795,7 @@ function IdentifiedPanel({
             style={{
               display: "flex", alignItems: "center", gap: "16px",
               padding: "16px 18px", borderRadius: "8px",
-              background: "var(--bg3)", border: "1px solid var(--border)",
+              background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
               cursor: "pointer", textAlign: "left", width: "100%",
               transition: "border-color 0.15s, background 0.15s",
               fontFamily: "inherit",
@@ -805,8 +805,8 @@ function IdentifiedPanel({
               e.currentTarget.style.background = "rgba(200,255,0,0.04)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--border)";
-              e.currentTarget.style.background = "var(--bg3)";
+              e.currentTarget.style.borderColor = "var(--roy-border)";
+              e.currentTarget.style.background = "var(--roy-surface-2)";
             }}
           >
             <span style={{ flexShrink: 0, width: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1018,7 +1018,7 @@ function SplitPreviewPanel({
           onClick={onReset}
           style={{
             padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
-            background: "transparent", border: "1px solid var(--border)",
+            background: "transparent", border: "1px solid var(--roy-border)",
             color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
           }}
         >
@@ -1078,7 +1078,7 @@ function SplitPreviewPanel({
                   { label: "Parts", value: String(partCount) },
                 ].map(({ label, value }) => (
                   <div key={label} style={{
-                    background: "var(--bg3)", border: "1px solid var(--border)",
+                    background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
                     borderRadius: "8px", padding: "14px",
                   }}>
                     <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>{label}</div>
@@ -1161,7 +1161,7 @@ function SplitPreviewPanel({
               onClick={onReset}
               style={{
                 padding: "10px 20px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-                background: "transparent", border: "1px solid var(--border)",
+                background: "transparent", border: "1px solid var(--roy-border)",
                 color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
               }}
             >
@@ -1255,7 +1255,7 @@ function ResultPanel({
           onClick={onReset}
           style={{
             padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
-            background: "transparent", border: "1px solid var(--border)",
+            background: "transparent", border: "1px solid var(--roy-border)",
             color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
           }}
         >
@@ -1298,7 +1298,7 @@ function ResultPanel({
           {/* Catalog KPI cards — shown only for non-Label multi-artist (gives a taste, gates the breakdown) */}
           {result.is_multi_artist && !isLabel && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
+              <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "16px" }}>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                   Total earnings
                 </div>
@@ -1309,7 +1309,7 @@ function ResultPanel({
                   <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{result.currency as string}</div>
                 )}
               </div>
-              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
+              <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "16px" }}>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                   Total streams
                 </div>
@@ -1317,7 +1317,7 @@ function ResultPanel({
                   {result.total_streams != null ? fmtCompact(result.total_streams as number) : "—"}
                 </div>
               </div>
-              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
+              <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "16px" }}>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg / stream</div>
                 <div style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>
                   {result.total_streams && (result.total_streams as number) > 0 && result.total_earnings != null
@@ -1343,7 +1343,7 @@ function ResultPanel({
                   onChange={e => setSelectedArtist(e.target.value || null)}
                   style={{
                     width: "100%", appearance: "none",
-                    background: "var(--bg3)", border: "1px solid var(--border)",
+                    background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
                     borderRadius: "8px", color: "#fff",
                     fontSize: "13px", fontWeight: 500, fontFamily: "inherit",
                     padding: "8px 32px 8px 12px", cursor: "pointer",
@@ -1369,7 +1369,7 @@ function ResultPanel({
 
           {/* Headline KPI cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
+            <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "16px" }}>
               <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {selectedArtist ? "Artist earnings" : "Total earnings"}
               </div>
@@ -1380,7 +1380,7 @@ function ResultPanel({
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{result.currency as string}</div>
               )}
             </div>
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
+            <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "16px" }}>
               <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {selectedArtist ? "Artist streams" : "Total streams"}
               </div>
@@ -1388,7 +1388,7 @@ function ResultPanel({
                 {effStreams != null ? fmtCompact(effStreams) : "—"}
               </div>
             </div>
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
+            <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "16px" }}>
               <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg / stream</div>
               <div style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>
                 {effAvgPerStream != null ? `$${effAvgPerStream.toFixed(4)}` : "—"}
@@ -1398,7 +1398,7 @@ function ResultPanel({
 
           {/* Time chart — over time */}
           {Array.isArray(result.by_period) && result.by_period.length > 1 && (
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "20px" }}>
+            <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "20px" }}>
               <TimeChart
                 byPeriod={result.by_period as PeriodRow[]}
                 byPeriodByArtist={result.by_period_by_artist as PeriodArtistMap | undefined}
@@ -1425,7 +1425,7 @@ function ResultPanel({
                     return (
                       <div key={i} style={{
                         display: "flex", alignItems: "center", justifyContent: "space-between",
-                        background: "var(--bg3)", border: "1px solid var(--border)",
+                        background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
                         borderRadius: "8px", padding: "10px 14px",
                       }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1453,7 +1453,7 @@ function ResultPanel({
 
           {/* Donut charts — with Revenue/Streams toggle */}
           {(effByStore.length > 0 || effByTerritory.length > 0) && (
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "20px" }}>
+            <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "20px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: "16px" }}>
                 <div style={{ display: "flex", gap: "3px" }}>
                   {(["earnings", "streams"] as const).map(m => (
@@ -1528,7 +1528,7 @@ function ResultPanel({
                     const pct = max > 0 ? (item.value / max) * 100 : 0;
                     return (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <div style={{ flex: 1, position: "relative", height: "36px", borderRadius: "6px", overflow: "hidden", background: "var(--bg3)" }}>
+                        <div style={{ flex: 1, position: "relative", height: "36px", borderRadius: "6px", overflow: "hidden", background: "var(--roy-surface-2)" }}>
                           <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${pct}%`, background: "rgba(200,255,0,0.15)", transition: "width 0.4s ease" }} />
                           <div style={{ position: "relative", height: "100%", display: "flex", alignItems: "center", padding: "0 10px", fontSize: "13px", color: "#fff", fontWeight: 500, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                             {item.name}
@@ -1585,7 +1585,7 @@ function ResultPanel({
                     return (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         {/* Bar + label */}
-                        <div style={{ flex: 1, position: "relative", height: "36px", borderRadius: "6px", overflow: "hidden", background: "var(--bg3)" }}>
+                        <div style={{ flex: 1, position: "relative", height: "36px", borderRadius: "6px", overflow: "hidden", background: "var(--roy-surface-2)" }}>
                           <div style={{
                             position: "absolute", top: 0, left: 0, bottom: 0,
                             width: `${pct}%`,
@@ -1655,7 +1655,7 @@ function ResultPanel({
           {result.cleanup_summary && <RoyTake text={result.cleanup_summary as string} label="Roy's data quality assessment" />}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
+            <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "16px" }}>
               <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Analytics ready</div>
               <div style={{ fontSize: "16px", fontWeight: 700, color: result.ready_for_analytics ? GREEN : "#ef4444" }}>
                 {result.ready_for_analytics ? "Yes" : "No"}
@@ -1680,7 +1680,7 @@ function ResultPanel({
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {(result.issues as { issue: string; affected_rows?: number | null; recommendation: string }[]).map((item, i) => (
                   <div key={i} style={{
-                    background: "var(--bg3)", border: "1px solid var(--border)",
+                    background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
                     borderRadius: "8px", padding: "14px 16px",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
@@ -1729,7 +1729,7 @@ function ResultPanel({
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 {(result.split_groups as { group_name: string; estimated_rows?: number | null; notes?: string }[]).map((g, i) => (
                   <div key={i} style={{
-                    background: "var(--bg3)", border: "1px solid var(--border)",
+                    background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)",
                     borderRadius: "8px", padding: "12px 14px",
                   }}>
                     <div style={{
@@ -1953,6 +1953,8 @@ export default function RoyToolPage() {
       if (!res.ok) {
         const msg = data.error === "not_royalty_data"
           ? "This file doesn't look like a royalty statement. Roy only reads reports from DSPs, PROs, distributors, and CMOs."
+          : data.error === "rate_limit"
+          ? "Roy is a little overloaded right now — please try again in a moment."
           : (data.message as string) ?? (data.error as string) ?? "Something went wrong. Please try again.";
         setErrorMsg(msg);
         setPhase("error");
@@ -2109,7 +2111,11 @@ export default function RoyToolPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrorMsg(data.error ?? "Analysis failed. Please try again.");
+        setErrorMsg(
+          data.error === "rate_limit"
+            ? "Roy is a little overloaded right now — please try again in a moment."
+            : data.error ?? "Analysis failed. Please try again."
+        );
         setPhase("error");
         return;
       }
@@ -2147,13 +2153,24 @@ export default function RoyToolPage() {
       {phase === "idle" && (
         <section style={{
           padding: "72px 24px 56px",
-          textAlign: "center",
-          background: "radial-gradient(ellipse at 50% 0%, rgba(200,255,0,0.07) 0%, transparent 55%)",
+          position: "relative",
+          overflow: "hidden",
         }}>
-          <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+          <div style={{
+            position: "absolute",
+            top: "-100px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "800px",
+            height: "600px",
+            background: "radial-gradient(ellipse, rgba(200,255,0,0.07) 0%, transparent 55%)",
+            pointerEvents: "none",
+          }} />
+          <div style={{ maxWidth: "720px", margin: "0 auto", textAlign: "center" }}>
             <h1 style={{
               fontSize: "clamp(36px, 5.5vw, 64px)", fontWeight: 700,
               lineHeight: 1.08, letterSpacing: "-0.025em", marginBottom: "20px",
+              fontFamily: "var(--font-display)",
             }}>
               Drop in,{" "}
               <span style={{ color: GREEN }}>
@@ -2174,9 +2191,9 @@ export default function RoyToolPage() {
 
       {/* ── Tool card ──────────────────────────── */}
       <div style={{ padding: `${phase === "idle" ? "0" : "40px"} 24px 80px` }}>
-        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+        <div style={{ maxWidth: phase === "idle" || phase === "identified" ? "720px" : "960px", margin: "0 auto" }}>
           <div style={{
-            background: "var(--bg2)", border: "1px solid var(--border)",
+            background: "var(--roy-surface)", border: "1px solid var(--roy-border)",
             borderRadius: "8px", overflow: "hidden",
             boxShadow: "0 16px 48px rgba(0,0,0,0.3)",
           }}>
@@ -2345,7 +2362,7 @@ export default function RoyToolPage() {
                     onClick={handleReset}
                     style={{
                       alignSelf: "flex-start", padding: "8px 18px", borderRadius: "8px",
-                      background: "transparent", border: "1px solid var(--border)",
+                      background: "transparent", border: "1px solid var(--roy-border)",
                       color: "rgba(255,255,255,0.6)", fontSize: "13px", fontWeight: 600,
                       cursor: "pointer", fontFamily: "inherit",
                     }}

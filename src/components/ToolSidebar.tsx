@@ -24,16 +24,9 @@ const TalkIcon = () => (
   </svg>
 );
 
-const HistoryIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
 
 const navItems = [
   { href: "/roy-tool", label: "Summary", Icon: SummaryIcon },
-  { href: "/roy-tool/history", label: "History", Icon: HistoryIcon },
   { href: "/roy-tool/analytics", label: "Analytics", Icon: AnalyticsIcon },
   { href: "/roy-tool/talk", label: "Talk to Roy", Icon: TalkIcon },
 ];
@@ -91,7 +84,7 @@ export default function ToolSidebar() {
         borderRadius: "8px",
       }}>
         <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>Roy Label</div>
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "10px", lineHeight: 1.4 }}>
+        <div style={{ fontSize: "12px", color: "var(--roy-text-muted)", marginBottom: "10px", lineHeight: 1.4 }}>
           Unlimited artists, reconciliation, and anomaly alerts.
         </div>
         <Link

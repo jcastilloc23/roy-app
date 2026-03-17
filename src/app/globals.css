@@ -426,7 +426,7 @@ footer {
 
 /* ===== HERO ===== */
 .hero {
-  padding: 80px 24px 100px;
+  padding: 80px 24px 60px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -500,8 +500,8 @@ footer {
 
 /* ===== HERO MOCKUP ===== */
 .hero-mockup {
-  max-width: 1000px;
-  margin: 60px auto 0;
+  max-width: 800px;
+  margin: 40px auto 0;
 }
 .mockup-browser {
   background: var(--bg3);

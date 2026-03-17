@@ -85,30 +85,11 @@ export default function WhosItForPage() {
           </div>
 
           <div className="audience-visual">
-            <div className="feature-visual-label">Your Royalty Dashboard</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              {[
-                { label: "PRO Income", val: "$4,812", sub: "ASCAP + BMI + SESAC", green: true },
-                { label: "Streaming", val: "$2,340", sub: "DistroKid + CD Baby", green: false },
-                { label: "Mechanical", val: "$640", sub: "MLC (unclaimed)", green: false },
-                { label: "Issues Found", val: "3", sub: "Action required", amber: true },
-              ].map((stat) => (
-                <div key={stat.label} style={{ background: "var(--roy-surface-2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "14px" }}>
-                  <div style={{ fontSize: "10px", color: "#8a8f9a", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>{stat.label}</div>
-                  <div style={{ fontSize: "20px", fontWeight: 700, color: stat.green ? "var(--green)" : stat.amber ? "#f59e0b" : "#fff", fontFamily: "var(--font-mono)" }}>{stat.val}</div>
-                  <div style={{ fontSize: "10px", color: "#8a8f9a", marginTop: "4px" }}>{stat.sub}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ background: "var(--roy-surface-2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "14px" }}>
-              <div style={{ fontSize: "11px", color: "#8a8f9a", marginBottom: "10px" }}>Royalty sources synced</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                {["ASCAP ✓", "BMI ✓", "MLC ✓", "DistroKid ✓"].map((tag) => (
-                  <span key={tag} style={{ background: "rgba(200,255,0,0.12)", color: "var(--green)", border: "1px solid rgba(200,255,0,0.2)", borderRadius: "100px", padding: "4px 12px", fontSize: "11px", fontWeight: 600 }}>{tag}</span>
-                ))}
-                <span style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "100px", padding: "4px 12px", fontSize: "11px", fontWeight: 600 }}>SoundExchange !</span>
-              </div>
-            </div>
+            <img
+              src="/screenshots/roy-analytics-platform-territory.png"
+              alt="Roy tool — platform and territory revenue breakdown"
+              style={{ width: "100%", borderRadius: "12px", display: "block" }}
+            />
           </div>
         </div>
       </section>
@@ -141,35 +122,11 @@ export default function WhosItForPage() {
           </div>
 
           <div className="audience-visual">
-            <div className="feature-visual-label">Roster Overview</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {[
-                { initials: "JR", name: "Jordan Rivers", sources: "7 sources · All synced", amount: "$3,420", gradient: "linear-gradient(135deg,#C8FF00,#0099aa)", color: "#000", dotColor: "var(--green)", amountColor: "var(--green)" },
-                { initials: "AM", name: "Alicia Monroe", sources: "5 sources · 2 issues", amount: "$1,890", gradient: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", dotColor: "#f59e0b", amountColor: "#fff" },
-                { initials: "DK", name: "Dev Kumar", sources: "9 sources · All synced", amount: "$6,150", gradient: "linear-gradient(135deg,#f59e0b,#ef4444)", color: "#fff", dotColor: "var(--green)", amountColor: "var(--green)" },
-              ].map((artist) => (
-                <div key={artist.name} style={{ background: "var(--roy-surface-2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "12px 14px", display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "36px", height: "36px", background: artist.gradient, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: artist.color, flexShrink: 0 }}>{artist.initials}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px" }}>{artist.name}</div>
-                    <div style={{ fontSize: "11px", color: "#8a8f9a" }}>{artist.sources}</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "13px", fontWeight: 700, color: artist.amountColor, fontFamily: "var(--font-mono)" }}>{artist.amount}</div>
-                    <div style={{ fontSize: "10px", color: "#8a8f9a" }}>this quarter</div>
-                  </div>
-                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: artist.dotColor, flexShrink: 0 }} />
-                </div>
-              ))}
-              <div style={{ background: "var(--roy-surface-2)", border: "1px solid rgba(200,255,0,0.15)", borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "11px", color: "#8a8f9a", flex: 1 }}>Roster total this quarter</span>
-                <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)" }}>$11,460</span>
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button style={{ flex: 1, background: "rgba(200,255,0,0.1)", border: "1px solid rgba(200,255,0,0.2)", borderRadius: "6px", padding: "8px", fontSize: "12px", fontWeight: 600, color: "var(--green)", cursor: "pointer", fontFamily: "inherit" }}>Export CSV</button>
-                <button style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", padding: "8px", fontSize: "12px", fontWeight: 600, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>Export PDF</button>
-              </div>
-            </div>
+            <img
+              src="/screenshots/roy-analytics-artist-breakdown.png"
+              alt="Roy tool — artist breakdown and top tracks revenue view"
+              style={{ width: "100%", borderRadius: "12px", display: "block" }}
+            />
           </div>
         </div>
       </section>
