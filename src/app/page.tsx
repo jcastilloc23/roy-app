@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroCTA from "@/components/HeroCTA";
 import RoyLogo from "@/components/RoyLogo";
-import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutubemusic, SiTidal, SiBandcamp, SiPandora } from "react-icons/si";
+import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutubemusic, SiBandcamp, SiPandora } from "react-icons/si";
 
 export const metadata: Metadata = {
   title: "Roy — Music Royalty Transparency",
@@ -18,7 +18,7 @@ const logos: LogoEntry[] = [
   { name: "Apple Music",   Icon: SiApplemusic,   brandColor: "#FC3C44", url: "https://music.apple.com" },
   { name: "YouTube Music", Icon: SiYoutubemusic, brandColor: "#FF0000", url: "https://music.youtube.com" },
   { name: "SoundCloud",    Icon: SiSoundcloud,   brandColor: "#FF5500", url: "https://soundcloud.com" },
-  { name: "TIDAL",         Icon: SiTidal,        brandColor: "#00FFFF", url: "https://tidal.com" },
+  { name: "ASCAP",          src: "/logos/ascap.png",                       url: "https://www.ascap.com" },
   { name: "Bandcamp",      Icon: SiBandcamp,     brandColor: "#1DA0C3", url: "https://bandcamp.com" },
   { name: "DistroKid",     src: "/logos/distrokid.png",               url: "https://distrokid.com" },
   { name: "CD Baby",       src: "/logos/cd_baby.png",                    url: "https://cdbaby.com" },

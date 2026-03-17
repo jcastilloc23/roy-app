@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { SignUpButton } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import RoyLogo from "@/components/RoyLogo";
@@ -127,31 +128,36 @@ export default function PricingPage() {
               <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", marginBottom: "28px" }}>
                 no credit card required
               </div>
-              <Link
-                href="/subscribe"
-                style={{
-                  display: "block",
-                  textAlign: "center",
-                  padding: "11px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#fff",
-                  marginBottom: "32px",
-                  transition: "border-color 0.2s, background 0.2s",
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.06)";
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.4)";
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.2)";
-                }}
-              >
-                Get started free
-              </Link>
+              <SignUpButton mode="modal">
+                <button
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "center",
+                    padding: "11px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "#fff",
+                    marginBottom: "32px",
+                    transition: "border-color 0.2s, background 0.2s",
+                    background: "transparent",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.4)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.2)";
+                  }}
+                >
+                  Get started free
+                </button>
+              </SignUpButton>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {artistFeatures.map((f, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px", color: "rgba(255,255,255,0.75)" }}>
@@ -203,25 +209,30 @@ export default function PricingPage() {
               <div style={{ fontSize: "13px", color: "rgba(0,0,0,0.55)", marginBottom: "28px" }}>
                 billed monthly · cancel anytime
               </div>
-              <Link
-                href="/subscribe"
-                style={{
-                  display: "block",
-                  textAlign: "center",
-                  padding: "11px 16px",
-                  borderRadius: "8px",
-                  background: "#000",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#fff",
-                  marginBottom: "32px",
-                  transition: "background 0.2s",
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = "#1a1a1a"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = "#000"; }}
-              >
-                Get Roy Label
-              </Link>
+              <SignUpButton mode="modal">
+                <button
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "center",
+                    padding: "11px 16px",
+                    borderRadius: "8px",
+                    background: "#000",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "#fff",
+                    marginBottom: "32px",
+                    transition: "background 0.2s",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#1a1a1a"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#000"; }}
+                >
+                  Get Roy Label
+                </button>
+              </SignUpButton>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {labelFeatures.map((f, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px", color: "rgba(0,0,0,0.8)" }}>
@@ -317,17 +328,19 @@ export default function PricingPage() {
         {/* ── Bottom CTA ───────────────────────── */}
         <section className="section-cta">
           <div className="container">
-            <div className="section-tag">Get Started Today</div>
+            <div className="section-tag">Get Started</div>
             <h2>Your royalties are out there. Let&apos;s go find them.</h2>
             <p>
               Drop in any statement. Roy reads it, explains it, and tells
               you if something&apos;s missing.
             </p>
             <div className="cta-btns">
-              <Link href="/subscribe" className="btn-primary">
-                Try Roy free{" "}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-              </Link>
+              <SignUpButton mode="modal">
+                <button className="btn-primary">
+                  Try Roy free{" "}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                </button>
+              </SignUpButton>
               <Link href="/contact" className="btn-outline">
                 Talk to us
               </Link>

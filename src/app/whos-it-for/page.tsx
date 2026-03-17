@@ -1,12 +1,11 @@
-import type { Metadata } from "next";
+"use client";
+import { useState } from "react";
 import Link from "next/link";
+import { SignUpButton } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import RoyLogo from "@/components/RoyLogo";
 
-export const metadata: Metadata = {
-  title: "Who It's For",
-};
 
 const ArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -24,27 +23,28 @@ const CheckBullet = ({ children }: { children: React.ReactNode }) => (
 const faqs = [
   {
     q: "I don't make much money yet — is Roy still for me?",
-    a: "Absolutely. In fact, emerging artists often miss the most royalties because their accounts aren't fully set up yet. Roy's free plan is designed for artists at every stage — you can connect your accounts, see what you're earning, and start fixing issues without paying a dime. As your income grows, Roy grows with you.",
+    a: "Yes. Missing royalties are most common early on, when accounts aren't fully set up. Create a free account — no card required.",
   },
   {
-    q: "How long does it take to get set up?",
-    a: "Most artists connect all their accounts within 10–15 minutes. Roy guides you through each integration step by step. Once connected, your royalty data starts populating immediately — and Roy begins auditing your catalogue for gaps and issues right away.",
+    q: "How does Roy work?",
+    a: "Drop in a royalty statement — CSV, PDF, or XLS. Roy reads it, normalizes the data, and gives you a plain-English breakdown of what you earned, at what rates, and what looks off.",
   },
   {
-    q: "What platforms does Roy integrate with?",
-    a: "Roy connects with all major PROs (ASCAP, BMI, SESAC, SOCAN), SoundExchange, The MLC, and the biggest distributors — DistroKid, CD Baby, TuneCore, AWAL, Songtrust, and more. We're adding new integrations every month.",
+    q: "Do I need to connect my accounts?",
+    a: "No — and intentionally so. Most DSPs don't offer reliable APIs, and automated extraction breaks constantly. Roy's approach: start by uploading a lifetime earnings report to get the full picture, then drop in each month's new statements as they come in. You stay in control of your data.",
   },
   {
-    q: "Is my financial data safe with Roy?",
-    a: "Yes. Roy uses read-only access to connect your royalty accounts — we never store your credentials, and we can never move money on your behalf. Your data is encrypted at rest and in transit, and we are SOC 2 compliant.",
+    q: "Is my statement data safe?",
+    a: "Yes. Files are encrypted in transit and at rest. We never share your data with third parties.",
   },
   {
-    q: "Can my manager or business manager access my Roy account?",
-    a: "Yes. Roy supports team access with role-based permissions. You can invite managers, business managers, or collaborators to view your dashboard — with full control over what they can see and do.",
+    q: "What's the difference between Roy Artist and Roy Label?",
+    a: "Roy Artist is free — one artist, up to 3 report sources a month. Roy Label is $11/mo and supports unlimited artists and sources, plus full cross-statement reconciliation.",
   },
 ];
 
 export default function WhosItForPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   return (
     <>
       <Navbar />
@@ -62,11 +62,11 @@ export default function WhosItForPage() {
           </div>
         </div>
 
-        {/* ===== ARTISTS ===== */}
+        {/* ===== INDEPENDENT ARTISTS ===== */}
         <section className="section-audience" id="artists">
           <div className="audience-inner container">
             <div className="audience-content">
-              <div className="section-tag">Artists, Producers &amp; Composers</div>
+              <div className="section-tag">Artists, Producers &amp; Songwriters</div>
               <h2>Stop leaving money on the table</h2>
               <p>
                 Whether you&apos;re a touring artist, bedroom producer, or staff
@@ -81,9 +81,11 @@ export default function WhosItForPage() {
                 <CheckBullet>Detect unclaimed royalties before they expire</CheckBullet>
                 <CheckBullet>Unified payout calendar — know exactly when money is coming</CheckBullet>
               </div>
-              <Link href="/subscribe" className="btn-primary" style={{ marginTop: "24px" }}>
-                Get Started Free <ArrowIcon />
-              </Link>
+              <SignUpButton mode="modal">
+                <button className="btn-primary" style={{ marginTop: "24px" }}>
+                  Get started free <ArrowIcon />
+                </button>
+              </SignUpButton>
             </div>
 
             <div className="audience-visual">
@@ -115,28 +117,31 @@ export default function WhosItForPage() {
           </div>
         </section>
 
-        {/* ===== MANAGERS ===== */}
-        <section className="section-audience" id="managers">
+        {/* ===== MANAGERS, LABELS & PUBLISHERS ===== */}
+        <section className="section-audience" id="labels">
           <div className="audience-inner container reverse">
             <div className="audience-content">
-              <div className="section-tag">Managers</div>
+              <div className="section-tag">Managers, Labels &amp; Publishers</div>
               <h2>Manage your entire roster in one place</h2>
               <p>
                 You&apos;re responsible for making sure your artists get paid —
                 and that means juggling a dozen different platforms for each
-                client. Roy gives managers a unified view across their entire
-                roster, so you can spot problems before your artists even know
-                they exist.
+                client. Roy gives managers and labels a unified view across their
+                entire roster, with structured financial exports ready for tax
+                season, forecasting, and client reporting.
               </p>
               <div className="feature-bullets">
                 <CheckBullet>Multi-artist roster view — see everyone at a glance</CheckBullet>
                 <CheckBullet>Automated issue alerts sent directly to you</CheckBullet>
-                <CheckBullet>Consolidated reports ready to share with your team</CheckBullet>
+                <CheckBullet>Income categorized by type: performance, mechanical, digital, sync</CheckBullet>
+                <CheckBullet>Consolidated CSV and PDF exports ready for your accountant</CheckBullet>
                 <CheckBullet>Track open claims and pending registrations across all artists</CheckBullet>
               </div>
-              <Link href="/subscribe" className="btn-primary" style={{ marginTop: "24px" }}>
-                Manage Your Roster <ArrowIcon />
-              </Link>
+              <SignUpButton mode="modal">
+                <button className="btn-primary" style={{ marginTop: "24px" }}>
+                  Manage Your Roster <ArrowIcon />
+                </button>
+              </SignUpButton>
             </div>
 
             <div className="audience-visual">
@@ -164,55 +169,7 @@ export default function WhosItForPage() {
                   <span style={{ fontSize: "11px", color: "#8a8f9a", flex: 1 }}>Roster total this quarter</span>
                   <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)" }}>$11,460</span>
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ===== BUSINESS MANAGERS ===== */}
-        <section className="section-audience" id="business-managers">
-          <div className="audience-inner container">
-            <div className="audience-content">
-              <div className="section-tag">Business Managers</div>
-              <h2>Financial clarity for your music clients</h2>
-              <p>
-                Business managers need accurate, timely royalty data to do their
-                jobs — forecasting income, filing taxes, managing cash flow. Roy
-                delivers structured, export-ready financial data from every
-                royalty source your clients use, so you&apos;re never working
-                from guesswork.
-              </p>
-              <div className="feature-bullets">
-                <CheckBullet>Structured financial exports — CSV, PDF, and more</CheckBullet>
-                <CheckBullet>Income categorized by type: performance, mechanical, digital, sync</CheckBullet>
-                <CheckBullet>Year-over-year trend reports ready for tax season</CheckBullet>
-                <CheckBullet>Cash flow forecasting based on historical payout patterns</CheckBullet>
-              </div>
-              <Link href="/contact" className="btn-primary" style={{ marginTop: "24px" }}>
-                Talk to Sales <ArrowIcon />
-              </Link>
-            </div>
-
-            <div className="audience-visual">
-              <div className="feature-visual-label">Annual Income Summary</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {[
-                  { label: "Performance Royalties", val: "$18,430", green: true },
-                  { label: "Mechanical Royalties", val: "$7,210", green: false },
-                  { label: "Digital Distribution", val: "$12,880", green: false },
-                  { label: "Sync Licensing", val: "$4,500", green: false },
-                ].map((row) => (
-                  <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "var(--roy-surface-2)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <div style={{ fontSize: "12px", fontWeight: 600 }}>{row.label}</div>
-                    <div style={{ fontSize: "13px", fontWeight: 700, color: row.green ? "var(--green)" : "#fff", fontFamily: "var(--font-mono)" }}>{row.val}</div>
-                  </div>
-                ))}
-                <div style={{ height: "1px", background: "rgba(255,255,255,0.08)", margin: "4px 0" }} />
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "rgba(200,255,0,0.06)", borderRadius: "8px", border: "1px solid rgba(200,255,0,0.2)" }}>
-                  <div style={{ fontSize: "13px", fontWeight: 700 }}>Total FY{new Date().getFullYear()}</div>
-                  <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)" }}>$43,020</div>
-                </div>
-                <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                <div style={{ display: "flex", gap: "8px" }}>
                   <button style={{ flex: 1, background: "rgba(200,255,0,0.1)", border: "1px solid rgba(200,255,0,0.2)", borderRadius: "6px", padding: "8px", fontSize: "12px", fontWeight: 600, color: "var(--green)", cursor: "pointer", fontFamily: "inherit" }}>Export CSV</button>
                   <button style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", padding: "8px", fontSize: "12px", fontWeight: 600, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>Export PDF</button>
                 </div>
@@ -225,7 +182,7 @@ export default function WhosItForPage() {
         <section className="section-faq-callout">
           <div className="faq-callout-inner container">
             <div style={{ marginBottom: "48px" }}>
-              <div className="section-tag">Questions &amp; Answers</div>
+              <div className="section-tag">Frequently Asked Questions</div>
               <h2 style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "12px" }}>
                 Common questions about Roy
               </h2>
@@ -233,10 +190,27 @@ export default function WhosItForPage() {
                 Everything you need to know before getting started.
               </p>
             </div>
-            {faqs.map((faq) => (
-              <div key={faq.q} className="faq-item">
-                <div className="faq-question">{faq.q}</div>
-                <div className="faq-answer">{faq.a}</div>
+            {faqs.map((faq, i) => (
+              <div
+                key={faq.q}
+                className="faq-item"
+                style={{ cursor: "pointer" }}
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+              >
+                <div
+                  className="faq-question"
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px" }}
+                >
+                  {faq.q}
+                  <span style={{ fontSize: "22px", fontWeight: 400, color: "var(--text-muted)", flexShrink: 0, transition: "transform 0.2s", transform: openFaq === i ? "rotate(45deg)" : "rotate(0)", display: "inline-block" }}>
+                    +
+                  </span>
+                </div>
+                {openFaq === i && (
+                  <div className="faq-answer" style={{ paddingTop: "14px" }}>
+                    {faq.a}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -245,13 +219,15 @@ export default function WhosItForPage() {
         {/* ===== BOTTOM CTA ===== */}
         <section className="section-cta">
           <div className="container">
-            <div className="section-tag">Start for Free</div>
+            <div className="section-tag">Get Started</div>
             <h2>Your royalties are waiting. Go get them.</h2>
-            <p>Connect your accounts in minutes. Roy will show you exactly what you&apos;re earning — and what you&apos;re missing.</p>
+            <p>Drop in a statement and Roy shows you exactly what you earned, at what rates, and what looks off.</p>
             <div className="cta-btns">
-              <Link href="/subscribe" className="btn-primary">
-                Get Started — It&apos;s Free <ArrowIcon />
-              </Link>
+              <SignUpButton mode="modal">
+                <button className="btn-primary">
+                  Get started free <ArrowIcon />
+                </button>
+              </SignUpButton>
               <Link href="/contact" className="btn-outline">Talk to us</Link>
             </div>
             <p style={{ marginTop: "16px", fontSize: "13px", color: "var(--text-muted)" }}>
