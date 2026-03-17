@@ -52,15 +52,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Create a statement record without storage (tabular file — processed inline)
+  // Create a statement record with the intended storage path
   const statementId = crypto.randomUUID();
+  const storagePath = `${userId}/${statementId}/${fileName}`;
   const { error: stmtError } = await supabase.from("statements").insert({
     id: statementId,
     user_id: userId,
     file_name: fileName,
     file_size: fileSize ?? null,
     file_type: fileType ?? null,
-    file_url: null,
+    file_url: storagePath,
     file_hash: fileHash ?? null,
     status: "pending",
   });
@@ -81,6 +82,8 @@ IMPORTANT: Some statement files have no source name in the filename or file cont
 Known fingerprints:
 - DistroKid (.tsv): headers include "Earnings (USD)", "Country of Sale", "Songwriter Royalties Withheld (USD)"
 - SoundCloud for Artists (.csv): headers include "Revenue (USD)", "Revenue Share (%)", "Split Pay Share (%)" — rows 0-1 are preamble (Account ID + UUID), actual column headers are on row 2
+- ASCAP International (.csv): headers include "Work Title", "Licensor", "$ Amount", "Revenue Class Description" — set source to exactly "ASCAP International"; royalty_type is "performance"; no stream counts (PROs); artist = "Statement Recipient Name"; "$ Amount" has a leading space — trim before parsing
+- ASCAP US (.csv): headers include "Work Title", "Number of Plays", "Dollars", "Performance Quarter" — set source to exactly "ASCAP US"; royalty_type is "performance"; "Number of Plays" IS stream count (use it); store/platform = "Music User"; period format is "2Q2025"; artist = "Statement Recipient Name"; "Dollars" is zero-padded — trim before parsing
 
 ${taxonomyPromptBlock()}
 
@@ -139,6 +142,11 @@ ${fileContent}`;
     status: "identified",
   }).eq("id", statementId);
 
+  // Generate a signed upload URL so the client can store the full file in the background
+  const { data: signedUpload } = await supabase.storage
+    .from("statements")
+    .createSignedUploadUrl(storagePath);
+
   return NextResponse.json({
     statementId,
     source: identified.source,
@@ -146,5 +154,6 @@ ${fileContent}`;
     detected_artist: identified.detected_artist ?? null,
     greeting: identified.greeting,
     file_name: fileName,
+    signedUrl: signedUpload?.signedUrl ?? null,
   });
 }

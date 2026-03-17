@@ -45,10 +45,10 @@ const TAXONOMY: TaxonomyEntry[] = [
     royalty_type: "performance",
     rights: "composition (publishing)",
     pays_to: "songwriters and publishers",
-    note: "PROs collect and distribute public performance and broadcast royalties for compositions. They do NOT pay sound recording rights. SoundExchange is not a PRO — do not list it here.",
+    note: "PROs collect and distribute public performance and broadcast royalties for compositions. They do NOT pay sound recording rights. SoundExchange is not a PRO — do not list it here. IMPORTANT: PRO statements do NOT include stream counts — never compute or flag missing per-stream rates for PRO statements. ASCAP international earnings use 'Licensor' for the foreign CMO that collected, 'Statement Recipient Name' for the ASCAP member (use as artist), 'Work Title' for track, and '$ Amount' for earnings (leading space — trim before parsing). '$ Amount' column header has a leading space.",
     sources: [
       // US
-      "ASCAP", "BMI", "SESAC", "GMR",
+      "ASCAP", "ASCAP US", "ASCAP International", "BMI", "SESAC", "GMR",
       // UK / Ireland
       "PRS", "PRS for Music", "IMRO",
       // Canada / Australia / NZ

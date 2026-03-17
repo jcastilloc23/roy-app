@@ -104,6 +104,88 @@ Row 2: "Track","Artist(s)","Partner",...  ← ACTUAL HEADERS (header_row = 2)
 
 ---
 
+### ASCAP International
+
+| Field | Value |
+|-------|-------|
+| **Canonical name** | ASCAP International |
+| **Aliases** | ASCAP International Earnings |
+| **Org type** | PRO (Performing Rights Organization) |
+| **What they pay** | Public performance royalties for compositions |
+| **Who they pay** | Songwriters and publishers (ASCAP members) |
+| **File extension** | `.csv` (also delivered as companion `.pdf`) |
+| **File naming pattern** | `{memberNumber}.csv` / `I_{stmtId}_{memberNumber}.pdf` — not reliable for identification |
+| **Header row** | `0` (0-indexed) |
+
+**Column fingerprint** (ALL must be present to match):
+```
+["Work Title", "Licensor", "$ Amount", "Revenue Class Description"]
+```
+
+**Column mappings:**
+| Canonical field | Exact column name | Notes |
+|----------------|-------------------|-------|
+| `earnings` | `$ Amount` | Leading space in header; value is zero-padded — `parseFloat(val.trim())` |
+| `streams` | `null` | PROs never report stream counts — do not compute or flag missing per-stream rates |
+| `store` | `Licensor` | Foreign CMO/PRO that collected internationally (KODA, GEMA, FILSCAP, SAZAS, SGAE…) |
+| `territory` | `Territory` | 2-letter ISO country code |
+| `track` | `Work Title` | Song/composition title |
+| `period` | `Performance Start Date` | Quarterly windows — pair with `Performance End Date` |
+| `artist` | `Statement Recipient Name` | ASCAP member account receiving payment |
+
+**Quirks:**
+- `Party Name` = composer/songwriter — do **NOT** use for the `artist` field in summaries
+- `Statement Recipient Name` = the ASCAP member being paid (use this as `artist`)
+- `Revenue Class Description` = royalty context: "Other royalties", "Television", "Download - musical works"
+- `Licensor` = foreign PRO/CMO collecting internationally on ASCAP's behalf — treat as `store`
+- `$ Amount` column header has a **leading space** — the header is `" $ Amount"` not `"$ Amount"` in raw CSV; fingerprint uses the trimmed name for matching convenience, but parsers must account for the leading space
+- Values in `$ Amount` are zero-padded strings — always `.trim()` before `parseFloat()`
+- Quarterly cadence — performance windows are 3-month spans
+- Both CSV and PDF are delivered together; identification must rely on column fingerprint, not filename
+
+---
+
+### ASCAP US
+
+| Field | Value |
+|-------|-------|
+| **Canonical name** | ASCAP US |
+| **Aliases** | ASCAP US Domestic Earnings |
+| **Org type** | PRO (Performing Rights Organization) |
+| **What they pay** | Public performance royalties for compositions — US domestic |
+| **Who they pay** | Songwriters and publishers (ASCAP members) |
+| **File extension** | `.csv` (also delivered as companion `.pdf`) |
+| **File naming pattern** | `{memberNumber}.csv` / `I_{stmtId}_{memberNumber}.pdf` — not reliable for identification |
+| **Header row** | `0` (0-indexed) |
+
+**Column fingerprint** (ALL must be present to match):
+```
+["Work Title", "Number of Plays", "Dollars", "Performance Quarter"]
+```
+
+**Column mappings:**
+| Canonical field | Exact column name | Notes |
+|----------------|-------------------|-------|
+| `earnings` | `Dollars` | Zero-padded string — `parseFloat(val.trim())` |
+| `streams` | `Number of Plays` | Actual play count — usable for per-platform stream charts |
+| `store` | `Music User` | DSP/platform name (e.g. "APPLE SUBSCRIPTION", "SPOTIR", "Amazon Music Unlimited") |
+| `territory` | `Territory` | `"US"` for all rows in the domestic statement |
+| `track` | `Work Title` | Song/composition title |
+| `period` | `Performance Quarter` | Quarter format: `"2Q2025"` |
+| `artist` | `Statement Recipient Name` | ASCAP member account receiving payment |
+
+**Quirks:**
+- `Party Name` = composer/songwriter — do **NOT** use for the `artist` field
+- `Music User` values are uppercase platform names — normalize to display names when rendering (e.g. "SPOTIR" → Spotify, "APPLE SUBSCRIPTION" → Apple Music)
+- `Dollars` is zero-padded (e.g. `" 00000000000000000.00019"`) — always `.trim()` before `parseFloat()`
+- `Performance Quarter` format is `"NQyyyy"` (e.g. `"2Q2025"`) — parse as Q2 2025
+- Unlike the International format, US rows have actual `Number of Plays` — per-platform stream charts are buildable
+- `Licensor` column exists but contains `"S10"` (ASCAP's internal US code) — not a foreign CMO; do not use as store
+- `EE Share` = the member's ownership percentage share (e.g. `"16.670"`) — useful for co-write scenarios
+- `Performance Source/Broadcast Medium` = broadcast medium code (e.g. `"GN-IS"` for General Internet Interactive Self-Representing)
+
+---
+
 ## Fingerprint Reference (for Gemini injection)
 
 Use this compact block in identification prompts when a file's source is ambiguous:
@@ -112,6 +194,8 @@ Use this compact block in identification prompts when a file's source is ambiguo
 Known fingerprints — identify by column headers if filename gives no clue:
 - DistroKid (.tsv): headers include "Earnings (USD)", "Country of Sale", "Songwriter Royalties Withheld (USD)"
 - SoundCloud for Artists (.csv): headers include "Revenue (USD)", "Revenue Share (%)", "Split Pay Share (%)" — rows 0-1 are preamble (Account ID + UUID), headers on row 2
+- ASCAP International (.csv): headers include "Work Title", "Licensor", "$ Amount", "Revenue Class Description" — royalty_type is "performance"; no stream counts; artist = "Statement Recipient Name"; "$ Amount" has a leading space — trim before parsing
+- ASCAP US (.csv): headers include "Work Title", "Number of Plays", "Dollars", "Performance Quarter" — royalty_type is "performance"; "Number of Plays" IS stream count; store = "Music User"; period = "Performance Quarter" (format "2Q2025"); artist = "Statement Recipient Name"; "Dollars" is zero-padded — trim before parsing
 ```
 
 ---
@@ -126,7 +210,6 @@ Known fingerprints — identify by column headers if filename gives no clue:
 | FUGA | Distributor | CSV/Excel — needs fingerprint |
 | Spotify for Artists | DSP | CSV — direct from DSP, not distributor |
 | Apple Music | DSP | Excel — needs fingerprint |
-| ASCAP | PRO | PDF + CSV variants — needs fingerprint |
 | BMI | PRO | PDF + CSV variants — needs fingerprint |
 | SoundExchange | CMO | CSV — needs fingerprint |
 | MLC | CMO | Excel — needs fingerprint |

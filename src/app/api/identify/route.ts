@@ -70,6 +70,8 @@ IMPORTANT: Some statement files have no source name in the filename or file cont
 Known fingerprints:
 - DistroKid (.tsv): headers include "Earnings (USD)", "Country of Sale", "Songwriter Royalties Withheld (USD)"
 - SoundCloud for Artists (.csv): headers include "Revenue (USD)", "Revenue Share (%)", "Split Pay Share (%)" — rows 0-1 are preamble (Account ID + UUID), actual column headers are on row 2
+- ASCAP International (.csv): headers include "Work Title", "Licensor", "$ Amount", "Revenue Class Description" — set source to exactly "ASCAP International"; royalty_type is "performance"; no stream counts (PROs); artist = "Statement Recipient Name"; "$ Amount" has a leading space — trim before parsing
+- ASCAP US (.csv): headers include "Work Title", "Number of Plays", "Dollars", "Performance Quarter" — set source to exactly "ASCAP US"; royalty_type is "performance"; "Number of Plays" IS stream count (use it); store/platform = "Music User"; period format is "2Q2025"; artist = "Statement Recipient Name"; "Dollars" is zero-padded — trim before parsing
 
 ${taxonomyPromptBlock()}
 

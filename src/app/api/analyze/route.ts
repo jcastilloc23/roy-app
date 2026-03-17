@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabase";
 import { matchSchema } from "@/lib/stmts-schema";
 import { taxonomyPromptBlock } from "@/lib/industry-taxonomy";
+import { normalizePeriod } from "@/lib/period-utils";
 import Papa from "papaparse";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -200,8 +201,9 @@ async function summarizeTabular(
     const store   = columns.store     ? String(row[columns.store]   ?? "").trim() || null : null;
     const terr    = columns.territory ? String(row[columns.territory] ?? "").trim() || null : null;
     const track   = columns.track     ? String(row[columns.track]   ?? "").trim() || null : null;
-    const period  = columns.period    ? String(row[columns.period]  ?? "").trim() || null : null;
-    const artist  = columns.artist    ? String(row[columns.artist]  ?? "").trim() || null : null;
+    const rawPeriod = columns.period ? String(row[columns.period] ?? "").trim() || null : null;
+    const period    = rawPeriod ? normalizePeriod(rawPeriod, knownSchema?.orgType) : null;
+    const artist    = columns.artist ? String(row[columns.artist] ?? "").trim() || null : null;
 
     if (artist) {
       const normalized = normalizeArtistForComparison(artist);
@@ -304,7 +306,7 @@ async function summarizeTabular(
 /* ── Narrative prompt (stats → Roy paragraph) ───────────────────────────── */
 function buildNarrativePrompt(stats: SummarizeStats): string {
   const fmt = (n: number) =>
-    `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `$${n.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
 
   const storeLines = stats.byStore
     .map(s => `  ${s.name}: ${fmt(s.earnings)}${s.streams ? ` (${s.streams.toLocaleString()} streams/units)` : ""}`)

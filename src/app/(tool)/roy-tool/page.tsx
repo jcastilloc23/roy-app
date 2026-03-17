@@ -6,6 +6,8 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 import { royaltyTypeLabel } from "@/lib/industry-taxonomy";
 import Papa from "papaparse";
 import { matchSchema } from "@/lib/stmts-schema";
+import { normalizePlatform } from "@/lib/platform-names";
+import { normalizePeriod, isQuarterPeriod } from "@/lib/period-utils";
 import {
   AreaChart, Area,
   XAxis, YAxis, Tooltip as RTooltip,
@@ -84,6 +86,7 @@ async function computeFileStats(file: File, source: string): Promise<LocalStats 
   const lines = headerSlice.split("\n");
 
   let headerRow = 0;
+  let schemaOrgType: string | undefined;
   let columns: Record<string, string | null> = {
     earnings: null, streams: null, store: null,
     territory: null, track: null, period: null, artist: null,
@@ -95,6 +98,7 @@ async function computeFileStats(file: File, source: string): Promise<LocalStats 
     const schema = matchSchema(headers);
     if (schema) {
       headerRow = schema.headerRow;
+      schemaOrgType = schema.orgType;
       columns = { ...columns, ...schema.columns };
       break;
     }
@@ -134,8 +138,9 @@ async function computeFileStats(file: File, source: string): Promise<LocalStats 
         const store   = columns.store     ? String(row[columns.store]   ?? "").trim() || null : null;
         const terr    = columns.territory ? String(row[columns.territory] ?? "").trim() || null : null;
         const track   = columns.track     ? String(row[columns.track]   ?? "").trim() || null : null;
-        const period  = columns.period    ? String(row[columns.period]  ?? "").trim() || null : null;
-        const artist  = columns.artist    ? String(row[columns.artist]  ?? "").trim() || null : null;
+        const rawPeriod = columns.period ? String(row[columns.period] ?? "").trim() || null : null;
+        const period    = rawPeriod ? normalizePeriod(rawPeriod, schemaOrgType) : null;
+        const artist    = columns.artist ? String(row[columns.artist] ?? "").trim() || null : null;
 
         if (artist) {
           const norm = _normalizeArtist(artist);
@@ -208,14 +213,16 @@ async function computeFileStats(file: File, source: string): Promise<LocalStats 
 }
 
 /* ── Helpers ─────────────────────────────────── */
-function fmtCompact(n: number, dollars = false): string {
+function fmtCompact(n: number, dollars = false, fixedDecimals?: number): string {
   const prefix = dollars ? "$" : "";
   if (n >= 1_000_000) return `${prefix}${(n / 1_000_000).toFixed(1)}M`;
   if (!dollars && n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   if (dollars && n >= 10_000) return `$${(n / 1_000).toFixed(1)}K`;
-  return dollars
-    ? `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : n.toLocaleString();
+  if (dollars) {
+    const d = fixedDecimals ?? (n < 0.01 ? 4 : 2);
+    return `$${n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
+  }
+  return n.toLocaleString();
 }
 
 const DONUT_COLORS = ["#10b981", "#06b6d4", "#8b5cf6", "#f59e0b", "#d946ef", "#84cc16", "#94a3b8"];
@@ -229,9 +236,10 @@ const BENCHMARKS: Record<string, [number, number]> = {
 
 /* ── Platform logos ──────────────────────────── */
 function PlatformLogo({ name, size = 20 }: { name: string; size?: number }) {
-  if (name === "Spotify")       return <SiSpotify size={size} color="#1DB954" />;
-  if (name === "Apple Music")   return <SiApplemusic size={size} color="#FC3C44" />;
-  if (name === "YouTube Music") return <SiYoutubemusic size={size} color="#FF0000" />;
+  const canonical = normalizePlatform(name);
+  if (canonical === "Spotify")       return <SiSpotify size={size} color="#1DB954" />;
+  if (canonical === "Apple Music")   return <SiApplemusic size={size} color="#FC3C44" />;
+  if (canonical === "YouTube Music") return <SiYoutubemusic size={size} color="#FF0000" />;
   return null;
 }
 
@@ -325,6 +333,8 @@ type PeriodArtistMap = Record<string, Record<string, { earnings: number; streams
 
 function fmtPeriodTick(p: string, granularity: "monthly" | "yearly"): string {
   if (granularity === "yearly") return p;
+  const q = p.match(/^(\d{4})-Q(\d)$/);
+  if (q) return `Q${q[2]} '${q[1].slice(2)}`;
   const m = p.match(/^(\d{4})-(\d{2})$/);
   if (m) {
     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -354,6 +364,7 @@ function TimeChart({
   selectedArtist?: string | null;
 }) {
   const uniqueYears = new Set(byPeriod.map(d => d.period.slice(0, 4))).size;
+  const isQuarterly = byPeriod.length > 0 && isQuarterPeriod(byPeriod[0].period);
   const [mode, setMode] = useState<"earnings" | "streams">("earnings");
   const [granularity, setGran] = useState<"monthly" | "yearly">(byPeriod.length > 18 ? "yearly" : "monthly");
 
@@ -404,7 +415,7 @@ function TimeChart({
                   border: `1px solid ${granularity === g ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)"}`,
                   cursor: "pointer", fontFamily: "inherit",
                 }}>
-                  {g === "monthly" ? "Mo" : "Yr"}
+                  {g === "monthly" ? (isQuarterly ? "Qr" : "Mo") : "Yr"}
                 </button>
               ))}
             </div>
@@ -443,7 +454,7 @@ function TimeChart({
           <YAxis hide />
           <RTooltip content={<Tip />} cursor={{ stroke: "rgba(255,255,255,0.06)", strokeWidth: 1 }} />
           <Area type="monotone" dataKey={mode} stroke={GREEN} strokeWidth={2}
-            fill="url(#areaGrad)" dot={false}
+            fill="url(#areaGrad)" dot={chartData.length === 1 ? { r: 5, fill: GREEN, strokeWidth: 0 } : false}
             activeDot={{ r: 4, fill: GREEN, strokeWidth: 0 }}
           />
         </AreaChart>
@@ -1400,7 +1411,7 @@ function ResultPanel({
                 {selectedArtist ? "Artist earnings" : "Total earnings"}
               </div>
               <div style={{ fontSize: "22px", fontWeight: 700, color: GREEN }}>
-                {effEarnings != null ? fmtCompact(effEarnings, true) : "—"}
+                {effEarnings != null ? fmtCompact(effEarnings, true, 2) : "—"}
               </div>
               {!selectedArtist && typeof result.currency === "string" && result.currency !== "USD" && (
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{result.currency as string}</div>
@@ -1423,7 +1434,7 @@ function ResultPanel({
           </div>
 
           {/* Time chart — over time */}
-          {Array.isArray(result.by_period) && result.by_period.length > 1 && (
+          {Array.isArray(result.by_period) && result.by_period.length > 0 && (
             <div style={{ background: "var(--roy-surface-2)", border: "1px solid var(--roy-border)", borderRadius: "8px", padding: "20px" }}>
               <TimeChart
                 byPeriod={result.by_period as PeriodRow[]}
@@ -1498,7 +1509,7 @@ function ResultPanel({
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
                 {effByStore.length > 0 && (
                   <DonutChart
-                    title="By platform"
+                    title={result.columns_detected?.store === "Licensor" ? "By licensor" : "By platform"}
                     dollars={donutMode === "earnings"}
                     data={[...effByStore]
                       .sort((a, b) => (donutMode === "earnings" ? b.earnings - a.earnings : b.streams - a.streams))
@@ -1526,7 +1537,7 @@ function ResultPanel({
               .filter(a => a.value > 0)
               .sort((a, b) => b.value - a.value);
             const formatter = artistMode === "earnings"
-              ? (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              ? (n: number) => fmtCompact(n, true)
               : (n: number) => fmtCompact(n);
             return (
               <div>
@@ -1582,7 +1593,7 @@ function ResultPanel({
               .filter(t => t.value > 0)
               .sort((a, b) => b.value - a.value);
             const formatter = trackMode === "earnings"
-              ? (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              ? (n: number) => fmtCompact(n, true)
               : (n: number) => fmtCompact(n);
             return (
               <div>
@@ -1984,6 +1995,15 @@ export default function RoyToolPage() {
         setIdentified(dupIdentified);
         setPhase("identified");
         return;
+      }
+
+      // Background storage upload — fire and forget, doesn't block UX
+      if (data.signedUrl) {
+        const signedUrl = data.signedUrl as string;
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", signedUrl);
+        xhr.setRequestHeader("content-type", file.type || "application/octet-stream");
+        xhr.send(file);
       }
 
       setIdentified({
