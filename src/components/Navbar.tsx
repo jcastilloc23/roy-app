@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { useAuth, UserButton, SignInButton, SignUpButton } from "@clerk/nextjs";
 import RoyLogo from "@/components/RoyLogo";
 
 const navLinks = [
@@ -16,6 +16,7 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isSignedIn } = useAuth();
 
   return (
     <>
@@ -38,29 +39,27 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
-            <Show when="signed-out">
+            {!isSignedIn && (
               <li>
-                <SignInButton mode="modal" forceRedirectUrl="/roy-tool">
+                <SignInButton mode="modal">
                   <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "rgba(255,255,255,0.7)", padding: 0, fontSize: "15px" }}>
                     Log In
                   </button>
                 </SignInButton>
               </li>
-            </Show>
+            )}
           </ul>
 
           {/* Actions */}
           <div className="nav-actions">
-            <Show when="signed-out">
-              <SignUpButton mode="modal" forceRedirectUrl="/roy-tool">
+            {!isSignedIn && (
+              <SignUpButton mode="modal">
                 <button className="btn-primary" style={{ padding: "9px 18px", fontSize: "14px" }}>
                   Get Started Free
                 </button>
               </SignUpButton>
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
+            )}
+            {isSignedIn && <UserButton />}
             {/* Hamburger (mobile) */}
             <button
               className="hamburger"
@@ -115,21 +114,21 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <Show when="signed-out">
-            <SignInButton mode="modal" forceRedirectUrl="/roy-tool">
-              <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "#fff", fontSize: "24px", fontWeight: 600 }}>
-                Log In
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal" forceRedirectUrl="/roy-tool">
-              <button className="btn-primary" onClick={() => setMobileOpen(false)}>
-                Get Started Free
-              </button>
-            </SignUpButton>
-          </Show>
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
+          {!isSignedIn && (
+            <>
+              <SignInButton mode="modal">
+                <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "#fff", fontSize: "24px", fontWeight: 600 }}>
+                  Log In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="btn-primary" onClick={() => setMobileOpen(false)}>
+                  Get Started Free
+                </button>
+              </SignUpButton>
+            </>
+          )}
+          {isSignedIn && <UserButton />}
         </div>
       )}
     </>

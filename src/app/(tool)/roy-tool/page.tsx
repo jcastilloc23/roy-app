@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { royaltyTypeLabel } from "@/lib/industry-taxonomy";
 import Papa from "papaparse";
 import { matchSchema } from "@/lib/stmts-schema";
@@ -1760,6 +1760,8 @@ function ResultPanel({
 /* ══════════════════════════════════════════════ */
 export default function RoyToolPage() {
   const router = useRouter();
+  const { isSignedIn, isLoaded } = useAuth();
+  const { openSignIn } = useClerk();
   const [phase, setPhase] = useState<Phase>("idle");
   const [identified, setIdentified] = useState<IdentifiedFile | null>(null);
   const [artistName, setArtistName] = useState<string>("");
@@ -1769,6 +1771,12 @@ export default function RoyToolPage() {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [splitMode, setSplitMode] = useState(false);
   const [largeFile, setLargeFile] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      openSignIn();
+    }
+  }, [isLoaded, isSignedIn]);
 
   // Presigned upload flow:
   // 1. Hash file client-side
