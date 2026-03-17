@@ -133,7 +133,7 @@ export default async function HistoryPage() {
               padding: "80px 24px",
               background: "var(--bg2)",
               border: "1px solid var(--border)",
-              borderRadius: "16px",
+              borderRadius: "8px",
             }}>
               <div style={{ fontSize: "40px", marginBottom: "16px", opacity: 0.3 }}>📂</div>
               <div style={{ fontSize: "16px", fontWeight: 600, color: "rgba(255,255,255,0.7)", marginBottom: "8px" }}>
@@ -162,7 +162,7 @@ export default async function HistoryPage() {
             <div style={{
               background: "var(--bg2)",
               border: "1px solid var(--border)",
-              borderRadius: "16px",
+              borderRadius: "8px",
               overflow: "hidden",
             }}>
               {/* Table header */}
@@ -235,7 +235,7 @@ export default async function HistoryPage() {
                     </div>
 
                     {/* Earnings */}
-                    <div style={{ fontSize: "13px", fontWeight: pr?.total_earnings ? 600 : 400, color: pr?.total_earnings ? "#C8FF00" : "rgba(255,255,255,0.35)" }}>
+                    <div style={{ fontSize: "13px", fontWeight: pr?.total_earnings ? 600 : 400, color: pr?.total_earnings ? "#C8FF00" : "rgba(255,255,255,0.35)", fontFamily: "var(--font-mono)" }}>
                       {pr ? fmtEarnings(pr.total_earnings, pr.currency) : "—"}
                     </div>
 

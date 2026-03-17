@@ -46,6 +46,7 @@ body {
 /* Explicit white on all headings — prevents injected third-party CSS from overriding */
 h1, h2, h3, h4, h5, h6 {
   color: #fff;
+  font-family: var(--font-display);
 }
 
 /* Section tag / eyebrow pills — explicit green prevents Mogul script override */
@@ -116,6 +117,10 @@ ul {
   transform: translateY(-1px);
 }
 
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
 .btn-outline {
   display: inline-flex;
   align-items: center;
@@ -134,6 +139,10 @@ ul {
 .btn-outline:hover {
   border-color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-outline:active {
+  transform: scale(0.97);
 }
 
 /* ===== NAVBAR ===== */
@@ -216,7 +225,7 @@ nav {
 footer {
   background: var(--bg2);
   border-top: 1px solid var(--border);
-  padding: 64px 0 32px;
+  padding: 48px 0 24px;
 }
 
 .footer-inner {
@@ -229,7 +238,7 @@ footer {
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 80px;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 
 .footer-logo {
@@ -292,8 +301,7 @@ footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 32px;
-  border-top: 1px solid var(--border);
+  padding-top: 20px;
 }
 
 .footer-copy {
@@ -333,7 +341,7 @@ footer {
   max-width: 480px;
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 20px 24px;
   z-index: 9999;
   display: flex;
@@ -494,9 +502,9 @@ footer {
   margin: 60px auto 0;
 }
 .mockup-browser {
-  background: #111218;
+  background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
@@ -736,9 +744,9 @@ footer {
   color: var(--green);
 }
 .feature-visual {
-  background: #111218;
+  background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 32px;
   min-height: 300px;
   display: flex;
@@ -943,9 +951,9 @@ footer {
   gap: 20px;
 }
 .testimonial-card {
-  background: #111218;
+  background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 28px;
   transition: border-color 0.3s;
 }
@@ -995,7 +1003,6 @@ footer {
 /* ===== LOGOS SCROLLER ===== */
 .section-logos {
   padding: 60px 0;
-  border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   overflow: hidden;
 }
@@ -1136,7 +1143,6 @@ footer {
 /* ===== WHO'S IT FOR — AUDIENCE SECTIONS ===== */
 .section-audience {
   padding: 80px 24px;
-  border-top: 1px solid var(--border);
 }
 .audience-inner {
   max-width: 1200px;
@@ -1167,9 +1173,9 @@ footer {
   margin-bottom: 28px;
 }
 .audience-visual {
-  background: #111218;
+  background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 32px;
   display: flex;
   flex-direction: column;
@@ -1179,7 +1185,6 @@ footer {
 /* ===== FAQ ===== */
 .section-faq-callout {
   padding: 80px 24px;
-  border-top: 1px solid var(--border);
 }
 .faq-callout-inner {
   max-width: 760px;

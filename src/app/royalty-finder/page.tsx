@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import RoyLogo from "@/components/RoyLogo";
 
-const GREEN = "#00d47b";
+const GREEN = "#C8FF00";
 
 /* ── Tab button ──────────────────────────────── */
 function TabButton({
@@ -25,7 +25,7 @@ function TabButton({
       style={{
         flex: 1,
         padding: "16px 24px",
-        background: active ? "rgba(0,212,123,0.06)" : "transparent",
+        background: active ? "rgba(200,255,0,0.06)" : "transparent",
         borderBottom: active ? `2px solid ${GREEN}` : "2px solid transparent",
         color: active ? "#fff" : "rgba(255,255,255,0.45)",
         fontWeight: active ? 600 : 400,
@@ -61,11 +61,11 @@ function DropZone({
       onDrop={(e) => { e.preventDefault(); setHovering(false); onInteract(); }}
       onClick={onInteract}
       style={{
-        border: `2px dashed ${hovering ? GREEN : "rgba(0,212,123,0.3)"}`,
-        borderRadius: "12px",
+        border: `2px dashed ${hovering ? GREEN : "rgba(200,255,0,0.3)"}`,
+        borderRadius: "8px",
         padding: "48px 32px",
         textAlign: "center",
-        background: hovering ? "rgba(0,212,123,0.04)" : "rgba(0,212,123,0.02)",
+        background: hovering ? "rgba(200,255,0,0.04)" : "rgba(200,255,0,0.02)",
         transition: "all 0.2s",
         cursor: "pointer",
       }}
@@ -94,7 +94,7 @@ function DropZone({
             style={{
               padding: "3px 12px",
               borderRadius: "100px",
-              border: "1px solid rgba(0,212,123,0.25)",
+              border: "1px solid rgba(200,255,0,0.25)",
               fontSize: "11px",
               fontWeight: 600,
               color: GREEN,
@@ -143,7 +143,7 @@ function ResultCard({
       style={{
         background: "var(--bg3)",
         border: "1px solid var(--border)",
-        borderRadius: "10px",
+        borderRadius: "8px",
         padding: "16px",
         display: "flex",
         alignItems: "flex-start",
@@ -162,7 +162,7 @@ function ResultCard({
             borderRadius: "100px",
             fontSize: "11px",
             fontWeight: 600,
-            background: badgeColor === "warn" ? "rgba(245,158,11,0.15)" : badgeColor === "err" ? "rgba(239,68,68,0.15)" : "rgba(0,212,123,0.15)",
+            background: badgeColor === "warn" ? "rgba(245,158,11,0.15)" : badgeColor === "err" ? "rgba(239,68,68,0.15)" : "rgba(200,255,0,0.15)",
             color: badgeColor === "warn" ? "#f59e0b" : badgeColor === "err" ? "#ef4444" : GREEN,
             flexShrink: 0,
           }}
@@ -215,9 +215,9 @@ function LabelTab({ onInteract, isSignedIn }: { onInteract: () => void; isSigned
       {isSignedIn && (
         <div
           style={{
-            background: "rgba(0,212,123,0.06)",
-            border: `1px solid rgba(0,212,123,0.2)`,
-            borderRadius: "10px",
+            background: "rgba(200,255,0,0.06)",
+            border: `1px solid rgba(200,255,0,0.2)`,
+            borderRadius: "8px",
             padding: "16px 20px",
             display: "flex",
             alignItems: "center",
@@ -266,7 +266,7 @@ function LabelTab({ onInteract, isSignedIn }: { onInteract: () => void; isSigned
           style={{
             background: "var(--bg3)",
             border: "1px solid var(--border)",
-            borderRadius: "10px",
+            borderRadius: "8px",
             overflow: "hidden",
           }}
         >
@@ -344,7 +344,7 @@ export default function RoyToolPage() {
           style={{
             padding: "100px 24px 64px",
             textAlign: "center",
-            background: "radial-gradient(ellipse at 50% 0%, rgba(0,212,123,0.07) 0%, transparent 55%)",
+            background: "radial-gradient(ellipse at 50% 0%, rgba(200,255,0,0.07) 0%, transparent 55%)",
           }}
         >
           <div style={{ maxWidth: "720px", margin: "0 auto" }}>
@@ -384,7 +384,7 @@ export default function RoyToolPage() {
               margin: "0 auto",
               background: "var(--bg2)",
               border: "1px solid var(--border)",
-              borderRadius: "16px",
+              borderRadius: "8px",
               overflow: "hidden",
               boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
             }}
@@ -447,7 +447,7 @@ export default function RoyToolPage() {
                   style={{
                     background: "var(--bg3)",
                     border: "1px solid var(--border)",
-                    borderRadius: "12px",
+                    borderRadius: "8px",
                     padding: "28px",
                   }}
                 >

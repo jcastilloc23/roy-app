@@ -95,18 +95,18 @@ export default function WhosItForPage() {
                   { label: "Mechanical", val: "$640", sub: "MLC (unclaimed)", green: false },
                   { label: "Issues Found", val: "3", sub: "Action required", amber: true },
                 ].map((stat) => (
-                  <div key={stat.label} style={{ background: "#181a22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "14px" }}>
+                  <div key={stat.label} style={{ background: "var(--roy-surface-2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "14px" }}>
                     <div style={{ fontSize: "10px", color: "#8a8f9a", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>{stat.label}</div>
-                    <div style={{ fontSize: "20px", fontWeight: 700, color: stat.green ? "var(--green)" : stat.amber ? "#f59e0b" : "#fff" }}>{stat.val}</div>
+                    <div style={{ fontSize: "20px", fontWeight: 700, color: stat.green ? "var(--green)" : stat.amber ? "#f59e0b" : "#fff", fontFamily: "var(--font-mono)" }}>{stat.val}</div>
                     <div style={{ fontSize: "10px", color: "#8a8f9a", marginTop: "4px" }}>{stat.sub}</div>
                   </div>
                 ))}
               </div>
-              <div style={{ background: "#181a22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "14px" }}>
+              <div style={{ background: "var(--roy-surface-2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "14px" }}>
                 <div style={{ fontSize: "11px", color: "#8a8f9a", marginBottom: "10px" }}>Royalty sources synced</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                   {["ASCAP ✓", "BMI ✓", "MLC ✓", "DistroKid ✓"].map((tag) => (
-                    <span key={tag} style={{ background: "rgba(0,212,123,0.12)", color: "var(--green)", border: "1px solid rgba(0,212,123,0.2)", borderRadius: "100px", padding: "4px 12px", fontSize: "11px", fontWeight: 600 }}>{tag}</span>
+                    <span key={tag} style={{ background: "rgba(200,255,0,0.12)", color: "var(--green)", border: "1px solid rgba(200,255,0,0.2)", borderRadius: "100px", padding: "4px 12px", fontSize: "11px", fontWeight: 600 }}>{tag}</span>
                   ))}
                   <span style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "100px", padding: "4px 12px", fontSize: "11px", fontWeight: 600 }}>SoundExchange !</span>
                 </div>
@@ -143,26 +143,26 @@ export default function WhosItForPage() {
               <div className="feature-visual-label">Roster Overview</div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {[
-                  { initials: "JR", name: "Jordan Rivers", sources: "7 sources · All synced", amount: "$3,420", gradient: "linear-gradient(135deg,#00d47b,#0099aa)", color: "#000", dotColor: "var(--green)", amountColor: "var(--green)" },
+                  { initials: "JR", name: "Jordan Rivers", sources: "7 sources · All synced", amount: "$3,420", gradient: "linear-gradient(135deg,#C8FF00,#0099aa)", color: "#000", dotColor: "var(--green)", amountColor: "var(--green)" },
                   { initials: "AM", name: "Alicia Monroe", sources: "5 sources · 2 issues", amount: "$1,890", gradient: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", dotColor: "#f59e0b", amountColor: "#fff" },
                   { initials: "DK", name: "Dev Kumar", sources: "9 sources · All synced", amount: "$6,150", gradient: "linear-gradient(135deg,#f59e0b,#ef4444)", color: "#fff", dotColor: "var(--green)", amountColor: "var(--green)" },
                 ].map((artist) => (
-                  <div key={artist.name} style={{ background: "#181a22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "12px 14px", display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div key={artist.name} style={{ background: "var(--roy-surface-2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "12px 14px", display: "flex", alignItems: "center", gap: "12px" }}>
                     <div style={{ width: "36px", height: "36px", background: artist.gradient, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: artist.color, flexShrink: 0 }}>{artist.initials}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px" }}>{artist.name}</div>
                       <div style={{ fontSize: "11px", color: "#8a8f9a" }}>{artist.sources}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: "13px", fontWeight: 700, color: artist.amountColor }}>{artist.amount}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 700, color: artist.amountColor, fontFamily: "var(--font-mono)" }}>{artist.amount}</div>
                       <div style={{ fontSize: "10px", color: "#8a8f9a" }}>this quarter</div>
                     </div>
                     <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: artist.dotColor, flexShrink: 0 }} />
                   </div>
                 ))}
-                <div style={{ background: "#181a22", border: "1px solid rgba(0,212,123,0.15)", borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ background: "var(--roy-surface-2)", border: "1px solid rgba(200,255,0,0.15)", borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ fontSize: "11px", color: "#8a8f9a", flex: 1 }}>Roster total this quarter</span>
-                  <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--green)" }}>$11,460</span>
+                  <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)" }}>$11,460</span>
                 </div>
               </div>
             </div>
@@ -202,18 +202,18 @@ export default function WhosItForPage() {
                   { label: "Digital Distribution", val: "$12,880", green: false },
                   { label: "Sync Licensing", val: "$4,500", green: false },
                 ].map((row) => (
-                  <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#181a22", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "var(--roy-surface-2)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)" }}>
                     <div style={{ fontSize: "12px", fontWeight: 600 }}>{row.label}</div>
-                    <div style={{ fontSize: "13px", fontWeight: 700, color: row.green ? "var(--green)" : "#fff" }}>{row.val}</div>
+                    <div style={{ fontSize: "13px", fontWeight: 700, color: row.green ? "var(--green)" : "#fff", fontFamily: "var(--font-mono)" }}>{row.val}</div>
                   </div>
                 ))}
                 <div style={{ height: "1px", background: "rgba(255,255,255,0.08)", margin: "4px 0" }} />
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "rgba(0,212,123,0.06)", borderRadius: "8px", border: "1px solid rgba(0,212,123,0.2)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "rgba(200,255,0,0.06)", borderRadius: "8px", border: "1px solid rgba(200,255,0,0.2)" }}>
                   <div style={{ fontSize: "13px", fontWeight: 700 }}>Total FY{new Date().getFullYear()}</div>
-                  <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--green)" }}>$43,020</div>
+                  <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)" }}>$43,020</div>
                 </div>
                 <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-                  <button style={{ flex: 1, background: "rgba(0,212,123,0.1)", border: "1px solid rgba(0,212,123,0.2)", borderRadius: "6px", padding: "8px", fontSize: "12px", fontWeight: 600, color: "var(--green)", cursor: "pointer", fontFamily: "inherit" }}>Export CSV</button>
+                  <button style={{ flex: 1, background: "rgba(200,255,0,0.1)", border: "1px solid rgba(200,255,0,0.2)", borderRadius: "6px", padding: "8px", fontSize: "12px", fontWeight: 600, color: "var(--green)", cursor: "pointer", fontFamily: "inherit" }}>Export CSV</button>
                   <button style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", padding: "8px", fontSize: "12px", fontWeight: 600, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>Export PDF</button>
                 </div>
               </div>
@@ -224,7 +224,7 @@ export default function WhosItForPage() {
         {/* ===== FAQ ===== */}
         <section className="section-faq-callout">
           <div className="faq-callout-inner container">
-            <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <div style={{ marginBottom: "48px" }}>
               <div className="section-tag">Questions &amp; Answers</div>
               <h2 style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "12px" }}>
                 Common questions about Roy

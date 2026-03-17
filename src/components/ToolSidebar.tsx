@@ -64,8 +64,9 @@ export default function ToolSidebar() {
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
-                padding: "9px 12px",
+                padding: isActive ? "9px 12px 9px 10px" : "9px 12px",
                 borderRadius: "8px",
+                borderLeft: isActive ? "2px solid var(--roy-accent)" : "2px solid transparent",
                 fontSize: "14px",
                 fontWeight: isActive ? 600 : 400,
                 color: isActive ? "var(--roy-accent)" : "var(--roy-text-muted)",
@@ -87,7 +88,7 @@ export default function ToolSidebar() {
         padding: "14px",
         background: "var(--roy-surface)",
         border: "1px solid var(--roy-border)",
-        borderRadius: "10px",
+        borderRadius: "8px",
       }}>
         <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>Roy Label</div>
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "10px", lineHeight: 1.4 }}>

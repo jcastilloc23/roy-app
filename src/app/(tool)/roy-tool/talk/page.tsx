@@ -3,8 +3,7 @@ export default function TalkPage() {
     <main>
       <section style={{
         padding: "72px 24px 56px",
-        textAlign: "center",
-        background: "radial-gradient(ellipse at 50% 0%, rgba(0,212,123,0.07) 0%, transparent 55%)",
+        background: "radial-gradient(ellipse at 50% 0%, rgba(200,255,0,0.07) 0%, transparent 55%)",
       }}>
         <div style={{ maxWidth: "720px", margin: "0 auto" }}>
           <h1 style={{

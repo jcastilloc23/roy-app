@@ -133,7 +133,7 @@ export default function Home() {
               textAlign: "left",
             }}>
               {/* Card 1 */}
-              <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "16px", padding: "28px" }}>
+              <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "8px", padding: "28px" }}>
                 <div style={{ marginBottom: "16px" }}>
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8FF00" strokeWidth="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -150,7 +150,7 @@ export default function Home() {
               </div>
 
               {/* Card 2 */}
-              <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "16px", padding: "28px" }}>
+              <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "8px", padding: "28px" }}>
                 <div style={{ marginBottom: "16px" }}>
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8FF00" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
@@ -167,7 +167,7 @@ export default function Home() {
               </div>
 
               {/* Card 3 */}
-              <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "16px", padding: "28px" }}>
+              <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "8px", padding: "28px" }}>
                 <div style={{ marginBottom: "16px" }}>
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C8FF00" strokeWidth="2">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />

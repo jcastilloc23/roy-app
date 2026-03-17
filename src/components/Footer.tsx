@@ -23,19 +23,17 @@ export default function Footer() {
               <h4>Product</h4>
               <Link href="/">Home</Link>
               <Link href="/whos-it-for">Who&apos;s it for?</Link>
-              <Link href="/royalty-finder">Roy Tool</Link>
+              <Link href="/roy-tool">Roy Tool</Link>
               <Link href="/pricing">Pricing</Link>
             </div>
             <div className="footer-col">
               <h4>Company</h4>
-              <Link href="/about">About</Link>
-              <Link href="/blog">Blog</Link>
               <Link href="/contact">Contact</Link>
             </div>
             <div className="footer-col">
               <h4>Account</h4>
-              <Link href="/login">Log In</Link>
-              <Link href="/signup">Sign Up</Link>
+              <Link href="/sign-in">Log In</Link>
+              <Link href="/sign-up">Sign Up</Link>
             </div>
             <div className="footer-col">
               <h4>Legal</h4>
@@ -53,10 +51,8 @@ export default function Footer() {
           <div className="footer-socials">
             {/* TikTok */}
             <a
-              href="https://tiktok.com/@usemogul"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="TikTok"
+              href="#"
+              aria-label="TikTok (coming soon)"
             >
               <svg
                 width="18"
@@ -69,10 +65,8 @@ export default function Footer() {
             </a>
             {/* Instagram */}
             <a
-              href="https://instagram.com/usemogul"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
+              href="#"
+              aria-label="Instagram (coming soon)"
             >
               <svg
                 width="18"
@@ -85,10 +79,8 @@ export default function Footer() {
             </a>
             {/* X / Twitter */}
             <a
-              href="https://x.com/usemogul"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="X (Twitter)"
+              href="#"
+              aria-label="X / Twitter (coming soon)"
             >
               <svg
                 width="16"

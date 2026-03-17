@@ -528,7 +528,7 @@ function DropZone({ onFile }: { onFile: (file: File) => void }) {
       onDrop={handleDrop}
       style={{
         border: `2px dashed ${hovering ? GREEN : "rgba(200,255,0,0.3)"}`,
-        borderRadius: "12px",
+        borderRadius: "8px",
         padding: "48px 32px",
         textAlign: "center",
         background: hovering ? "rgba(200,255,0,0.04)" : "rgba(200,255,0,0.02)",
@@ -661,7 +661,7 @@ function IdentifiedPanel({
         <div style={{
           background: "rgba(245,158,11,0.07)",
           border: "1px solid rgba(245,158,11,0.2)",
-          borderRadius: "10px",
+          borderRadius: "8px",
           padding: "18px 20px",
         }}>
           <div style={{
@@ -684,7 +684,7 @@ function IdentifiedPanel({
               onClick={() => onAction(id)}
               style={{
                 display: "flex", alignItems: "center", gap: "16px",
-                padding: "16px 18px", borderRadius: "10px",
+                padding: "16px 18px", borderRadius: "8px",
                 background: "var(--bg3)", border: "1px solid var(--border)",
                 cursor: "pointer", textAlign: "left", width: "100%",
                 transition: "border-color 0.15s, background 0.15s",
@@ -722,7 +722,7 @@ function IdentifiedPanel({
       <div style={{
         background: "rgba(200,255,0,0.05)",
         border: "1px solid rgba(200,255,0,0.15)",
-        borderRadius: "10px",
+        borderRadius: "8px",
         padding: "18px 20px",
       }}>
         <div style={{
@@ -744,7 +744,7 @@ function IdentifiedPanel({
         ].map(({ label, value }) => (
           <div key={label} style={{
             background: "var(--bg3)", border: "1px solid var(--border)",
-            borderRadius: "10px", padding: "14px",
+            borderRadius: "8px", padding: "14px",
           }}>
             <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>{label}</div>
             <div style={{ fontSize: "14px", fontWeight: 600, color: "#fff" }}>{value}</div>
@@ -755,7 +755,7 @@ function IdentifiedPanel({
       {/* Artist confirm */}
       <div style={{
         background: "var(--bg3)", border: "1px solid var(--border)",
-        borderRadius: "10px", padding: "16px 18px",
+        borderRadius: "8px", padding: "16px 18px",
       }}>
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "10px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
           Confirm your artist name:
@@ -794,7 +794,7 @@ function IdentifiedPanel({
             onClick={() => onAction(id)}
             style={{
               display: "flex", alignItems: "center", gap: "16px",
-              padding: "16px 18px", borderRadius: "10px",
+              padding: "16px 18px", borderRadius: "8px",
               background: "var(--bg3)", border: "1px solid var(--border)",
               cursor: "pointer", textAlign: "left", width: "100%",
               transition: "border-color 0.15s, background 0.15s",
@@ -838,7 +838,7 @@ function FlagCard({ flag }: { flag: ParsedFlag }) {
   return (
     <div style={{
       background: c.bg, border: `1px solid ${c.border}`,
-      borderRadius: "10px", padding: "14px 16px",
+      borderRadius: "8px", padding: "14px 16px",
       display: "flex", alignItems: "flex-start", gap: "12px",
     }}>
       <div style={{ flex: 1 }}>
@@ -865,7 +865,7 @@ function RoyTake({ text, label }: { text: string; label: string }) {
   return (
     <div style={{
       background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
-      borderRadius: "10px", padding: "18px 20px",
+      borderRadius: "8px", padding: "18px 20px",
     }}>
       <div style={{
         fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em",
@@ -1042,7 +1042,7 @@ function SplitPreviewPanel({
             /* File is fine for Excel */
             <div style={{
               background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
-              borderRadius: "10px", padding: "18px 20px",
+              borderRadius: "8px", padding: "18px 20px",
             }}>
               <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
                 No split needed
@@ -1057,7 +1057,7 @@ function SplitPreviewPanel({
             <>
               <div style={{
                 background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
-                borderRadius: "10px", padding: "18px 20px",
+                borderRadius: "8px", padding: "18px 20px",
               }}>
                 <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
                   Roy&apos;s split plan
@@ -1079,7 +1079,7 @@ function SplitPreviewPanel({
                 ].map(({ label, value }) => (
                   <div key={label} style={{
                     background: "var(--bg3)", border: "1px solid var(--border)",
-                    borderRadius: "10px", padding: "14px",
+                    borderRadius: "8px", padding: "14px",
                   }}>
                     <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>{label}</div>
                     <div style={{ fontSize: "16px", fontWeight: 700, color: "#fff" }}>{value}</div>
@@ -1090,7 +1090,7 @@ function SplitPreviewPanel({
               <button
                 onClick={doSplit}
                 style={{
-                  padding: "14px 24px", borderRadius: "10px", fontSize: "15px", fontWeight: 600,
+                  padding: "14px 24px", borderRadius: "8px", fontSize: "15px", fontWeight: 600,
                   background: GREEN, color: "#000", border: "none", cursor: "pointer",
                   fontFamily: "inherit", display: "flex", alignItems: "center", gap: "8px",
                   alignSelf: "flex-start",
@@ -1111,7 +1111,7 @@ function SplitPreviewPanel({
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div style={{
             background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
-            borderRadius: "10px", padding: "18px 20px",
+            borderRadius: "8px", padding: "18px 20px",
           }}>
             <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
               Splitting…
@@ -1135,7 +1135,7 @@ function SplitPreviewPanel({
       {status === "done" && (
         <div style={{
           background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
-          borderRadius: "10px", padding: "18px 20px",
+          borderRadius: "8px", padding: "18px 20px",
         }}>
           <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: GREEN, marginBottom: "10px" }}>
             Done
@@ -1270,7 +1270,7 @@ function ResultPanel({
           {result.is_multi_artist && !isLabel && (
             <div style={{
               background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)",
-              borderRadius: "10px", padding: "16px 18px",
+              borderRadius: "8px", padding: "16px 18px",
             }}>
               <div style={{ fontSize: "12px", fontWeight: 700, color: "#f59e0b", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 Multiple artists detected
@@ -1298,7 +1298,7 @@ function ResultPanel({
           {/* Catalog KPI cards — shown only for non-Label multi-artist (gives a taste, gates the breakdown) */}
           {result.is_multi_artist && !isLabel && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                   Total earnings
                 </div>
@@ -1309,7 +1309,7 @@ function ResultPanel({
                   <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{result.currency as string}</div>
                 )}
               </div>
-              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                   Total streams
                 </div>
@@ -1317,7 +1317,7 @@ function ResultPanel({
                   {result.total_streams != null ? fmtCompact(result.total_streams as number) : "—"}
                 </div>
               </div>
-              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+              <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg / stream</div>
                 <div style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>
                   {result.total_streams && (result.total_streams as number) > 0 && result.total_earnings != null
@@ -1369,7 +1369,7 @@ function ResultPanel({
 
           {/* Headline KPI cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
               <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {selectedArtist ? "Artist earnings" : "Total earnings"}
               </div>
@@ -1380,7 +1380,7 @@ function ResultPanel({
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{result.currency as string}</div>
               )}
             </div>
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
               <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {selectedArtist ? "Artist streams" : "Total streams"}
               </div>
@@ -1388,7 +1388,7 @@ function ResultPanel({
                 {effStreams != null ? fmtCompact(effStreams) : "—"}
               </div>
             </div>
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
               <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg / stream</div>
               <div style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>
                 {effAvgPerStream != null ? `$${effAvgPerStream.toFixed(4)}` : "—"}
@@ -1398,7 +1398,7 @@ function ResultPanel({
 
           {/* Time chart — over time */}
           {Array.isArray(result.by_period) && result.by_period.length > 1 && (
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "20px" }}>
               <TimeChart
                 byPeriod={result.by_period as PeriodRow[]}
                 byPeriodByArtist={result.by_period_by_artist as PeriodArtistMap | undefined}
@@ -1453,7 +1453,7 @@ function ResultPanel({
 
           {/* Donut charts — with Revenue/Streams toggle */}
           {(effByStore.length > 0 || effByTerritory.length > 0) && (
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "20px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: "16px" }}>
                 <div style={{ display: "flex", gap: "3px" }}>
                   {(["earnings", "streams"] as const).map(m => (
@@ -1639,7 +1639,7 @@ function ResultPanel({
               {(result.flags as ParsedFlag[]).length === 0 && (
                 <div style={{
                   background: "rgba(200,255,0,0.05)", border: "1px solid rgba(200,255,0,0.15)",
-                  borderRadius: "10px", padding: "14px 16px", fontSize: "13px", color: GREEN,
+                  borderRadius: "8px", padding: "14px 16px", fontSize: "13px", color: GREEN,
                 }}>
                   ✓ No issues detected — statement looks clean.
                 </div>
@@ -1655,14 +1655,14 @@ function ResultPanel({
           {result.cleanup_summary && <RoyTake text={result.cleanup_summary as string} label="Roy's data quality assessment" />}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
+            <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px" }}>
               <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Analytics ready</div>
               <div style={{ fontSize: "16px", fontWeight: 700, color: result.ready_for_analytics ? GREEN : "#ef4444" }}>
                 {result.ready_for_analytics ? "Yes" : "No"}
               </div>
             </div>
             {typeof result.blocker === "string" && result.blocker && (
-              <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "10px", padding: "16px" }}>
+              <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "16px" }}>
                 <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Blocker</div>
                 <div style={{ fontSize: "13px", color: "#ef4444", lineHeight: 1.4 }}>{result.blocker}</div>
               </div>
@@ -1681,7 +1681,7 @@ function ResultPanel({
                 {(result.issues as { issue: string; affected_rows?: number | null; recommendation: string }[]).map((item, i) => (
                   <div key={i} style={{
                     background: "var(--bg3)", border: "1px solid var(--border)",
-                    borderRadius: "10px", padding: "14px 16px",
+                    borderRadius: "8px", padding: "14px 16px",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                       <div style={{ fontSize: "13px", fontWeight: 600, color: "#fff" }}>{item.issue}</div>
@@ -2177,7 +2177,7 @@ export default function RoyToolPage() {
         <div style={{ maxWidth: "720px", margin: "0 auto" }}>
           <div style={{
             background: "var(--bg2)", border: "1px solid var(--border)",
-            borderRadius: "16px", overflow: "hidden",
+            borderRadius: "8px", overflow: "hidden",
             boxShadow: "0 16px 48px rgba(0,0,0,0.3)",
           }}>
             <div style={{ padding: "32px" }}>
@@ -2216,7 +2216,7 @@ export default function RoyToolPage() {
                   <div
                     style={{
                       border: `2px dashed rgba(200,255,0,0.3)`,
-                      borderRadius: "12px",
+                      borderRadius: "8px",
                       padding: "48px 32px",
                       textAlign: "center",
                       background: "rgba(200,255,0,0.02)",
@@ -2336,7 +2336,7 @@ export default function RoyToolPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   <div style={{
                     background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
-                    borderRadius: "10px", padding: "16px 18px",
+                    borderRadius: "8px", padding: "16px 18px",
                     fontSize: "13px", color: "#ef4444", lineHeight: 1.6,
                   }}>
                     {errorMsg ?? "Something went wrong. Please try again."}

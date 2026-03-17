@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, DM_Serif_Display, DM_Mono, DM_Sans } from "next/font/google";
+import { DM_Serif_Display, DM_Mono, DM_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
 
 const dmSerifDisplay = DM_Serif_Display({
   subsets: ["latin"],
@@ -45,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.className} ${dmSerifDisplay.variable} ${dmMono.variable} ${dmSans.variable}`}>
+    <html lang="en" className={`${dmSerifDisplay.variable} ${dmMono.variable} ${dmSans.variable}`}>
       <body>
         <ClerkProvider>
           {children}

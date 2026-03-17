@@ -109,7 +109,7 @@ export default function PricingPage() {
               style={{
                 background: "var(--bg2)",
                 border: "1px solid var(--border)",
-                borderRadius: "16px",
+                borderRadius: "8px",
                 padding: "32px 28px",
                 display: "flex",
                 flexDirection: "column",
@@ -166,7 +166,7 @@ export default function PricingPage() {
             <div
               style={{
                 background: GREEN,
-                borderRadius: "16px",
+                borderRadius: "8px",
                 padding: "32px 28px",
                 display: "flex",
                 flexDirection: "column",
@@ -197,7 +197,7 @@ export default function PricingPage() {
               <div style={{ fontSize: "13px", color: "rgba(0,0,0,0.6)", marginBottom: "24px", lineHeight: 1.5 }}>
                 For managers and catalog operations handling multiple artists
               </div>
-              <div style={{ fontSize: "36px", fontWeight: 700, letterSpacing: "-0.03em", color: "#000", marginBottom: "4px" }}>
+              <div style={{ fontSize: "36px", fontWeight: 700, letterSpacing: "-0.03em", color: "#000", marginBottom: "4px", fontFamily: "var(--font-mono)" }}>
                 $11<span style={{ fontSize: "18px", fontWeight: 500 }}>/mo</span>
               </div>
               <div style={{ fontSize: "13px", color: "rgba(0,0,0,0.55)", marginBottom: "28px" }}>
@@ -241,7 +241,7 @@ export default function PricingPage() {
               margin: "20px auto 0",
               background: "var(--bg3)",
               border: "1px solid var(--border)",
-              borderRadius: "12px",
+              borderRadius: "8px",
               padding: "32px",
               textAlign: "center",
             }}
@@ -281,7 +281,7 @@ export default function PricingPage() {
         {/* ── FAQ ──────────────────────────────── */}
         <section className="section-faq-callout">
           <div className="faq-callout-inner container">
-            <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <div style={{ marginBottom: "48px" }}>
               <div className="section-tag">Frequently Asked Questions</div>
               <h2 style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "12px" }}>
                 Questions about pricing

@@ -30,7 +30,7 @@ export default function RoyaltyFinderTabs() {
           margin: "0 auto",
           background: "var(--bg2)",
           border: "1px solid var(--border)",
-          borderRadius: "16px",
+          borderRadius: "8px",
           overflow: "hidden",
           boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
         }}
@@ -95,7 +95,7 @@ function TabButton({
       style={{
         flex: 1,
         padding: "16px 24px",
-        background: active ? "rgba(0,212,123,0.06)" : "transparent",
+        background: active ? "rgba(200,255,0,0.06)" : "transparent",
         borderBottom: active
           ? "2px solid var(--green)"
           : "2px solid transparent",
