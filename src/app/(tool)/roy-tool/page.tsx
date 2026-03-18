@@ -1509,7 +1509,7 @@ function ResultPanel({
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
                 {effByStore.length > 0 && (
                   <DonutChart
-                    title={result.columns_detected?.store === "Licensor" ? "By licensor" : "By platform"}
+                    title={(result.columns_detected as Record<string, string | undefined>)?.store === "Licensor" ? "By licensor" : "By platform"}
                     dollars={donutMode === "earnings"}
                     data={[...effByStore]
                       .sort((a, b) => (donutMode === "earnings" ? b.earnings - a.earnings : b.streams - a.streams))

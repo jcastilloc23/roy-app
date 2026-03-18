@@ -41,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSerifDisplay.variable} ${dmMono.variable} ${dmSans.variable}`}>
       <body>
-        <ClerkProvider afterSignUpUrl="/subscribe">
+        <ClerkProvider>
           {children}
         </ClerkProvider>
       </body>
