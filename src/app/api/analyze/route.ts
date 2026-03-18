@@ -400,7 +400,7 @@ Limit split_groups to the most meaningful 10 groups.${fileSection}`;
 
 /* ── Route handler ───────────────────────────────────────────────────────── */
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
+  const { userId, has } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { statementId, action, artist_name, precomputedStats, inlineContent } = await req.json() as {
@@ -497,6 +497,8 @@ export async function POST(req: NextRequest) {
           const isMultiArtist = meaningfulArtists.length > 1;
           const primaryArtist = meaningfulArtists[0] ?? null;
 
+          const isLabelUser = has({ feature: "unlimited_artists" });
+
           let artistId: string | null = null;
           const confirmedName = artist_name?.trim() || null;
 
@@ -556,8 +558,9 @@ export async function POST(req: NextRequest) {
             artist_id: artistId,
             by_artist: isMultiArtist ? stats.byArtist : null,
             top_artists: isMultiArtist ? stats.byArtist.slice(0, 5).map(a => a.name) : null,
-            by_period_by_artist: isMultiArtist ? stats.byPeriodByArtist : null,
-            by_artist_detail: isMultiArtist ? Object.fromEntries(
+            // Label-only: per-artist breakdowns — stripped server-side for Roy Artist users
+            by_period_by_artist: (isMultiArtist && isLabelUser) ? stats.byPeriodByArtist : null,
+            by_artist_detail: (isMultiArtist && isLabelUser) ? Object.fromEntries(
               stats.byArtist.slice(0, 5).map(a => [a.name, {
                 earnings: a.earnings,
                 streams: a.streams,

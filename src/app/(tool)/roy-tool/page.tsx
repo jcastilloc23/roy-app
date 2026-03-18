@@ -1808,6 +1808,10 @@ export default function RoyToolPage() {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [splitMode, setSplitMode] = useState(false);
   const [largeFile, setLargeFile] = useState(false);
+  const [pendingAutoSummarize, setPendingAutoSummarize] = useState(false);
+
+  // Ref to latest handleAction — updated each render to avoid stale closure in useEffect
+  const handleActionRef = useRef<((action: ActionType | "talk") => Promise<void>) | null>(null);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -1933,6 +1937,7 @@ export default function RoyToolPage() {
       };
       setIdentified(result);
       setArtistName((idData.detected_artist as string) ?? "");
+      setPendingAutoSummarize(true);
       setPhase("identified");
       return result;
     } catch (err) {
@@ -2015,6 +2020,7 @@ export default function RoyToolPage() {
         file_name: data.file_name as string,
       });
       setArtistName((data.detected_artist as string) ?? "");
+      setPendingAutoSummarize(true);
       setPhase("identified");
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Upload failed. Check your connection and try again.");
@@ -2151,6 +2157,7 @@ export default function RoyToolPage() {
     setUploadProgress(null);
     setSplitMode(false);
     setLargeFile(false);
+    setPendingAutoSummarize(false);
   }
 
   function handleBack() {
@@ -2159,6 +2166,17 @@ export default function RoyToolPage() {
     setAnalyzed(null);
     setErrorMsg(null);
   }
+
+  // Keep ref current after every render so the auto-trigger effect always calls the latest closure
+  handleActionRef.current = handleAction;
+
+  // Auto-trigger summarize after a fresh identification (not after Back navigation)
+  useEffect(() => {
+    if (pendingAutoSummarize && phase === "identified" && identified && !identified.isDuplicate) {
+      setPendingAutoSummarize(false);
+      handleActionRef.current?.("summarize");
+    }
+  }, [pendingAutoSummarize, phase, identified]);
 
   return (
     <main>
