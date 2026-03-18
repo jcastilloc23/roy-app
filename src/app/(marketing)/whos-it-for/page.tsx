@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { SignUpButton } from "@clerk/nextjs";
+import { SignUpButton, useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import RoyLogo from "@/components/RoyLogo";
 
 
@@ -43,6 +44,8 @@ const faqs = [
 
 export default function WhosItForPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
   return (
     <main>
 
@@ -77,11 +80,17 @@ export default function WhosItForPage() {
               <CheckBullet>Detect unclaimed royalties before they expire</CheckBullet>
               <CheckBullet>Unified payout calendar — know exactly when money is coming</CheckBullet>
             </div>
-            <SignUpButton mode="modal">
-              <button className="btn-primary" style={{ marginTop: "24px" }}>
-                Get started free <ArrowIcon />
+            {isSignedIn ? (
+              <button className="btn-primary" style={{ marginTop: "24px" }} onClick={() => router.push('/roy-tool')}>
+                Go to Roy Tool <ArrowIcon />
               </button>
-            </SignUpButton>
+            ) : (
+              <SignUpButton mode="modal">
+                <button className="btn-primary" style={{ marginTop: "24px" }}>
+                  Get started free <ArrowIcon />
+                </button>
+              </SignUpButton>
+            )}
           </div>
 
           <div className="audience-visual">
@@ -114,11 +123,17 @@ export default function WhosItForPage() {
               <CheckBullet>Consolidated CSV and PDF exports ready for your accountant</CheckBullet>
               <CheckBullet>Track open claims and pending registrations across all artists</CheckBullet>
             </div>
-            <SignUpButton mode="modal">
-              <button className="btn-primary" style={{ marginTop: "24px" }}>
-                Manage Your Roster <ArrowIcon />
+            {isSignedIn ? (
+              <button className="btn-primary" style={{ marginTop: "24px" }} onClick={() => router.push('/subscribe')}>
+                Upgrade to Roy Label <ArrowIcon />
               </button>
-            </SignUpButton>
+            ) : (
+              <SignUpButton mode="modal">
+                <button className="btn-primary" style={{ marginTop: "24px" }}>
+                  Manage Your Roster <ArrowIcon />
+                </button>
+              </SignUpButton>
+            )}
           </div>
 
           <div className="audience-visual">
@@ -176,11 +191,17 @@ export default function WhosItForPage() {
           <h2>Your royalties are waiting. Go get them.</h2>
           <p>Drop in a statement and Roy shows you exactly what you earned, at what rates, and what looks off.</p>
           <div className="cta-btns">
-            <SignUpButton mode="modal">
-              <button className="btn-primary">
-                Get started free <ArrowIcon />
+            {isSignedIn ? (
+              <button className="btn-primary" onClick={() => router.push('/roy-tool')}>
+                Go to Roy Tool <ArrowIcon />
               </button>
-            </SignUpButton>
+            ) : (
+              <SignUpButton mode="modal">
+                <button className="btn-primary">
+                  Get started free <ArrowIcon />
+                </button>
+              </SignUpButton>
+            )}
             <Link href="/contact" className="btn-outline">Talk to us</Link>
           </div>
           <p style={{ marginTop: "16px", fontSize: "13px", color: "var(--text-muted)" }}>

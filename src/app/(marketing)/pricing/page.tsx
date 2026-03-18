@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { SignUpButton } from "@clerk/nextjs";
+import { SignUpButton, useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import RoyLogo from "@/components/RoyLogo";
 
 const GREEN = "#C8FF00";
@@ -73,6 +74,8 @@ const faqs = [
 /* ══════════════════════════════════════════════ */
 export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
 
   return (
     <main>
@@ -124,7 +127,7 @@ export default function PricingPage() {
             <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", marginBottom: "28px" }}>
               no credit card required
             </div>
-            <SignUpButton mode="modal">
+            {isSignedIn ? (
               <button
                 style={{
                   display: "block",
@@ -142,6 +145,7 @@ export default function PricingPage() {
                   cursor: "pointer",
                   fontFamily: "inherit",
                 }}
+                onClick={() => router.push('/roy-tool')}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
                   (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.4)";
@@ -151,9 +155,40 @@ export default function PricingPage() {
                   (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.2)";
                 }}
               >
-                Get started free
+                Go to Roy Tool
               </button>
-            </SignUpButton>
+            ) : (
+              <SignUpButton mode="modal">
+                <button
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "center",
+                    padding: "11px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "#fff",
+                    marginBottom: "32px",
+                    transition: "border-color 0.2s, background 0.2s",
+                    background: "transparent",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.4)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.2)";
+                  }}
+                >
+                  Get started free
+                </button>
+              </SignUpButton>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {artistFeatures.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px", color: "rgba(255,255,255,0.75)" }}>
@@ -205,7 +240,7 @@ export default function PricingPage() {
             <div style={{ fontSize: "13px", color: "rgba(0,0,0,0.55)", marginBottom: "28px" }}>
               billed monthly · cancel anytime
             </div>
-            <SignUpButton mode="modal">
+            {isSignedIn ? (
               <button
                 style={{
                   display: "block",
@@ -223,12 +258,38 @@ export default function PricingPage() {
                   cursor: "pointer",
                   fontFamily: "inherit",
                 }}
+                onClick={() => router.push('/subscribe')}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#1a1a1a"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#000"; }}
               >
-                Get Roy Label
+                Upgrade to Roy Label
               </button>
-            </SignUpButton>
+            ) : (
+              <SignUpButton mode="modal">
+                <button
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "center",
+                    padding: "11px 16px",
+                    borderRadius: "8px",
+                    background: "#000",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "#fff",
+                    marginBottom: "32px",
+                    transition: "background 0.2s",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#1a1a1a"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#000"; }}
+                >
+                  Get Roy Label
+                </button>
+              </SignUpButton>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {labelFeatures.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px", color: "rgba(0,0,0,0.8)" }}>
@@ -331,12 +392,19 @@ export default function PricingPage() {
             you if something&apos;s missing.
           </p>
           <div className="cta-btns">
-            <SignUpButton mode="modal">
-              <button className="btn-primary">
-                Try Roy free{" "}
+            {isSignedIn ? (
+              <button className="btn-primary" onClick={() => router.push('/roy-tool')}>
+                Go to Roy Tool{" "}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </button>
-            </SignUpButton>
+            ) : (
+              <SignUpButton mode="modal">
+                <button className="btn-primary">
+                  Try Roy free{" "}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                </button>
+              </SignUpButton>
+            )}
             <Link href="/contact" className="btn-outline">
               Talk to us
             </Link>
