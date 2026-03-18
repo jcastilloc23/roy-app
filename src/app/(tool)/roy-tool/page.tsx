@@ -412,7 +412,7 @@ function TimeChart({
                   padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
                   background: granularity === g ? "rgba(255,255,255,0.1)" : "transparent",
                   color: granularity === g ? "#fff" : "rgba(255,255,255,0.4)",
-                  border: `1px solid ${granularity === g ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)"}`,
+                  border: "1px solid rgba(255,255,255,0.08)",
                   cursor: "pointer", fontFamily: "inherit",
                 }}>
                   {g === "monthly" ? (isQuarterly ? "Qr" : "Mo") : "Yr"}
@@ -425,9 +425,9 @@ function TimeChart({
           {(["earnings", "streams"] as const).map(m => (
             <button key={m} onClick={() => setMode(m)} style={{
               padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
-              background: mode === m ? GREEN : "transparent",
-              color: mode === m ? "#000" : "rgba(255,255,255,0.4)",
-              border: `1px solid ${mode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
+              background: mode === m ? "rgba(255,255,255,0.12)" : "transparent",
+              color: mode === m ? "#fff" : "rgba(255,255,255,0.4)",
+              border: "1px solid rgba(255,255,255,0.1)",
               cursor: "pointer", fontFamily: "inherit",
             }}>
               {m === "earnings" ? "Revenue" : "Streams"}
@@ -1496,9 +1496,9 @@ function ResultPanel({
                   {(["earnings", "streams"] as const).map(m => (
                     <button key={m} onClick={() => setDonutMode(m)} style={{
                       padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
-                      background: donutMode === m ? GREEN : "transparent",
-                      color: donutMode === m ? "#000" : "rgba(255,255,255,0.4)",
-                      border: `1px solid ${donutMode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
+                      background: donutMode === m ? "rgba(255,255,255,0.12)" : "transparent",
+                      color: donutMode === m ? "#fff" : "rgba(255,255,255,0.4)",
+                      border: "1px solid rgba(255,255,255,0.1)",
                       cursor: "pointer", fontFamily: "inherit",
                     }}>
                       {m === "earnings" ? "Revenue" : "Streams"}
@@ -1549,9 +1549,9 @@ function ResultPanel({
                     {(["earnings", "streams"] as const).map(m => (
                       <button key={m} onClick={() => setArtistMode(m)} style={{
                         padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
-                        background: artistMode === m ? GREEN : "transparent",
-                        color: artistMode === m ? "#000" : "rgba(255,255,255,0.4)",
-                        border: `1px solid ${artistMode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
+                        background: artistMode === m ? "rgba(255,255,255,0.12)" : "transparent",
+                        color: artistMode === m ? "#fff" : "rgba(255,255,255,0.4)",
+                        border: "1px solid rgba(255,255,255,0.1)",
                         cursor: "pointer", fontFamily: "inherit",
                       }}>
                         {m === "earnings" ? "Revenue" : "Streams"}
@@ -1605,9 +1605,9 @@ function ResultPanel({
                     {(["earnings", "streams"] as const).map(m => (
                       <button key={m} onClick={() => setTrackMode(m)} style={{
                         padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
-                        background: trackMode === m ? GREEN : "transparent",
-                        color: trackMode === m ? "#000" : "rgba(255,255,255,0.4)",
-                        border: `1px solid ${trackMode === m ? GREEN : "rgba(255,255,255,0.1)"}`,
+                        background: trackMode === m ? "rgba(255,255,255,0.12)" : "transparent",
+                        color: trackMode === m ? "#fff" : "rgba(255,255,255,0.4)",
+                        border: "1px solid rgba(255,255,255,0.1)",
                         cursor: "pointer", fontFamily: "inherit",
                       }}>
                         {m === "earnings" ? "Revenue" : "Streams"}
