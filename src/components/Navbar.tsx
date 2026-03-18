@@ -16,7 +16,7 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
 
   return (
     <>
@@ -39,7 +39,7 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
-            {!isSignedIn && (
+            {isLoaded && !isSignedIn && (
               <li>
                 <SignInButton mode="modal">
                   <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "rgba(255,255,255,0.7)", padding: 0, fontSize: "15px" }}>
@@ -52,14 +52,14 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="nav-actions">
-            {!isSignedIn && (
+            {isLoaded && !isSignedIn && (
               <SignUpButton mode="modal">
                 <button className="btn-primary nav-cta" style={{ padding: "9px 18px", fontSize: "14px" }}>
                   Get Started Free
                 </button>
               </SignUpButton>
             )}
-            {isSignedIn && <UserButton />}
+            {isLoaded && isSignedIn && <UserButton />}
             {/* Hamburger (mobile) */}
             <button
               className="hamburger"
@@ -113,7 +113,7 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          {!isSignedIn && (
+          {isLoaded && !isSignedIn && (
             <>
               <SignInButton mode="modal">
                 <button style={{ background: "none", border: "none", cursor: "pointer", font: "inherit", color: "#fff", fontSize: "24px", fontWeight: 600 }}>
@@ -127,7 +127,7 @@ export default function Navbar() {
               </SignUpButton>
             </>
           )}
-          {isSignedIn && <UserButton />}
+          {isLoaded && isSignedIn && <UserButton />}
         </div>
       )}
     </>

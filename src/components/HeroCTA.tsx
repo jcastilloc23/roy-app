@@ -10,12 +10,12 @@ const ArrowIcon = () => (
 );
 
 export default function HeroCTA() {
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
 
   return (
     <div className="hero-ctas">
-      {isSignedIn ? (
+      {isLoaded && (isSignedIn ? (
         <button className="btn-primary" onClick={() => router.push('/roy-tool')}>
           Go to Roy Tool <ArrowIcon />
         </button>
@@ -25,7 +25,7 @@ export default function HeroCTA() {
             Get Started Free <ArrowIcon />
           </button>
         </SignUpButton>
-      )}
+      ))}
       <a href="#demo" className="hero-video-link">
         <div className="play-icon">▶</div>
         See Roy in action

@@ -74,7 +74,7 @@ const faqs = [
 /* ══════════════════════════════════════════════ */
 export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
 
   return (
@@ -127,7 +127,7 @@ export default function PricingPage() {
             <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", marginBottom: "28px" }}>
               no credit card required
             </div>
-            {isSignedIn ? (
+            {isLoaded && (isSignedIn ? (
               <button
                 style={{
                   display: "block",
@@ -188,7 +188,7 @@ export default function PricingPage() {
                   Get started free
                 </button>
               </SignUpButton>
-            )}
+            ))}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {artistFeatures.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px", color: "rgba(255,255,255,0.75)" }}>
@@ -240,7 +240,7 @@ export default function PricingPage() {
             <div style={{ fontSize: "13px", color: "rgba(0,0,0,0.55)", marginBottom: "28px" }}>
               billed monthly · cancel anytime
             </div>
-            {isSignedIn ? (
+            {isLoaded && (isSignedIn ? (
               <button
                 style={{
                   display: "block",
@@ -289,7 +289,7 @@ export default function PricingPage() {
                   Get Roy Label
                 </button>
               </SignUpButton>
-            )}
+            ))}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {labelFeatures.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px", color: "rgba(0,0,0,0.8)" }}>
@@ -392,7 +392,7 @@ export default function PricingPage() {
             you if something&apos;s missing.
           </p>
           <div className="cta-btns">
-            {isSignedIn ? (
+            {isLoaded && (isSignedIn ? (
               <button className="btn-primary" onClick={() => router.push('/roy-tool')}>
                 Go to Roy Tool{" "}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -404,7 +404,7 @@ export default function PricingPage() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                 </button>
               </SignUpButton>
-            )}
+            ))}
             <Link href="/contact" className="btn-outline">
               Talk to us
             </Link>
