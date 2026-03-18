@@ -47,12 +47,7 @@ export default function Home() {
           <img
             src="/screenshots/roy-tool-result.png"
             alt="Roy tool — Roy's Take, earnings summary, and benchmark stats"
-            style={{ width: "100%", borderRadius: "12px 12px 0 0", display: "block" }}
-          />
-          <img
-            src="/screenshots/roy-tool-result-2.png"
-            alt="Roy tool — revenue over time chart and per-platform benchmark rates"
-            style={{ width: "100%", borderRadius: "0 0 12px 12px", display: "block" }}
+            style={{ width: "100%", borderRadius: "12px", display: "block" }}
           />
         </Link>
       </div>

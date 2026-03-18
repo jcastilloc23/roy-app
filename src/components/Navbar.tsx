@@ -54,7 +54,7 @@ export default function Navbar() {
           <div className="nav-actions">
             {!isSignedIn && (
               <SignUpButton mode="modal">
-                <button className="btn-primary" style={{ padding: "9px 18px", fontSize: "14px" }}>
+                <button className="btn-primary nav-cta" style={{ padding: "9px 18px", fontSize: "14px" }}>
                   Get Started Free
                 </button>
               </SignUpButton>
@@ -66,7 +66,6 @@ export default function Navbar() {
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
               style={{
-                display: "none",
                 flexDirection: "column",
                 gap: "5px",
                 background: "none",
