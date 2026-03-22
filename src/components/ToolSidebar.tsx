@@ -35,7 +35,7 @@ export default function ToolSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside style={{
+    <aside className="tool-sidebar" style={{
       width: "200px",
       minHeight: "calc(100vh - 64px)",
       background: "var(--roy-bg)",

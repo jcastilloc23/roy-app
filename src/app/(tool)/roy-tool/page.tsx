@@ -537,6 +537,7 @@ function DropZone({ onFile }: { onFile: (file: File) => void }) {
       onDragOver={(e) => { e.preventDefault(); setHovering(true); }}
       onDragLeave={() => setHovering(false)}
       onDrop={handleDrop}
+      className="dropzone-inner"
       style={{
         border: `2px dashed ${hovering ? GREEN : "rgba(200,255,0,0.3)"}`,
         borderRadius: "8px",
