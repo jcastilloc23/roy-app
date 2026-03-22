@@ -24,6 +24,12 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "Roy — Music Royalty Transparency",

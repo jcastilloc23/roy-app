@@ -1305,12 +1305,84 @@ footer {
   }
 }
 
+/* ===== TOOL LAYOUT — BASE (DESKTOP) ===== */
+.tool-body {
+  display: flex;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.tool-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* ===== TOOL TAB BAR — MOBILE ONLY ===== */
+.tool-tabbar {
+  display: none;
+}
+
 /* ===== TOOL LAYOUT — MOBILE ===== */
 @media (max-width: 768px) {
+  .tool-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .tool-body {
+    height: auto;
+    flex: 1;
+    min-height: 0;
+  }
+
   .tool-sidebar {
     display: none !important;
   }
+
   .dropzone-inner {
     padding: 32px 20px;
+  }
+
+  .tool-tabbar {
+    display: flex;
+    position: static;
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--roy-bg, var(--bg));
+    border-top: 1px solid var(--roy-border, var(--border));
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .tool-tabbar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--roy-text-muted, var(--text-muted));
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+    transition: color 0.15s;
+  }
+
+  .tool-tabbar-item.active {
+    color: var(--roy-accent, var(--green));
+  }
+
+  .tool-tabbar-icon {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .tool-main {
+    padding-bottom: 0;
   }
 }
